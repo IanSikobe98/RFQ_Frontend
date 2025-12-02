@@ -17,8 +17,8 @@ export const initialState = {
     },
      theme_color: {
       colors: {
-        "--{{prefix}}primary": "#3a57e8",
-        "--{{prefix}}info": "#08B1BA"
+        "--{{prefix}}primary": "#008B8B",
+        "--{{prefix}}info": "#008B8B"
       },
       value: "theme-color-default"
     },
@@ -81,8 +81,8 @@ export const defaultState = {
       ],
       type: "default",
       colors: {
-        "--{{prefix}}primary": "#3a57e8",
-        "--{{prefix}}info": "#08B1BA",
+        "--{{prefix}}primary": "#008B8B",
+        "--{{prefix}}info": "#008B8B",
       },
       value: "theme-color-default",
     },

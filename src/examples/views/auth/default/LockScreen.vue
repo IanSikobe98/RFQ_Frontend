@@ -7,7 +7,7 @@
             <brand-logo></brand-logo>
             <h4 class="logo-title ms-3 mb-0"><brand-name></brand-name></h4>
           </router-link>
-          <img src="@/assets/images/avatars/01.png" class="rounded avatar-80 mb-3" alt="" />
+          <img src="../../../../assets/images/avatars/01.png" class="rounded avatar-80 mb-3" alt="" />
           <h2 class="mb-2">Hi ! Ruben Dokidis</h2>
           <p>Enter your password to access the admin.</p>
           <form>
@@ -34,7 +34,7 @@
         </div>
       </b-col>
       <div class="col-md-6 d-md-block d-none bg-primary p-0 vh-100 overflow-hidden">
-        <img src="@/assets/images/auth/04.png" class="img-fluid gradient-main animated-scaleX" alt="images" loading="lazy" />
+        <img src="../../../../assets/images/auth/04.png" class="img-fluid gradient-main animated-scaleX" alt="images" loading="lazy" />
       </div>
     </b-row>
   </section>

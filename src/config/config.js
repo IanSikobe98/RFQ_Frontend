@@ -8,9 +8,5 @@ export default {
     DECIMAL_WHOLE_NUMBERS_REGEX : /^\d+(\.\d+)?$/,
     CURRENCY_REGEX:/^\d+(\.\d{1,2})?$/,
     SECRET_KEY: 'MyRSY1hAOGVXcDlUcTNMcw==',
-    ADMIN_ROLE: 'SYSTEM ADMINISTRATOR',
-    DPO_LIMIT: 1000
-
-// /^[a-zA-Z0-9]+(?:[ '-/][a-zA-Z0-9]+)*$/
 
 }

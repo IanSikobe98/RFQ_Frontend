@@ -10,6 +10,8 @@ import VueApexCharts from 'vue3-apexcharts'
 import BootstrapVue3 from 'bootstrap-vue-3'
 import CounterUp from 'vue3-autocounter'
 import 'aos/dist/aos.css'
+import 'sweetalert2/dist/sweetalert2.min.css';
+import interceptorsSetup from './util/interceptor.js'
 
 // Custom Components & Directives
 import globalComponent from './plugins/global-components'
@@ -31,7 +33,7 @@ app.component('counter-up', CounterUp)
 app.use(globalComponent)
 app.use(globalDirective)
 app.mixin(globalMixin)
-
+interceptorsSetup()
 app.mount('#app')
 
 export default app

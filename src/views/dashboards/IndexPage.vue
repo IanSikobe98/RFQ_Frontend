@@ -3,6 +3,7 @@
     <div class="col-md-12 col-lg-12">
       <div class="row row-cols-1" data-aos="fade-up" data-aos-delay="800">
         <div class="d-slider1 overflow-hidden swiper-container-initialized swiper-container-horizontal swiper-container-pointer-events">
+
           <Swiper
             class="p-0 m-0 mb-2 swiper-wrapper list-inline"
             :modules="modules"

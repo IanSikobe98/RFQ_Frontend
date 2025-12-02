@@ -3,9 +3,9 @@
     <div class="sidebar-header d-flex align-items-center justify-content-start">
       <router-link :to="{ name: 'default.dashboard' }" class="navbar-brand">
         <brand-logo></brand-logo>
-        <h4 class="logo-title" data-setting="app_name">
-          <brand-name></brand-name>
-        </h4>
+<!--        <h4 class="logo-title" data-setting="app_name">-->
+<!--          <brand-name></brand-name>-->
+<!--        </h4>-->
       </router-link>
       <div class="sidebar-toggle" @click="toggleSidebar">
         <i class="icon">

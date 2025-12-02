@@ -40,16 +40,16 @@
                 <div class="d-flex justify-content-center">
                   <ul class="list-group list-group-horizontal list-group-flush">
                     <li class="list-group-item border-0 pb-0">
-                      <a href="#"><img src="@/assets/images/brands/fb.svg" alt="fb" loading="lazy" /></a>
+                      <a href="#"><img src="../../../../assets/images/brands/fb.svg" alt="fb" loading="lazy" /></a>
                     </li>
                     <li class="list-group-item border-0 pb-0">
-                      <a href="#"><img src="@/assets/images/brands/gm.svg" alt="gm" loading="lazy" /></a>
+                      <a href="#"><img src="../../../../assets/images/brands/gm.svg" alt="gm" loading="lazy" /></a>
                     </li>
                     <li class="list-group-item border-0 pb-0">
-                      <a href="#"><img src="@/assets/images/brands/im.svg" alt="im" loading="lazy" /></a>
+                      <a href="#"><img src="../../../../assets/images/brands/im.svg" alt="im" loading="lazy" /></a>
                     </li>
                     <li class="list-group-item border-0 pb-0">
-                      <a href="#"><img src="@/assets/images/brands/li.svg" alt="li" loading="lazy" /></a>
+                      <a href="#"><img src="../../../../assets/images/brands/li.svg" alt="li" loading="lazy" /></a>
                     </li>
                   </ul>
                 </div>
@@ -70,7 +70,7 @@
         </div>
       </b-col>
       <div class="col-md-6 d-md-block d-none bg-primary p-0 vh-100 overflow-hidden">
-        <img src="@/assets/images/auth/01.png" class="img-fluid gradient-main animated-scaleX" alt="images" loading="lazy" />
+        <img src="../../../../assets/images/auth/01.png" class="img-fluid gradient-main animated-scaleX" alt="images" loading="lazy" />
       </div>
     </b-row>
   </section>
