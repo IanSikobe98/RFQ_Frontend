@@ -1,15 +1,14 @@
 <template>
-    <div class="iq-navbar-header" style="height: 100px">
-    </div>
-<!--  <div class="iq-navbar-header" style="height: 215px">-->
-<!--    <b-container fluid class="iq-container">-->
-<!--      <b-row>-->
-<!--        <b-col md="12">-->
-<!--          <div class="d-flex justify-content-between align-items-center flex-wrap">-->
-<!--            <div>-->
-<!--              <h1>Hello Hope!</h1>-->
-<!--              <p>Experience a simple yet powerful way to build Dashboards with HOPE UI.</p>-->
-<!--            </div>-->
+<!--    <div class="iq-navbar-header" style="height: 100px">-->
+  <div class="iq-navbar-header" style="height: 215px">
+    <b-container fluid class="iq-container">
+      <b-row>
+        <b-col md="12">
+          <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+              <h1>Welcome Ian!</h1>
+              <p>Get your deal in a matter of seconds in a seamless and easy way.</p>
+            </div>
 <!--            <div>-->
 <!--              <a href="" class="btn btn-link btn-soft-light">-->
 <!--                <svg width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">-->
@@ -19,20 +18,22 @@
 <!--                Announcements-->
 <!--              </a>-->
 <!--            </div>-->
-<!--          </div>-->
-<!--        </b-col>-->
-<!--      </b-row>-->
-<!--    </b-container>-->
-<!--    <div class="iq-header-img">-->
-<!--      <img src="@/assets/images/dashboard/top-header.png" alt="header" class="theme-color-default-img img-fluid w-100 h-100 animated-scaleX" />-->
-<!--      <img src="@/assets/images/dashboard/top-header1.png" alt="header" class="theme-color-purple-img img-fluid w-100 h-100 animated-scaleX" />-->
-<!--      <img src="@/assets/images/dashboard/top-header2.png" alt="header" class="theme-color-blue-img img-fluid w-100 h-100 animated-scaleX" />-->
-<!--      <img src="@/assets/images/dashboard/top-header3.png" alt="header" class="theme-color-green-img img-fluid w-100 h-100 animated-scaleX" />-->
-<!--      <img src="@/assets/images/dashboard/top-header4.png" alt="header" class="theme-color-yellow-img img-fluid w-100 h-100 animated-scaleX" />-->
-<!--      <img src="@/assets/images/dashboard/top-header5.png" alt="header" class="theme-color-pink-img img-fluid w-100 h-100 animated-scaleX" />-->
-<!--    </div>-->
-<!--  </div>-->
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
+    <div class="iq-header-img">
+      <img src="@/assets/images/forex-trading-course.jpeg" alt="header" class="theme-color-default-img img-fluid w-100 h-100 animated-scaleX darken-img" />
+    </div>
+  </div>
 </template>
 <script>
 export default {}
 </script>
+
+<style>
+.darken-img {
+  filter: brightness(50%); /* 0% = black, 100% = normal */
+  transition: filter 0.3s ease; /* optional smooth effect */
+}
+</style>

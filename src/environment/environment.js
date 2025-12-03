@@ -8,7 +8,18 @@ export default {
             activateUser: '/auth/activate/user',
             forgotPassword: '/auth/forgotPassword',
             resetPassword: '/auth/resetPassword',
-        }
+        },
+      user:{
+        createUser:'/user/create',
+        getUsers: '/user/read',
+      },
+      approvals:{
+        approveEntity:'/approvals/approve',
+      },
+      roles:{
+        getRoles:'/user/roles/read',
+        createRoles:'/user/roles/create',
+      },
 
     }
 }

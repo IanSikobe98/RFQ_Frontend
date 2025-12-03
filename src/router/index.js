@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import store from '../store'
 import Error404Page from '@/views/errors/Error404Page.vue'
 import IndexPage from '@/views/dashboards/IndexPage.vue'
+import CreateUser from '@/views/user/CreateUser.vue'
+import ViewUsers from '@/views/user/ViewUsers.vue'
 
 
 const defaultChildRoutes = (prefix) => [
@@ -10,6 +12,20 @@ const defaultChildRoutes = (prefix) => [
     name: prefix + '.dashboard',
     meta: { auth: true, name: 'Home', isBanner: true, requiresAuth: true },
     component: IndexPage
+  },
+
+  {
+    path: '/createUser',
+    name: prefix + '.createUser',
+    meta: { auth: true, name: 'CreateUser', isBanner: true, requiresAuth: true },
+    component: CreateUser
+  },
+
+  {
+    path: '/viewUsers',
+    name: prefix + '.viewUsers',
+    meta: { auth: true, name: 'viewUsers', isBanner: true, requiresAuth: true },
+    component: ViewUsers
   },
 
 
