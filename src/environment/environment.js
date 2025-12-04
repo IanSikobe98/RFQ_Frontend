@@ -12,6 +12,7 @@ export default {
       user:{
         createUser:'/user/create',
         getUsers: '/user/read',
+        getUserApprovals: '/user/pendingApprovals/read'
       },
       approvals:{
         approveEntity:'/approvals/approve',

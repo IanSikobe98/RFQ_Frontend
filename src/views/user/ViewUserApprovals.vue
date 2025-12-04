@@ -20,6 +20,7 @@ export default {
         { title: 'Phone', data: 'phone' },
         { title: 'Email', data: 'email' },
         { title: 'Role', data: 'role.roleName' },
+        { title: 'Action', data: 'action' },
         {
           title: 'Status',
           data: 'status',
@@ -38,12 +39,9 @@ export default {
           orderable: false,
           searchable: false,
           render: function (data, type, row) {
-            const activeDisabled = row.status.statusId === 0? '' : 'disabled'
-            const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
-            return `<!--<button class="btn btn-sm btn-dark me-1 dt-edit" data-id="${row.id}" >View</button> -->
-    <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}" @click="approveOrReject" >Edit</button>
- <button class="btn btn-sm btn-primary me-1 dt-enable" data-id="${row.id}" @click="approveOrReject"${activeDisabled}>Enable</button>
-<button class="btn btn-sm btn-danger me-1 dt-disable" data-id="${row.id}" ${inactiveDisabled}> Disable</button>`
+            const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
+            return `<button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
+                   <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
           }
         }
       ],
@@ -80,7 +78,7 @@ export default {
       this.loading = true
       var url = env.apiUrl.baseUrl + env.apiUrl.approvals.approveEntity
       var ids = []
-      ids.push(this.row?.userId)
+      ids.push(this.row?.id)
 
       axios
         .post(url, {
@@ -100,7 +98,11 @@ export default {
             Swal.fire({
               icon: 'error',
               title: 'Error!',
-              text: this.responseMessage
+              text: this.responseMessage,
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2', // green button
+                cancelButton: 'btn btn-secondary px-4' // gray button
+              }
             })
             console.log(this.responseMessage)
             return
@@ -125,7 +127,11 @@ export default {
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'An error occurred during User Approval'
+            text: 'An error occurred during User Approval',
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2', // green button
+              cancelButton: 'btn btn-secondary px-4' // gray button
+            }
           })
         })
         .finally(() => {
@@ -140,22 +146,26 @@ export default {
     },
     fetchUsers() {
       this.loading = true
-      const url = env.apiUrl.baseUrl + env.apiUrl.user.getUsers
-      const token = localStorage.getItem('token')
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
+      const url = env.apiUrl.baseUrl + env.apiUrl.user.getUserApprovals
+      var statuses = [6];// Pending Status
       axios
-        .post(url, { page: 0, size: 10 })
+        .post(url, {statuses:statuses, page: 0, size: 10 })
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage })
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,            customClass: {
+                confirmButton: 'btn btn-success px-4 me-2', // green button
+                cancelButton: 'btn btn-secondary px-4' // gray button
+              } })
             return
           }
           this.users = data.data // reactive update, DataTable will redraw automatically
         })
         .catch((error) => {
-          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Users' })
+          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Users',            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2', // green button
+              cancelButton: 'btn btn-secondary px-4' // gray button
+            } })
           console.error(error)
         })
         .finally(() => {
@@ -175,7 +185,7 @@ export default {
       <div class="card">
         <div class="card-header d-flex justify-content-between">
           <div class="header-title">
-            <h4 class="card-title">View Users</h4>
+            <h4 class="card-title">View User Approvals</h4>
           </div>
         </div>
         <div class="card-body px-3 pt-0 pb-3">
@@ -213,7 +223,7 @@ export default {
   <div v-if="showRejectModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
-        <h5 class="modal-title text-center text-white">Approve User</h5>
+        <h5 class="modal-title text-center text-white">Reject User</h5>
         <button type="button" class="btn-close" @click="showRejectModal = false"></button>
       </div>
       <div class="modal-body">
@@ -230,7 +240,7 @@ export default {
       </div>
       <div class="modal-footer justify-content-center" style="gap: 1rem">
         <button class="btn btn-danger px-4" @click="showRejectModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="rejectRecord(row)">Approve</button>
+        <button class="btn btn-success px-4" @click="rejectRecord(row)">Reject</button>
       </div>
     </div>
   </div>

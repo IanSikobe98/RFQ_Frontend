@@ -48,6 +48,7 @@
 <!--          <side-menu isTag="router-link" title="User List" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.user-list' }"></side-menu>-->
           <side-menu isTag="router-link" title="Create User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.createUser' }"></side-menu>
           <side-menu isTag="router-link" title="View User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUsers' }"></side-menu>
+          <side-menu isTag="router-link" title="View User Approvals" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUserApprovals' }"></side-menu>
         </b-collapse>
       </side-menu>
 <!--      <side-menu title="Utilities" icon="bookmark" toggle-id="utilities" :caret-icon="true" :route="{ popup: 'false', to: 'errors' }" @onClick="toggle" :active="currentRoute.includes('errors')">-->

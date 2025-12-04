@@ -6,7 +6,7 @@
 // import ArgonButton from "@/samples/ArgonButton.vue";
 // import coopLogo from "@/assets/img/green.svg";
 // import coopBankSoko from "@/assets/img/coopsoko.svg";
-// import Loader from "@/components/Loader.vue";
+// import Loader from "@/components/loader/AppLoader.vue";
 // const body = document.getElementsByTagName("body")[0];
 
 // const store = useStore();

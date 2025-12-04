@@ -9,6 +9,9 @@ import 'datatables.net-bs5/js/dataTables.bootstrap5.min.js'
 import 'datatables.net-bs5'
 import $ from 'jquery'
 
+import { defineEmits } from "vue"
+const emit = defineEmits(["view","edit","enable","disable","approve","reject"])
+
 const props = defineProps({
   data: Array,
   columns: Array,
@@ -62,6 +65,55 @@ const initTable = () => {
       // }
       // Apply stripe colors
       if (props.striped) applyStripeColors()
+
+
+      //Add actions for buttons on DataTable
+      // Prevent duplicated events on re-renders
+      $(tableRef.value).off("click", ".dt-view")
+      $(tableRef.value).off("click", ".dt-edit")
+      $(tableRef.value).off("click", ".dt-enable")
+      $(tableRef.value).off("click", ".dt-disable")
+      $(tableRef.value).off("click", ".dt-approve")
+      $(tableRef.value).off("click", ".dt-reject")
+
+
+
+      $(tableRef.value).on("click", ".dt-edit", function () {
+        const table = $(tableRef.value).DataTable();
+        const rowData = table.row($(this).closest('tr')).data(); // full row object
+        emit("edit", rowData)
+      })
+
+      $(tableRef.value).on("click", ".dt-enable", function () {
+        const table = $(tableRef.value).DataTable();
+        const rowData = table.row($(this).closest('tr')).data(); // full row object
+        emit("enable", rowData)
+      })
+
+      $(tableRef.value).on("click", ".dt-disable", function () {
+        const table = $(tableRef.value).DataTable();
+        const rowData = table.row($(this).closest('tr')).data(); // full row object
+        emit("disable", rowData)
+      })
+
+
+      $(tableRef.value).on("click", ".dt-view", function () {
+        const table = $(tableRef.value).DataTable();
+        const rowData = table.row($(this).closest('tr')).data(); // full row object
+        emit("view", rowData)
+      })
+
+      $(tableRef.value).on("click", ".dt-approve", function () {
+        const table = $(tableRef.value).DataTable();
+        const rowData = table.row($(this).closest('tr')).data(); // full row object
+        emit("approve", rowData)
+      })
+
+      $(tableRef.value).on("click", ".dt-reject", function () {
+        const table = $(tableRef.value).DataTable();
+        const rowData = table.row($(this).closest('tr')).data(); // full row object
+        emit("reject", rowData)
+      })
     }
   })
 }

@@ -4,6 +4,7 @@ import Error404Page from '@/views/errors/Error404Page.vue'
 import IndexPage from '@/views/dashboards/IndexPage.vue'
 import CreateUser from '@/views/user/CreateUser.vue'
 import ViewUsers from '@/views/user/ViewUsers.vue'
+import ViewUserApprovals from '@/views/user/ViewUserApprovals.vue'
 
 
 const defaultChildRoutes = (prefix) => [
@@ -26,6 +27,13 @@ const defaultChildRoutes = (prefix) => [
     name: prefix + '.viewUsers',
     meta: { auth: true, name: 'viewUsers', isBanner: true, requiresAuth: true },
     component: ViewUsers
+  },
+
+  {
+    path: '/viewUserApprovals',
+    name: prefix + '.viewUserApprovals',
+    meta: { auth: true, name: 'viewUserApprovals', isBanner: true, requiresAuth: true },
+    component: ViewUserApprovals
   },
 
 

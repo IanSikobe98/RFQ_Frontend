@@ -1,5 +1,5 @@
 <template>
-  <loader-component :show="isLoader"></loader-component>
+  <app-loader :show="isLoader"></app-loader>
   <!-- Sidebar Component Start Here-->
   <sidebar-component></sidebar-component>
   <!-- Sidebar Component End Here-->
@@ -33,7 +33,7 @@
 
 <script setup>
 // Library
-import { ref, computed, onMounted } from 'vue'
+import {  computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
@@ -44,19 +44,19 @@ import SidebarComponent from '@/components/partials/SidebarComponent.vue'
 import MainContentComponent from '@/components/partials/MainContentComponent.vue'
 import FooterComponent from '@/components/partials/FooterComponent.vue'
 import SettingOffcanvas from '@/components/setting/SettingOffcanvas.vue'
-import LoaderComponent from '@/components/custom/loader/LoaderComponent.vue'
+// import AppLoader from '@/components/loader/AppLoader.vue'
 
 const route = useRoute()
 const store = useStore()
 const isBanner = computed(() => route.meta.isBanner)
 const bannerStyle = computed(() => store.getters['setting/header_banner'])
-const isLoader = ref(true)
+// const isLoader = ref(true)
 
-onMounted(() => {
-  setTimeout(() => {
-    isLoader.value = false
-  }, 300)
-})
+// onMounted(() => {
+//   setTimeout(() => {
+//     isLoader.value = false
+//   }, 300)
+// })
 </script>
 
 <style></style>
