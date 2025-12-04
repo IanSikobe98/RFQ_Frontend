@@ -149,13 +149,22 @@ export default {
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage })
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+              customClass: {
+              confirmButton: 'btn btn-success px-4 me-2', // green button
+                cancelButton: 'btn btn-secondary px-4' // gray button
+            }
+            })
             return
           }
           this.users = data.data // reactive update, DataTable will redraw automatically
         })
         .catch((error) => {
-          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Users' })
+          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Users'
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2', // green button
+              cancelButton: 'btn btn-secondary px-4' // gray button
+            }})
           console.error(error)
         })
         .finally(() => {
