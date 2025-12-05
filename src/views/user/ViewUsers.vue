@@ -5,14 +5,20 @@ import axios from 'axios'
 import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
+import updateUser from '@/views/user/UpdateUser.vue'
 
 export default {
+  computed: {
+    updateUser() {
+      return updateUser
+    }
+  },
   components: { AppLoader, DataTable },
   data() {
     return {
       users: [],
-      showApproveModal: false,
-      showRejectModal: false,
+      showEnableModal: false,
+      showDisableModal: false,
       loading: false,
       comment: '',
       columns: [
@@ -57,37 +63,40 @@ export default {
     this.fetchUsers()
   },
   methods: {
-    showApproveDialog(row) {
+    editUsers(item){
+      console.log("user ",JSON.stringify(item))
+      localStorage.setItem("selectedUser", JSON.stringify(item))
+      this.$router.push('/updateUser');
+    },
+    showEnableDialog(row) {
       this.comment = ''
       this.row = row
-      this.showApproveModal = true
+      this.showEnableModal = true
     },
-    showRejectionDialog(row) {
+    showDisableDialog(row) {
       this.comment = ''
       this.row = row
-      this.showRejectModal = true
+      this.showDisableModal= true
     },
 
-    approveRecord(row) {
-      this.approveOrReject(row, 'APPROVE')
+    enableRecord(row) {
+      this.changeStatus(row, '1')
     },
-    rejectRecord(row) {
-      this.approveOrReject(row, 'REJECT')
+    disableRecord(row) {
+      this.changeStatus(row, '0')
     },
-
-    approveOrReject(row, action) {
-      console.log(action, row,"x")
+    changeStatus(row,status) {
       this.loading = true
-      var url = env.apiUrl.baseUrl + env.apiUrl.approvals.approveEntity
-      var ids = []
-      ids.push(this.row?.userId)
+      this.message = ''
 
+      var url = env.apiUrl.baseUrl + env.apiUrl.user.editUser
+      console.log('status', url)
+      console.log('row ', url)
+      this.row = row
       axios
         .post(url, {
-          ids: ids,
-          action: action,
-          description: this.comment,
-          approvalType: 'USER'
+          status: status,
+          id: this.row?.userId
         })
         .then((response) => {
           var data = response.data
@@ -100,7 +109,11 @@ export default {
             Swal.fire({
               icon: 'error',
               title: 'Error!',
-              text: this.responseMessage
+              text: this.responseMessage,
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2', // green button
+                cancelButton: 'btn btn-secondary px-4' // gray button
+              }
             })
             console.log(this.responseMessage)
             return
@@ -115,29 +128,31 @@ export default {
               cancelButton: 'btn btn-secondary px-4' // gray button
             }
           })
-          console.log('User approved successfully  ')
-          this.fetchUsers()
+          console.log('User Update Request created successfully  ', this.userName)
+          this.$router.push('/viewUsers')
         })
         .catch((error) => {
           console.log('Error is ', error)
-          this.errorMessage = 'User Approval error'
+          this.errorMessage = 'User Update error'
           console.log(this.errorMessage)
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'An error occurred during User Approval'
+            text: 'An error occurred during User Update',
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2', // green button
+              cancelButton: 'btn btn-secondary px-4' // gray button
+            }
           })
         })
         .finally(() => {
           // Code here will always execute after the promise resolves or rejects
           this.loading = false
-          if (action === 'APPROVE') {
-            this.showApproveModal = false
-          } else {
-            this.showRejectModal = false
-          }
+          this.showEnableModal = false
+          this.showDisableModal = false
         })
     },
+
     fetchUsers() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.user.getUsers
@@ -188,58 +203,52 @@ export default {
           </div>
         </div>
         <div class="card-body px-3 pt-0 pb-3">
-          <data-table :data="users" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog" />
+          <data-table
+            :data="users" :columns="columns" :isFooter="true" :striped="false"
+            @enable="showEnableDialog" @disable="showDisableDialog"
+          @edit ="editUsers"
+          />
         </div>
       </div>
     </div>
   </div>
 
-  <div v-if="showApproveModal" class="modal-backdrop">
+  <div v-if="showEnableModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
-        <h5 class="modal-title text-center text-white">Approve User</h5>
-        <button type="button" class="btn-close" @click="showApproveModal = false"></button>
+        <h5 class="modal-title text-center text-white">Enable User</h5>
+        <button type="button" class="btn-close" @click="showEnableModal = false"></button>
       </div>
       <div class="modal-body">
         <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
         <p>
-          Are you sure you want to approve <strong>{{ row?.username }}</strong
+          Are you sure you want to enable <strong>{{ row?.username }}</strong
           >?
         </p>
-
-        <!--        <div class="mt-3 text-start">-->
-        <!--          <label for="approvalComment" class="form-label">Comments (optional)</label>-->
-
-        <!--        </div>-->
       </div>
       <div class="modal-footer justify-content-center" style="gap: 1rem">
-        <button class="btn btn-danger px-4" @click="showApproveModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="approveRecord(row)">Approve</button>
+        <button class="btn btn-danger px-4" @click="showEnableModal = false">Cancel</button>
+        <button class="btn btn-success px-4" @click="enableRecord(row)">Enable</button>
       </div>
     </div>
   </div>
 
-  <div v-if="showRejectModal" class="modal-backdrop">
+  <div v-if="showDisableModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
-        <h5 class="modal-title text-center text-white">Approve User</h5>
-        <button type="button" class="btn-close" @click="showRejectModal = false"></button>
+        <h5 class="modal-title text-center text-white">Disable User</h5>
+        <button type="button" class="btn-close" @click="showDisableModal = false"></button>
       </div>
       <div class="modal-body">
         <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
         <p>
-          Are you sure you want to reject <strong>{{ row.username }}</strong
+          Are you sure you want to Disable <strong>{{ row.username }}</strong
           >?
         </p>
-
-        <div class="mt-3 text-start">
-          <label for="approvalComment" class="form-label">Comments (optional)</label>
-          <textarea id="approvalComment" class="form-control" v-model="comment" rows="3" placeholder="Add your comment here..."></textarea>
-        </div>
       </div>
       <div class="modal-footer justify-content-center" style="gap: 1rem">
-        <button class="btn btn-danger px-4" @click="showRejectModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="rejectRecord(row)">Approve</button>
+        <button class="btn btn-danger px-4" @click="showDisableModal= false">Cancel</button>
+        <button class="btn btn-success px-4" @click="disableRecord(row)">Disable</button>
       </div>
     </div>
   </div>

@@ -5,6 +5,7 @@ import IndexPage from '@/views/dashboards/IndexPage.vue'
 import CreateUser from '@/views/user/CreateUser.vue'
 import ViewUsers from '@/views/user/ViewUsers.vue'
 import ViewUserApprovals from '@/views/user/ViewUserApprovals.vue'
+import UpdateUser from '@/views/user/UpdateUser.vue'
 
 
 const defaultChildRoutes = (prefix) => [
@@ -27,6 +28,12 @@ const defaultChildRoutes = (prefix) => [
     name: prefix + '.viewUsers',
     meta: { auth: true, name: 'viewUsers', isBanner: true, requiresAuth: true },
     component: ViewUsers
+  },
+  {
+    path: '/updateUser',
+    name: prefix + '.updateUser',
+    meta: { auth: true, name: 'updateUser', isBanner: true, requiresAuth: true },
+    component: UpdateUser
   },
 
   {

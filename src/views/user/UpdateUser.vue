@@ -17,15 +17,35 @@ export default {
       phone: '',
       role: '',
       roles: [],
-      errors: {} // Store error messages
+      errors: {}, // Store error messages
+      userToEdit: {},
     }
   },
   mounted() {
-    this.fetchRoles();
+    var jsonData = localStorage.getItem("selectedUser")
+    console.log("Component mounted2.", jsonData);
+    if (jsonData) {
+      try {
+        this.userToEdit = JSON.parse(jsonData);
+        console.log("Parsed Data: ", this.userToEdit);
+        console.log("Parsed Data: ", this.userToEdit.username);
+        this.setFormData();
+        // Use parsedData as needed
+      } catch (error) {
+        console.error("Error parsing JSON data: ", error);
+      }
+    }
   },
   methods: {
-    viewUsers(){
-      this.$router.push('/viewUsers');
+    setFormData() {
+      this.userName = this.userToEdit.username;
+      this.phone = this.userToEdit.phone;
+      this.email = this.userToEdit.email;
+      this.role = this.userToEdit.role?.roleId;
+
+
+      this.fetchRoles();
+      // permissions : this.selectedPermissions
     },
     fetchRoles() {
       this.loading = true
@@ -59,7 +79,10 @@ export default {
           this.loading = false // hide loader
         })
     },
-    createUser() {
+    viewUsers(){
+      this.$router.push('/viewUsers');
+    },
+    editUser() {
       if (!this.validateForm()) {
         console.log('Validation failed', this.errors)
         return // Stop submission if validation fails
@@ -68,7 +91,7 @@ export default {
       this.loading = true
       this.message = ''
 
-      var url = env.apiUrl.baseUrl + env.apiUrl.user.createUser
+      var url = env.apiUrl.baseUrl + env.apiUrl.user.editUser
       console.log('url ', url)
       const token = localStorage.getItem('token')
       console.log('token', token)
@@ -78,7 +101,8 @@ export default {
           userName: this.userName,
           phoneNumber: this.phone,
           email: this.email,
-          roleId: this.role
+          roleId: this.role,
+          id: this.userToEdit?.userId
         })
         .then((response) => {
           var data = response.data
@@ -110,17 +134,17 @@ export default {
               cancelButton: 'btn btn-secondary px-4' // gray button
             }
           })
-          console.log('User created successfully  ', this.userName)
+          console.log('User update created successfully  ', this.userName)
           this.$router.push('/viewUsers')
         })
         .catch((error) => {
           console.log('Error is ', error)
-          this.errorMessage = 'User Creation error'
+          this.errorMessage = 'User Update error'
           console.log(this.errorMessage)
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'An error occurred during User Creation',
+            text: 'An error occurred during User Update',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2', // green button
               cancelButton: 'btn btn-secondary px-4' // gray button
@@ -173,7 +197,7 @@ export default {
     <b-col lg="12" sm="12">
       <b-card no-body class="shadow-sm rounded-3 border-0" data-aos-delay="800">
         <b-card-header header-class=" text-white py-3 d-flex justify-content-between align-items-center rounded-top">
-          <h4 class="mb-0 font-weight-bold">Create User</h4>
+          <h4 class="mb-0 font-weight-bold">Update User</h4>
           <!-- Buttons -->
           <div class="d-flex justify-content-end gap-3">
             <b-button variant="primary" class="px-4" @click="viewUsers">View Users </b-button>
@@ -221,7 +245,7 @@ export default {
 
             <!-- Buttons -->
             <div class="d-flex justify-content-end gap-3">
-              <b-button variant="primary" class="px-4" @click="createUser">Create User </b-button>
+              <b-button variant="primary" class="px-4" @click="editUser">Update User </b-button>
             </div>
           </b-form>
         </b-card-body>

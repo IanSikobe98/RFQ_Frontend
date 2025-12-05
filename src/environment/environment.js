@@ -11,6 +11,7 @@ export default {
         },
       user:{
         createUser:'/user/create',
+        editUser:'/user/edit',
         getUsers: '/user/read',
         getUserApprovals: '/user/pendingApprovals/read'
       },
