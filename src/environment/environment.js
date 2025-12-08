@@ -21,7 +21,13 @@ export default {
       roles:{
         getRoles:'/user/roles/read',
         createRoles:'/user/roles/create',
+        getUserApprovals: '/user/pendingApprovals/read',
+        getRoleApprovals: '/user/roles/pendingApprovals/read',
+        editRole:'/user/roles/edit',
       },
+      permissions:{
+          getPermissions:'/user/permissions/read',
+      }
 
     }
 }

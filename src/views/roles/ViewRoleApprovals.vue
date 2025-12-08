@@ -10,16 +10,14 @@ export default {
   components: { AppLoader, DataTable },
   data() {
     return {
-      users: [],
+      roles: [],
       showApproveModal: false,
       showRejectModal: false,
       loading: false,
       comment: '',
       columns: [
-        { title: 'Name', data: 'username' },
-        { title: 'Phone', data: 'phone' },
-        { title: 'Email', data: 'email' },
-        { title: 'Role', data: 'role.roleName' },
+        { title: 'Name', data: 'roleName' },
+        { title: 'Description', data: 'roleDescription' },
         { title: 'New Status', data: 'entityStatusName' },
         { title: 'Action', data: 'action' },
         {
@@ -53,7 +51,7 @@ export default {
     // setTimeout(() => {
     //   this.loading = false;
     // }, 100);
-    this.fetchUsers()
+    this.fetchRoles()
   },
   methods: {
     showApproveDialog(row) {
@@ -86,7 +84,7 @@ export default {
           ids: ids,
           action: action,
           description: this.comment,
-          approvalType: 'USER'
+          approvalType: 'ROLE'
         })
         .then((response) => {
           var data = response.data
@@ -118,17 +116,17 @@ export default {
               cancelButton: 'btn btn-secondary px-4' // gray button
             }
           })
-          console.log('User approved successfully  ')
-          this.fetchUsers()
+          console.log('Role approved successfully  ')
+          this.fetchRoles()
         })
         .catch((error) => {
           console.log('Error is ', error)
-          this.errorMessage = 'User Approval error'
+          this.errorMessage = 'Role Approval error'
           console.log(this.errorMessage)
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'An error occurred during User Approval',
+            text: 'An error occurred during Role Approval',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2', // green button
               cancelButton: 'btn btn-secondary px-4' // gray button
@@ -145,28 +143,32 @@ export default {
           }
         })
     },
-    fetchUsers() {
+    fetchRoles() {
       this.loading = true
-      const url = env.apiUrl.baseUrl + env.apiUrl.user.getUserApprovals
+      const url = env.apiUrl.baseUrl + env.apiUrl.roles.getRoleApprovals
       var statuses = [6];// Pending Status
+
       axios
-        .post(url, {statuses:statuses, page: 0, size: 10 })
+        .post(url, { page: 0, size: 10 ,statuses:statuses})
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,            customClass: {
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+              customClass: {
                 confirmButton: 'btn btn-success px-4 me-2', // green button
                 cancelButton: 'btn btn-secondary px-4' // gray button
-              } })
+              }
+            })
             return
           }
-          this.users = data.data // reactive update, DataTable will redraw automatically
+          this.roles = data.data // reactive update, DataTable will redraw automatically
         })
         .catch((error) => {
-          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Users',            customClass: {
+          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Roles',
+            customClass: {
               confirmButton: 'btn btn-success px-4 me-2', // green button
               cancelButton: 'btn btn-secondary px-4' // gray button
-            } })
+            }})
           console.error(error)
         })
         .finally(() => {
@@ -186,11 +188,11 @@ export default {
       <div class="card">
         <div class="card-header d-flex justify-content-between">
           <div class="header-title">
-            <h4 class="card-title">View User Approvals</h4>
+            <h4 class="card-title">View Role Approvals</h4>
           </div>
         </div>
         <div class="card-body px-3 pt-0 pb-3">
-          <data-table :data="users" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog" />
+          <data-table :data="roles" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog" />
         </div>
       </div>
     </div>
@@ -199,13 +201,13 @@ export default {
   <div v-if="showApproveModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
-        <h5 class="modal-title text-center text-white">Approve User</h5>
+        <h5 class="modal-title text-center text-white">Approve Role</h5>
         <button type="button" class="btn-close" @click="showApproveModal = false"></button>
       </div>
       <div class="modal-body">
         <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
         <p>
-          Are you sure you want to approve <strong>{{ row?.username }}</strong
+          Are you sure you want to approve <strong>{{ row?.roleName }}</strong
           >?
         </p>
 
@@ -224,13 +226,13 @@ export default {
   <div v-if="showRejectModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
-        <h5 class="modal-title text-center text-white">Reject User</h5>
+        <h5 class="modal-title text-center text-white">Reject Role</h5>
         <button type="button" class="btn-close" @click="showRejectModal = false"></button>
       </div>
       <div class="modal-body">
         <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
         <p>
-          Are you sure you want to reject <strong>{{ row.username }}</strong
+          Are you sure you want to reject <strong>{{ row.roleName }}</strong
           >?
         </p>
 

@@ -5,23 +5,25 @@ import axios from 'axios'
 import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
+import updateUser from '@/views/user/UpdateUser.vue'
 
 export default {
+  computed: {
+    updateUser() {
+      return updateUser
+    }
+  },
   components: { AppLoader, DataTable },
   data() {
     return {
-      users: [],
-      showApproveModal: false,
-      showRejectModal: false,
+      roles: [],
+      showEnableModal: false,
+      showDisableModal: false,
       loading: false,
       comment: '',
       columns: [
-        { title: 'Name', data: 'username' },
-        { title: 'Phone', data: 'phone' },
-        { title: 'Email', data: 'email' },
-        { title: 'Role', data: 'role.roleName' },
-        { title: 'New Status', data: 'entityStatusName' },
-        { title: 'Action', data: 'action' },
+        { title: 'Name', data: 'roleName' },
+        { title: 'Description', data: 'roleDescription' },
         {
           title: 'Status',
           data: 'status',
@@ -40,9 +42,12 @@ export default {
           orderable: false,
           searchable: false,
           render: function (data, type, row) {
-            const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
-            return `<button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
-                   <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
+            const activeDisabled = row.status.statusId === 0? '' : 'disabled'
+            const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
+            return `<!--<button class="btn btn-sm btn-dark me-1 dt-edit" data-id="${row.id}" >View</button> -->
+    <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}" @click="approveOrReject" >Edit</button>
+ <button class="btn btn-sm btn-primary me-1 dt-enable" data-id="${row.id}" @click="approveOrReject"${activeDisabled}>Enable</button>
+<button class="btn btn-sm btn-danger me-1 dt-disable" data-id="${row.id}" ${inactiveDisabled}> Disable</button>`
           }
         }
       ],
@@ -53,40 +58,43 @@ export default {
     // setTimeout(() => {
     //   this.loading = false;
     // }, 100);
-    this.fetchUsers()
+    this.fetchRoles()
   },
   methods: {
-    showApproveDialog(row) {
+    editUsers(item){
+      console.log("role ",JSON.stringify(item))
+      localStorage.setItem("selectedRole", JSON.stringify(item))
+      this.$router.push('/updateRole');
+    },
+    showEnableDialog(row) {
       this.comment = ''
       this.row = row
-      this.showApproveModal = true
+      this.showEnableModal = true
     },
-    showRejectionDialog(row) {
+    showDisableDialog(row) {
       this.comment = ''
       this.row = row
-      this.showRejectModal = true
+      this.showDisableModal= true
     },
 
-    approveRecord(row) {
-      this.approveOrReject(row, 'APPROVE')
+    enableRecord(row) {
+      this.changeStatus(row, '1')
     },
-    rejectRecord(row) {
-      this.approveOrReject(row, 'REJECT')
+    disableRecord(row) {
+      this.changeStatus(row, '0')
     },
-
-    approveOrReject(row, action) {
-      console.log(action, row,"x")
+    changeStatus(row,status) {
       this.loading = true
-      var url = env.apiUrl.baseUrl + env.apiUrl.approvals.approveEntity
-      var ids = []
-      ids.push(this.row?.id)
+      this.message = ''
 
+      var url = env.apiUrl.baseUrl + env.apiUrl.roles.editRole
+      console.log('status', url)
+      console.log('row ', url)
+      this.row = row
       axios
         .post(url, {
-          ids: ids,
-          action: action,
-          description: this.comment,
-          approvalType: 'USER'
+          status: status,
+          id: this.row?.roleId
         })
         .then((response) => {
           var data = response.data
@@ -118,17 +126,17 @@ export default {
               cancelButton: 'btn btn-secondary px-4' // gray button
             }
           })
-          console.log('User approved successfully  ')
-          this.fetchUsers()
+          console.log('Role Update Request created successfully  ', this.userName)
+          this.$router.push('/viewRoles')
         })
         .catch((error) => {
           console.log('Error is ', error)
-          this.errorMessage = 'User Approval error'
+          this.errorMessage = 'Role Update error'
           console.log(this.errorMessage)
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'An error occurred during User Approval',
+            text: 'An error occurred during Role Update',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2', // green button
               cancelButton: 'btn btn-secondary px-4' // gray button
@@ -138,35 +146,36 @@ export default {
         .finally(() => {
           // Code here will always execute after the promise resolves or rejects
           this.loading = false
-          if (action === 'APPROVE') {
-            this.showApproveModal = false
-          } else {
-            this.showRejectModal = false
-          }
+          this.showEnableModal = false
+          this.showDisableModal = false
         })
     },
-    fetchUsers() {
+
+    fetchRoles() {
       this.loading = true
-      const url = env.apiUrl.baseUrl + env.apiUrl.user.getUserApprovals
-      var statuses = [6];// Pending Status
+      const url = env.apiUrl.baseUrl + env.apiUrl.roles.getRoles
+
       axios
-        .post(url, {statuses:statuses, page: 0, size: 10 })
+        .post(url, { page: 0, size: 10 })
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,            customClass: {
-                confirmButton: 'btn btn-success px-4 me-2', // green button
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+              customClass: {
+              confirmButton: 'btn btn-success px-4 me-2', // green button
                 cancelButton: 'btn btn-secondary px-4' // gray button
-              } })
+            }
+            })
             return
           }
-          this.users = data.data // reactive update, DataTable will redraw automatically
+          this.roles = data.data // reactive update, DataTable will redraw automatically
         })
         .catch((error) => {
-          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Users',            customClass: {
+          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Roles',
+            customClass: {
               confirmButton: 'btn btn-success px-4 me-2', // green button
               cancelButton: 'btn btn-secondary px-4' // gray button
-            } })
+            }})
           console.error(error)
         })
         .finally(() => {
@@ -186,62 +195,56 @@ export default {
       <div class="card">
         <div class="card-header d-flex justify-content-between">
           <div class="header-title">
-            <h4 class="card-title">View User Approvals</h4>
+            <h4 class="card-title">View Roles</h4>
           </div>
         </div>
         <div class="card-body px-3 pt-0 pb-3">
-          <data-table :data="users" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog" />
+          <data-table
+            :data="roles" :columns="columns" :isFooter="true" :striped="false"
+            @enable="showEnableDialog" @disable="showDisableDialog"
+          @edit ="editUsers"
+          />
         </div>
       </div>
     </div>
   </div>
 
-  <div v-if="showApproveModal" class="modal-backdrop">
+  <div v-if="showEnableModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
-        <h5 class="modal-title text-center text-white">Approve User</h5>
-        <button type="button" class="btn-close" @click="showApproveModal = false"></button>
+        <h5 class="modal-title text-center text-white">Enable Role</h5>
+        <button type="button" class="btn-close" @click="showEnableModal = false"></button>
       </div>
       <div class="modal-body">
         <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
         <p>
-          Are you sure you want to approve <strong>{{ row?.username }}</strong
+          Are you sure you want to enable <strong>{{ row?.roleName }}</strong
           >?
         </p>
-
-        <!--        <div class="mt-3 text-start">-->
-        <!--          <label for="approvalComment" class="form-label">Comments (optional)</label>-->
-
-        <!--        </div>-->
       </div>
       <div class="modal-footer justify-content-center" style="gap: 1rem">
-        <button class="btn btn-danger px-4" @click="showApproveModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="approveRecord(row)">Approve</button>
+        <button class="btn btn-danger px-4" @click="showEnableModal = false">Cancel</button>
+        <button class="btn btn-success px-4" @click="enableRecord(row)">Enable</button>
       </div>
     </div>
   </div>
 
-  <div v-if="showRejectModal" class="modal-backdrop">
+  <div v-if="showDisableModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
-        <h5 class="modal-title text-center text-white">Reject User</h5>
-        <button type="button" class="btn-close" @click="showRejectModal = false"></button>
+        <h5 class="modal-title text-center text-white">Disable Role</h5>
+        <button type="button" class="btn-close" @click="showDisableModal = false"></button>
       </div>
       <div class="modal-body">
         <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
         <p>
-          Are you sure you want to reject <strong>{{ row.username }}</strong
+          Are you sure you want to Disable <strong>{{ row.roleName }}</strong
           >?
         </p>
-
-        <div class="mt-3 text-start">
-          <label for="approvalComment" class="form-label">Comments (optional)</label>
-          <textarea id="approvalComment" class="form-control" v-model="comment" rows="3" placeholder="Add your comment here..."></textarea>
-        </div>
       </div>
       <div class="modal-footer justify-content-center" style="gap: 1rem">
-        <button class="btn btn-danger px-4" @click="showRejectModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="rejectRecord(row)">Reject</button>
+        <button class="btn btn-danger px-4" @click="showDisableModal= false">Cancel</button>
+        <button class="btn btn-success px-4" @click="disableRecord(row)">Disable</button>
       </div>
     </div>
   </div>

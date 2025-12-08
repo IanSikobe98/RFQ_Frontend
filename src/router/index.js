@@ -6,6 +6,10 @@ import CreateUser from '@/views/user/CreateUser.vue'
 import ViewUsers from '@/views/user/ViewUsers.vue'
 import ViewUserApprovals from '@/views/user/ViewUserApprovals.vue'
 import UpdateUser from '@/views/user/UpdateUser.vue'
+import ViewRoles from '@/views/roles/ViewRoles.vue'
+import CreateRoles from '@/views/roles/CreateRoles.vue'
+import ViewRoleApprovals from '@/views/roles/ViewRoleApprovals.vue'
+import UpdateRole from '@/views/roles/UpdateRole.vue'
 
 
 const defaultChildRoutes = (prefix) => [
@@ -41,6 +45,32 @@ const defaultChildRoutes = (prefix) => [
     name: prefix + '.viewUserApprovals',
     meta: { auth: true, name: 'viewUserApprovals', isBanner: true, requiresAuth: true },
     component: ViewUserApprovals
+  },
+
+  {
+    path: '/viewRoles',
+    name: prefix + '.viewRoles',
+    meta: { auth: true, name: 'viewRoles', isBanner: true, requiresAuth: true },
+    component: ViewRoles
+  },
+  {
+    path: '/createRoles',
+    name: prefix + '.createRoles',
+    meta: { auth: true, name: 'CreateRoles', isBanner: true, requiresAuth: true },
+    component: CreateRoles
+  },
+
+  {
+    path: '/viewRoleApprovals',
+    name: prefix + '.viewRoleApprovals',
+    meta: { auth: true, name: 'viewRoleApprovals', isBanner: true, requiresAuth: true },
+    component: ViewRoleApprovals
+  },
+  {
+    path: '/updateRole',
+    name: prefix + '.updateRole',
+    meta: { auth: true, name: 'updateRole', isBanner: true, requiresAuth: true },
+    component: UpdateRole
   },
 
 
