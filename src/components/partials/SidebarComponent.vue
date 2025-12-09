@@ -1,3 +1,62 @@
+<script setup>
+import DefaultSidebar from '@/components/custom/sidebar/DefaultSidebar.vue'
+import SideMenu from '@/components/custom/nav/SideMenu.vue'
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+const currentRoute = ref('')
+const route = useRoute()
+const toggle = (route) => {
+  if (route === currentRoute.value && route.includes('.')) {
+    const menu = currentRoute.value.split('.')
+    return (currentRoute.value = menu[menu.length - 2])
+  }
+  if (route !== currentRoute.value && currentRoute.value.includes(route)) {
+    return (currentRoute.value = '')
+  }
+  if (route !== currentRoute.value) {
+    return (currentRoute.value = route)
+  }
+  if (route === currentRoute.value) {
+    return (currentRoute.value = '')
+  }
+  return (currentRoute.value = '')
+}
+toggle(route.name)
+</script>
+<script>
+import store from '@/store'
+
+export default {
+  data() {
+    return {
+      permissions: [],
+      user: {}
+    }
+  },
+  computed: {
+
+    //Permission Check Functions
+    canCreateUsers() {
+      return this.hasPerm("CREATE_USERS");
+    },
+    //Permission Check Functions
+    canViewUsers() {
+      return this.hasPerm("VIEW_USERS");
+    },
+  },
+  methods: {
+    hasPerm (permission) {
+      return this.permissions && this.permissions.includes(permission)
+    }
+  },
+  mounted() {
+    this.user = JSON.parse(store.state.user);
+    this.permissions = this.user?.usersPerm;
+  }
+}
+
+
+</script>
 <template>
   <!-- Sidebar Component Start Here-->
   <default-sidebar>
@@ -46,7 +105,7 @@
 <!--          <side-menu isTag="router-link" title="User Profile" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UP" :route="{ to: 'default.user-profile' }"></side-menu>-->
 <!--          <side-menu isTag="router-link" title="User Add" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UA" :route="{ to: 'default.user-add' }"></side-menu>-->
 <!--          <side-menu isTag="router-link" title="User List" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.user-list' }"></side-menu>-->
-          <side-menu isTag="router-link" title="Create User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.createUser' }"></side-menu>
+          <side-menu v-if="canCreateUsers" isTag="router-link" title="Create User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.createUser' }"></side-menu>
           <side-menu isTag="router-link" title="View User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUsers' }"></side-menu>
           <side-menu isTag="router-link" title="View User Approvals" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUserApprovals' }"></side-menu>
         </b-collapse>
@@ -138,29 +197,5 @@ export default {
   methods: {}
 }
 </script> -->
-<script setup>
-import DefaultSidebar from '@/components/custom/sidebar/DefaultSidebar.vue'
-import SideMenu from '@/components/custom/nav/SideMenu.vue'
-import { ref } from 'vue'
-import { useRoute } from 'vue-router'
-const currentRoute = ref('')
-const route = useRoute()
-const toggle = (route) => {
-  if (route === currentRoute.value && route.includes('.')) {
-    const menu = currentRoute.value.split('.')
-    return (currentRoute.value = menu[menu.length - 2])
-  }
-  if (route !== currentRoute.value && currentRoute.value.includes(route)) {
-    return (currentRoute.value = '')
-  }
-  if (route !== currentRoute.value) {
-    return (currentRoute.value = route)
-  }
-  if (route === currentRoute.value) {
-    return (currentRoute.value = '')
-  }
-  return (currentRoute.value = '')
-}
-toggle(route.name)
-</script>
+
 <style></style>
