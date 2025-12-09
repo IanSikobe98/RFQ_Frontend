@@ -6,6 +6,7 @@ import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
 import updateUser from '@/views/user/UpdateUser.vue'
+import '@/assets/css/global.scss'
 
 export default {
   computed: {
@@ -19,6 +20,7 @@ export default {
       roles: [],
       showEnableModal: false,
       showDisableModal: false,
+      showDetailsModal: false,
       loading: false,
       comment: '',
       columns: [
@@ -44,7 +46,7 @@ export default {
           render: function (data, type, row) {
             const activeDisabled = row.status.statusId === 0? '' : 'disabled'
             const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
-            return `<!--<button class="btn btn-sm btn-dark me-1 dt-edit" data-id="${row.id}" >View</button> -->
+            return `<button class="btn btn-sm btn-dark me-1 dt-view" data-id="${row.id}" >View</button>
     <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}" @click="approveOrReject" >Edit</button>
  <button class="btn btn-sm btn-primary me-1 dt-enable" data-id="${row.id}" @click="approveOrReject"${activeDisabled}>Enable</button>
 <button class="btn btn-sm btn-danger me-1 dt-disable" data-id="${row.id}" ${inactiveDisabled}> Disable</button>`
@@ -70,6 +72,12 @@ export default {
       this.comment = ''
       this.row = row
       this.showEnableModal = true
+    },
+
+    showDetailsDialog(row) {
+      this.comment = ''
+      this.row = row
+      this.showDetailsModal= true
     },
     showDisableDialog(row) {
       this.comment = ''
@@ -202,7 +210,7 @@ export default {
           <data-table
             :data="roles" :columns="columns" :isFooter="true" :striped="false"
             @enable="showEnableDialog" @disable="showDisableDialog"
-          @edit ="editUsers"
+          @edit ="editUsers" @view = showDetailsDialog
           />
         </div>
       </div>
@@ -249,6 +257,42 @@ export default {
     </div>
   </div>
 
+  <div v-if="showDetailsModal" class="modal-backdrop">
+    <div class="custom-modal">
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-center text-white">View Role</h5>
+        <button type="button" class="btn-close" @click="showDetailsModal = false"></button>
+      </div>
+      <div class="modal-body">
+        <div class="additional-info  p-4 rounded-lg shadow-inner">
+          <div class="details-grid">
+            <div class="detail-item">
+              <strong>Role Name:</strong>
+              <span>{{ row.roleName }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Role Description:</strong>
+              <span> {{ row.roleDescription  }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Permissions:</strong>
+            </div>
+          </div>
+          <br>
+          <div class="modal-list-container">
+            <div class="list-button"
+                 v-for="(permission, index) in row.privilegeList"
+                 :key="index">
+              <span>{{ permission.permission }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-center" style="gap: 1rem">
+        <button class="btn btn-danger px-4" @click="showDetailsModal= false">Close</button>
+      </div>
+    </div>
+  </div>
 
 </template>
 
@@ -297,4 +341,7 @@ export default {
   font-weight: 600;
   padding: 1rem;
 }
+
+
+
 </style>

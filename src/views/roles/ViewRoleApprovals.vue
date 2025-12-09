@@ -5,6 +5,7 @@ import axios from 'axios'
 import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
+import '@/assets/css/global.scss'
 
 export default {
   components: { AppLoader, DataTable },
@@ -13,6 +14,7 @@ export default {
       roles: [],
       showApproveModal: false,
       showRejectModal: false,
+      showDetailsModal: false,
       loading: false,
       comment: '',
       columns: [
@@ -39,7 +41,9 @@ export default {
           searchable: false,
           render: function (data, type, row) {
             const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
-            return `<button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
+
+            return `<button class="btn btn-sm btn-dark me-1 dt-view" data-id="${row.id}" >View</button>
+                    <button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
                    <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
           }
         }
@@ -63,6 +67,11 @@ export default {
       this.comment = ''
       this.row = row
       this.showRejectModal = true
+    },
+    showDetailsDialog(row) {
+      this.comment = ''
+      this.row = row
+      this.showDetailsModal= true
     },
 
     approveRecord(row) {
@@ -192,7 +201,7 @@ export default {
           </div>
         </div>
         <div class="card-body px-3 pt-0 pb-3">
-          <data-table :data="roles" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog" />
+          <data-table :data="roles" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog"  @view="showDetailsDialog"/>
         </div>
       </div>
     </div>
@@ -244,6 +253,43 @@ export default {
       <div class="modal-footer justify-content-center" style="gap: 1rem">
         <button class="btn btn-danger px-4" @click="showRejectModal = false">Cancel</button>
         <button class="btn btn-success px-4" @click="rejectRecord(row)">Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showDetailsModal" class="modal-backdrop">
+    <div class="custom-modal">
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-center text-white">View Role</h5>
+        <button type="button" class="btn-close" @click="showDetailsModal = false"></button>
+      </div>
+      <div class="modal-body">
+        <div class="additional-info  p-4 rounded-lg shadow-inner">
+          <div class="details-grid">
+            <div class="detail-item">
+              <strong>Role Name:</strong>
+              <span>{{ row.roleName }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Role Description:</strong>
+              <span> {{ row.roleDescription  }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Permissions:</strong>
+            </div>
+          </div>
+          <br>
+          <div class="modal-list-container">
+            <div class="list-button"
+                 v-for="(permission, index) in row.privilegeList"
+                 :key="index">
+              <span>{{ permission.permission }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-center" style="gap: 1rem">
+        <button class="btn btn-danger px-4" @click="showDetailsModal= false">Close</button>
       </div>
     </div>
   </div>
