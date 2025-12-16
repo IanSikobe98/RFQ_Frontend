@@ -28,6 +28,9 @@ export default {
       permissions:{
           getPermissions:'/user/permissions/read',
           getPermissionsByRoles:'/role/permissions/read',
+      },
+      rfq:{
+          fetchAccounts: '/rfq/fetchAccounts'
       }
 
     }

@@ -10,6 +10,7 @@ import ViewRoles from '@/views/roles/ViewRoles.vue'
 import CreateRoles from '@/views/roles/CreateRoles.vue'
 import ViewRoleApprovals from '@/views/roles/ViewRoleApprovals.vue'
 import UpdateRole from '@/views/roles/UpdateRole.vue'
+import ViewDealCodes from '@/views/teller/ViewDealCodes.vue'
 
 
 const defaultChildRoutes = (prefix) => [
@@ -58,6 +59,13 @@ const defaultChildRoutes = (prefix) => [
     name: prefix + '.createRoles',
     meta: { auth: true, name: 'CreateRoles', isBanner: true, requiresAuth: true },
     component: CreateRoles
+  },
+
+  {
+    path: '/viewDealCodes',
+    name: prefix + '.viewDealCodes',
+    meta: { auth: true, name: 'viewDealCodes', isBanner: true, requiresAuth: true },
+    component: ViewDealCodes
   },
 
   {

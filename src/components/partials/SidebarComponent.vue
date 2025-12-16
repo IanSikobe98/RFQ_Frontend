@@ -120,6 +120,15 @@ export default {
           <side-menu isTag="router-link" title="View Role Approvals" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewRoleApprovals' }"></side-menu>
         </b-collapse>
       </side-menu>
+
+      <side-menu title="Teller" icon="user-group" toggle-id="teller" :caret-icon="true" :route="{ popup: 'false', to: 'teller' }" @onClick="toggle" :active="currentRoute.includes('teller')">
+        <b-collapse tag="ul" class="sub-nav" id="teller" accordion="sidebar-menu" :visible="currentRoute.includes('teller')">
+          <!--          <side-menu isTag="router-link" title="User Profile" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UP" :route="{ to: 'default.user-profile' }"></side-menu>-->
+          <!--          <side-menu isTag="router-link" title="User Add" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UA" :route="{ to: 'default.user-add' }"></side-menu>-->
+          <!--          <side-menu isTag="router-link" title="User List" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.user-list' }"></side-menu>-->
+          <side-menu isTag="router-link" title="View Deal Codes" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewDealCodes' }"></side-menu>
+        </b-collapse>
+      </side-menu>
 <!--      <side-menu title="Utilities" icon="bookmark" toggle-id="utilities" :caret-icon="true" :route="{ popup: 'false', to: 'errors' }" @onClick="toggle" :active="currentRoute.includes('errors')">-->
 <!--        <b-collapse tag="ul" class="sub-nav" id="utilities" accordion="sidebar-menu" :visible="currentRoute.includes('errors')">-->
 <!--          <side-menu title="Error 404" icon="circle" :icon-size="10" icon-type="solid" miniTitle="404" :route="{ to: 'errors.404' }"></side-menu>-->
