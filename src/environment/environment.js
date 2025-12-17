@@ -30,7 +30,9 @@ export default {
           getPermissionsByRoles:'/role/permissions/read',
       },
       rfq:{
-          fetchAccounts: '/rfq/fetchAccounts'
+          fetchAccounts: '/rfq/fetchAccounts',
+        getCurrencyDirection: '/rfq/getCurrencyDirection',
+        getSinglePairExchangeRate:'/rfq/getSinglePairExchangeRate'
       }
 
     }
