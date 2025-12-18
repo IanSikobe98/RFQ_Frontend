@@ -32,7 +32,8 @@ export default {
       rfq:{
           fetchAccounts: '/rfq/fetchAccounts',
         getCurrencyDirection: '/rfq/getCurrencyDirection',
-        getSinglePairExchangeRate:'/rfq/getSinglePairExchangeRate'
+        getSinglePairExchangeRate:'/rfq/getSinglePairExchangeRate',
+        createRFQ: '/rfq/createRFQ'
       }
 
     }
