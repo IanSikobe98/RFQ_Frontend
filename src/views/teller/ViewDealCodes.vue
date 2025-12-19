@@ -151,11 +151,13 @@ export default {
     showCustomerModalDialog() {
       this.showCreateDealModal = false
       this.showCustomerModal = true
+      this.isCustomer = true;
     },
     showTellerModalDialog() {
       this.showCreateDealModal = false
       this.showTellerModal = true
       this.idType = 'ACCNO'
+      this.isCustomer = false;
     },
     showCustomerDetailsModalDialog() {
       console.log('test1')
@@ -186,74 +188,71 @@ export default {
     disableRecord(row) {
       this.changeStatus(row, '0')
     },
-    changeStatus(row, status) {
-      this.loading = true
-      this.message = ''
+      validateForm() {
+        this.errors = {} // Clear previous errors
+        // if (!this.userName) {
+        //   this.errors.userName = 'UserName is required.'
+        // } else if (!config.TEXT_REGEX.test(this.userName) && !config.EMAIL_REGEX.test(this.userName)) {
+        //   this.errors.userName = 'Invalid UserName Input'
+        // }
+        //
+        // if (!this.email) {
+        //   this.errors.email = 'Email is required.'
+        // } else if (!config.EMAIL_REGEX.test(this.email)) {
+        //   this.errors.email = 'Invalid email format.'
+        // }
+        //
+        // if (!this.phone) {
+        //   this.errors.phone = 'Phone is required.'
+        // } else if (!config.PHONE_REGEX.test(this.phone)) {
+        //   this.errors.phone = 'Invalid phone number format.'
+        // }
 
-      var url = env.apiUrl.baseUrl + env.apiUrl.user.editUser
-      console.log('status', url)
-      console.log('row ', url)
-      this.row = row
-      axios
-        .post(url, {
-          status: status,
-          id: this.row?.userId
-        })
-        .then((response) => {
-          var data = response.data
-          /* Checking if error object was returned from the server */
-          var responseCode = data.responseCode
-          var responseMessage = data.responseMessage
-          if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            this.responseMessage = responseMessage
-            this.errorMessage = responseMessage
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: this.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2', // green button
-                cancelButton: 'btn btn-secondary px-4' // gray button
-              }
-            })
-            console.log(this.responseMessage)
-            return
-          }
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: responseMessage,
-            timer: 3000, // Auto-closes after 3 seconds,
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2', // green button
-              cancelButton: 'btn btn-secondary px-4' // gray button
-            }
-          })
-          console.log('User Update Request created successfully  ', this.userName)
-          this.$router.push('/viewUsers')
-        })
-        .catch((error) => {
-          console.log('Error is ', error)
-          this.errorMessage = 'User Update error'
-          console.log(this.errorMessage)
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'An error occurred during User Update',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2', // green button
-              cancelButton: 'btn btn-secondary px-4' // gray button
-            }
-          })
-        })
-        .finally(() => {
-          // Code here will always execute after the promise resolves or rejects
-          this.loading = false
-          this.showEnableModal = false
-          this.showDisableModal = false
-        })
-    },
+        if (!this.selectedAccount) {
+          this.errors.selectedAccount = '*Account is required.'
+        }
+        if (!this.action) {
+          this.errors.action = '*Kindly state if it is credit or a Debit .'
+        }
+        if (!this.currency) {
+          this.errors.currency = '*Kindly Input Currency .'
+        }
+
+        if (!this.amount) {
+          this.errors.amount = "*Amount is required.";
+        }
+        else if(!config.NUMBER_ONLY_REGEX.test(this.amount)){
+          this.errors.amount = "*Amount is invalid";
+        }
+
+        if (!this.negotiatedRate) {
+          this.errors.negotiatedRate = "*Negotiated rate is required.";
+        }
+        else if(!config.NUMBER_ONLY_REGEX.test(this.negotiatedRate)){
+          this.errors.negotiatedRate = "*Negotiated rate is invalid";
+        }
+
+        if (!this.valueDate) {
+          this.errors.purpose = "*Purpose is required.";
+        }
+        if (!this.purpose) {
+          this.errors.purpose = "Purpose is required.";
+        }
+
+        if (!this.rfqComment) {
+          this.errors.rfqComment = "Comments is required.";
+        }
+
+        if (Object.keys(this.errors).length > 0) {
+          return false // Validation failed
+        }
+        return true // Validation passed
+      },
       submitDealRateRequest() {
+        if (!this.validateForm()) {
+          console.log('Validation failed', this.errors)
+          return // Stop submission if validation fails
+        }
         this.loading = true
         this.message = ''
         var counterCurrency = this.currency.id
@@ -261,19 +260,22 @@ export default {
 
         var url = env.apiUrl.baseUrl + env.apiUrl.rfq.createRFQ
         console.log('status', url)
-        console.log('row ', url)
+        console.log('iscCustomerr ', this.isCustomer)
         axios
           .post(url, {
             customerNo: this.selectedAccount?.customerCif,
             customerName: this.selectedAccount?.accountName,
             idNumber: this.customerInfo?.idNumber,
-            amount: this.selectedAccount?.amount,
+            amount: this.amount,
             fromCurrency: counterCurrency,
             toCurrency: accountCurrency,
             accountNumber: this.selectedAccount?.accountNumber,
             valueDate: this.valueDate,
             negotiatedRate: this.negotiatedRate,
-            tellerAccountName: !this.isCustomer? this.selectedAccount?.name : "",
+            tellerAccountName: !this.isCustomer? this.selectedAccount?.accountName : "",
+            purpose: this.purpose,
+            comments:this.rfqComment,
+            branchCode: this.selectedAccount?.branchCode,
           })
           .then((response) => {
             var data = response.data
@@ -373,8 +375,29 @@ export default {
         })
     },
 
+      validateAccountsForm() {
+        this.errors = {} // Clear previous errors
+
+        if (!this.idNumber) {
+          this.errors.idNumber= '*Id Number is required.'
+        }
+        if (this.isCustomer && !this.idType) {
+          this.errors.idType = '*Id Type is required. .'
+        }
+
+
+        if (Object.keys(this.errors).length > 0) {
+          return false // Validation failed
+        }
+        return true // Validation passed
+      },
+
     fetchAccounts(isCustomer) {
       console.log('iscustomer', isCustomer)
+      if (!this.validateAccountsForm()) {
+        console.log('Validation failed', this.errors)
+        return // Stop submission if validation fails
+      }
       this.isCustomer = isCustomer
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.fetchAccounts
@@ -611,7 +634,7 @@ export default {
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-center text-white">Request New Deal</h5>
-        <button type="button" class="btn-close" @click="showCreateDealModal = false"></button>
+        <span><i @click="showCreateDealModal = false" class = "fas fa-close"></i></span>
       </div>
       <div class="modal-body">
         <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
@@ -645,7 +668,7 @@ export default {
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-center text-white">Request New Deal</h5>
-        <button type="button" class="btn-close" @click="showCustomerModal = false"></button>
+        <span><i @click="showCustomerModal = false" class = "fas fa-close"></i></span>
       </div>
       <div class="modal-body">
         <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
@@ -663,6 +686,7 @@ export default {
                   {{ option.name }}
                 </option>
               </select>
+              <small v-if="errors.idType" class="text-danger">{{ errors.idType }}</small>
             </b-form-group>
           </b-col>
 
@@ -685,7 +709,7 @@ export default {
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-center text-white">Request New Deal</h5>
-        <button type="button" class="btn-close" @click="showTellerModal = false"></button>
+        <span><i @click="showTellerModal = false" class = "fas fa-close"></i></span>
       </div>
       <div class="modal-body">
         <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
@@ -716,7 +740,7 @@ export default {
       <!-- Header -->
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-center text-white">Request New Deal</h5>
-        <button type="button" class="btn-close" @click="showCustomerDetailsModal = false"></button>
+        <span><i @click="showCustomerDetailsModal = false" class = "fas fa-close"></i></span>
       </div>
 
       <!-- Body -->
@@ -782,7 +806,7 @@ export default {
       <!-- Header -->
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-center text-white">Request New Deal</h5>
-        <button type="button" class="btn-close" @click="showTellerDetailsModal = false"></button>
+        <span><i @click="showTellerDetailsModal = false" class = "fas fa-close"></i></span>
       </div>
 
       <!-- Body -->
@@ -818,9 +842,14 @@ export default {
   <div v-if="showCreateRFQModal" class="modal-backdrop">
     <div class="custom-modal modal-xl">
       <!-- Header -->
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold text-success">Request New Deal</h5>
-        <button class="btn-close" @click="showCreateRFQModal = false"></button>
+<!--      <div class="modal-header">-->
+<!--        <h5 class="modal-title fw-bold text-success">Request New Deal</h5>-->
+
+<!--      </div>-->
+
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-center text-white">Request New Deal</h5>
+        <span><i @click="showCreateDealModal = false" class = "fas fa-close"></i></span>
       </div>
 
       <!-- Body -->
@@ -834,6 +863,7 @@ export default {
                 {{ acc.accountNumber }}
               </option>
             </select>
+            <small v-if="errors.selectedAccount" class="text-danger">{{ errors.selectedAccount }}</small>
           </div>
 
           <!-- Account Action -->
@@ -843,6 +873,7 @@ export default {
               <option value="DEBIT">Debit</option>
               <option value="CREDIT">Credit</option>
             </select>
+            <small v-if="errors.action" class="text-danger">{{ errors.action }}</small>
           </div>
 
           <!-- Counter Currency -->
@@ -853,6 +884,7 @@ export default {
                 {{ option.name }}
               </option>
             </select>
+            <small v-if="errors.currency" class="text-danger">{{ errors.currency }}</small>
           </div>
 
           <!-- Amount -->
@@ -861,6 +893,7 @@ export default {
             <div class="input-group">
               <input @change="fetchExchangeRates" type="number" class="form-control" v-model="amount" placeholder="Enter amount" />
             </div>
+            <small v-if="errors.amount" class="text-danger">{{ errors.amount }}</small>
           </div>
 
           <!-- Bank Direction -->
@@ -873,12 +906,14 @@ export default {
           <div class="col-md-6">
             <label class="form-label">Negotiated Rate</label>
             <input @change="displayNegotiatedRate" class="form-control" placeholder="Enter Negotiated Rate"  v-model="negotiatedRate"/>
+            <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>
           </div>
 
           <!-- Value Date -->
           <div class="col-md-6">
             <label class="form-label">Value Date</label>
             <input type="date" class="form-control" v-model="valueDate" />
+            <small v-if="errors.valueDate" class="text-danger">{{ errors.valueDate }}</small>
           </div>
 
           <!-- Rate + Estimate -->
@@ -895,6 +930,8 @@ export default {
           <div class="col-md-6">
             <label class="form-label">Purpose</label>
             <textarea class="form-control" rows="2" v-model="purpose"></textarea>
+            <small v-if="errors.purpose" class="text-danger">{{ errors.purpose }}</small>
+
           </div>
 
           <!-- Rate + Estimate -->
@@ -913,6 +950,8 @@ export default {
           <div class="col-md-6">
             <label class="form-label">Comment</label>
             <textarea class="form-control" rows="2" v-model="rfqComment"></textarea>
+            <small v-if="errors.rfqComment" class="text-danger">{{ errors.rfqComment }}</small>
+
           </div>
 
           <!-- Amount -->
@@ -935,7 +974,7 @@ export default {
 
       <!-- Footer -->
       <div class="modal-footer" style="gap: 1rem">
-        <button class="btn btn-outline-success px-4" @click="showCreateRFQModal = false">Cancel</button>
+        <button class="btn btn-outline-danger px-4" @click="showCreateRFQModal = false">Cancel</button>
         <button class="btn btn-success px-5 " @click="submitDealRateRequest">Submit Request</button>
       </div>
     </div>
@@ -1001,8 +1040,6 @@ export default {
   border-radius: 0.5rem;
   width: 600px;
   max-width: 95%;
-  max-height: 80vh; /* limit modal height */
-  overflow-y: auto; /* enable vertical scrolling */
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
 }
 
@@ -1013,6 +1050,8 @@ export default {
 
 .modal-body {
   padding: 1rem;
+  max-height: 80vh; /* limit modal height */
+  overflow-y: auto; /* enable vertical scrolling */
 }
 
 .btn-close {
