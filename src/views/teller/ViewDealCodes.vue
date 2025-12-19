@@ -15,6 +15,7 @@ export default {
       accounts: [],
       customerInfo: {},
       users: [],
+      dealRequests:[],
       showEnableModal: false,
       showDisableModal: false,
       showCreateDealModal: false,
@@ -23,6 +24,8 @@ export default {
       showCustomerDetailsModal: false,
       showTellerDetailsModal: false,
       showCreateRFQModal: false,
+      showApproveModal: false,
+      showRejectModal: false,
       loading: false,
       comment: '',
       rfqComment: '',
@@ -73,12 +76,24 @@ export default {
         { id: 'UGX', name: 'Ugandan Shilling' }
       ],
       columns: [
-        { title: 'Name', data: 'username' },
-        { title: 'Phone', data: 'phone' },
-        { title: 'Email', data: 'email' },
-        { title: 'Role', data: 'role.roleName' },
+        { title: 'Customer Name', data: 'customerName' },
+        { title: 'AccountNumber', data: 'accountNumber' },
+        { title: 'Amount', data: 'counterNominalAmount' },
+        { title: 'Currency Pair', data: 'currencyPair' },
+
+        { title: 'Buy/Sell', data: 'buySell' },
+        { title: 'Request Date', data: 'requestDate',
+        render: function(data){
+          var a = new Date(data)
+          return a.toISOString().split('T')[0]
+        }
+        },
+        { title: 'Value Date', data: 'valueDate' },
+        { title: 'Negotiated Rate', data: 'negotiatedRate' },
+
+
         {
-          title: 'Status',
+          title: 'Deal Status',
           data: 'status',
           render: function(data) {
             const id = Number(data.statusId)
@@ -86,21 +101,22 @@ export default {
             if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
             if (id === 6) return `<span class="badge bg-warning">Pending</span>`
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            return data
+            else return `<span class="badge bg-primary">data.statusName</span>`
           }
         },
+        { title: 'Deal Code', data: 'dealerCode' },
+        { title: 'Order Number', data: 'orderId' },
+
+
         {
           title: 'Actions',
           data: null, // We don’t need data from backend here
           orderable: false,
           searchable: false,
           render: function(data, type, row) {
-            const activeDisabled = row.status.statusId === 0 ? '' : 'disabled'
-            const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
-            return `<!--<button class="btn btn-sm btn-dark me-1 dt-edit" data-id="${row.id}" >View</button> -->
-    <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}" @click="approveOrReject" >Edit</button>
- <button class="btn btn-sm btn-primary me-1 dt-enable" data-id="${row.id}" @click="approveOrReject"${activeDisabled}>Enable</button>
-<button class="btn btn-sm btn-danger me-1 dt-disable" data-id="${row.id}" ${inactiveDisabled}> Disable</button>`
+            const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
+            return `<button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
+                   <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
           }
         }
       ],
@@ -116,7 +132,7 @@ export default {
       // setTimeout(() => {
       //   this.loading = false;
       // }, 100);
-      this.fetchUsers()
+      this.fetchDealRequests()
     },
     methods: {
       filterCurrencyOptions() {
@@ -331,9 +347,9 @@ export default {
             this.showDisableModal = false
           })
       },
-    fetchUsers() {
+    fetchDealRequests() {
       this.loading = true
-      const url = env.apiUrl.baseUrl + env.apiUrl.user.getUsers
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getDealRequests
       const token = localStorage.getItem('token')
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
@@ -356,13 +372,13 @@ export default {
             })
             return
           }
-          this.users = data.data // reactive update, DataTable will redraw automatically
+          this.dealRequests = data.data // reactive update, DataTable will redraw automatically
         })
         .catch((error) => {
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'Error occurred fetching Users',
+            text: 'Error occurred fetching Deal Requests',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2', // green button
               cancelButton: 'btn btn-secondary px-4' // gray button
@@ -604,6 +620,95 @@ export default {
           this.useNegotiatedRate = true;
         }
       },
+      showApproveDialog(row) {
+        this.comment = ''
+        this.row = row
+        this.showApproveModal = true
+      },
+      showRejectionDialog(row) {
+        this.comment = ''
+        this.row = row
+        this.showRejectModal = true
+      },
+
+      approveRecord(row) {
+        this.approveOrReject(row, 'APPROVE')
+      },
+      rejectRecord(row) {
+        this.approveOrReject(row, 'REJECT')
+      },
+
+      approveOrReject(row, action) {
+        console.log(action, row,"x")
+        this.loading = true
+        var url = env.apiUrl.baseUrl + env.apiUrl.approvals.approveEntity
+        var ids = []
+        ids.push(this.row?.id)
+
+        axios
+          .post(url, {
+            ids: ids,
+            action: action,
+            description: this.comment,
+            approvalType: 'APPROVED_DEALS'
+          })
+          .then((response) => {
+            var data = response.data
+            /* Checking if error object was returned from the server */
+            var responseCode = data.responseCode
+            var responseMessage = data.responseMessage
+            if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
+              this.responseMessage = responseMessage
+              this.errorMessage = responseMessage
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: this.responseMessage,
+                customClass: {
+                  confirmButton: 'btn btn-success px-4 me-2', // green button
+                  cancelButton: 'btn btn-secondary px-4' // gray button
+                }
+              })
+              console.log(this.responseMessage)
+              return
+            }
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: responseMessage,
+              timer: 3000, // Auto-closes after 3 seconds,
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2', // green button
+                cancelButton: 'btn btn-secondary px-4' // gray button
+              }
+            })
+            console.log('Deal Request approved successfully  ')
+            this.fetchDealRequests()
+          })
+          .catch((error) => {
+            console.log('Error is ', error)
+            this.errorMessage = 'Deal Request Approval error'
+            console.log(this.errorMessage)
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'An error occurred during Deal Request Approval',
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2', // green button
+                cancelButton: 'btn btn-secondary px-4' // gray button
+              }
+            })
+          })
+          .finally(() => {
+            // Code here will always execute after the promise resolves or rejects
+            this.loading = false
+            if (action === 'APPROVE') {
+              this.showApproveModal = false
+            } else {
+              this.showRejectModal = false
+            }
+          })
+      },
   }
 }
 </script>
@@ -617,14 +722,14 @@ export default {
       <div class="card">
         <div class="card-header d-flex justify-content-between">
           <div class="header-title">
-            <h4 class="card-title">View Users</h4>
+            <h4 class="card-title">Requested Deals</h4>
           </div>
           <div class="d-flex justify-content-end gap-3">
             <b-button variant="primary" class="px-4" @click="showCreateDealDialog"><i class="fa-solid fa-plus me-2"></i> Create Deal Code </b-button>
           </div>
         </div>
         <div class="card-body px-3 pt-4 pb-3">
-          <data-table :data="users" :columns="columns" :isFooter="true" :striped="false" @enable="showEnableDialog" @disable="showDisableDialog" @edit="editUsers" />
+          <data-table :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog"  />
         </div>
       </div>
     </div>
@@ -1016,6 +1121,57 @@ export default {
       <div class="modal-footer justify-content-center" style="gap: 1rem">
         <button class="btn btn-danger px-4" @click="showDisableModal = false">Cancel</button>
         <button class="btn btn-success px-4" @click="disableRecord(row)">Disable</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div v-if="showApproveModal" class="modal-backdrop">
+    <div class="custom-modal">
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-center text-white">Approve Requested Deal</h5>
+        <button type="button" class="btn-close" @click="showApproveModal = false"></button>
+      </div>
+      <div class="modal-body">
+        <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
+        <p>
+          Are you sure you want to approve order <strong>{{ row?.username }}</strong
+        >?
+        </p>
+
+        <!--        <div class="mt-3 text-start">-->
+        <!--          <label for="approvalComment" class="form-label">Comments (optional)</label>-->
+
+        <!--        </div>-->
+      </div>
+      <div class="modal-footer justify-content-center" style="gap: 1rem">
+        <button class="btn btn-danger px-4" @click="showApproveModal = false">Cancel</button>
+        <button class="btn btn-success px-4" @click="approveRecord(row)">Approve</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showRejectModal" class="modal-backdrop">
+    <div class="custom-modal">
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-center text-white">Reject Requested Deal</h5>
+        <button type="button" class="btn-close" @click="showRejectModal = false"></button>
+      </div>
+      <div class="modal-body">
+        <i class="bi bi-check-circle-fill text-success fs-1 mb-2"></i>
+        <p>
+          Are you sure you want to reject order <strong>{{ row.username }}</strong
+        >?
+        </p>
+
+        <div class="mt-3 text-start">
+          <label for="approvalComment" class="form-label">Comments (optional)</label>
+          <textarea id="approvalComment" class="form-control" v-model="comment" rows="3" placeholder="Add your comment here..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-center" style="gap: 1rem">
+        <button class="btn btn-danger px-4" @click="showRejectModal = false">Cancel</button>
+        <button class="btn btn-success px-4" @click="rejectRecord(row)">Reject</button>
       </div>
     </div>
   </div>
