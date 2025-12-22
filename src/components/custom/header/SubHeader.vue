@@ -6,7 +6,7 @@
         <b-col md="12">
           <div class="d-flex justify-content-between align-items-center flex-wrap">
             <div>
-              <h1>Welcome Ian!</h1>
+              <h1>Welcome {{username}}!</h1>
               <p>Get your deal in a matter of seconds in a seamless and easy way.</p>
             </div>
 <!--            <div>-->
@@ -28,7 +28,26 @@
   </div>
 </template>
 <script>
-export default {}
+import store from '@/store'
+
+export default {
+  data () {
+    return {
+      user:{},
+      username:'',
+      role:'',
+    }
+  },
+  mounted () {
+    this.user = JSON.parse(store.state.user)
+    console.log("this user",this.user)
+    this.username= this.user?.user?.username
+    this.role = this.user?.role
+    console.log("this user",this.username)
+    console.log("this role",this.role)
+
+  },
+}
 </script>
 
 <style>

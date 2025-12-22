@@ -5,6 +5,7 @@ import { useStore } from 'vuex'
 import env from "@/environment/environment";
 import axios from "axios";
 import config from "@/config/config";
+import store from '@/store'
 
 export default {
   components: {},
@@ -57,8 +58,18 @@ export default {
       showMenu: false,
       user:{},
       username:'',
+      role:'',
       organization: '',
     }
+  },
+  mounted () {
+    this.user = JSON.parse(store.state.user)
+    console.log("this user",this.user)
+    this.username= this.user?.user?.username
+    this.role = this.user?.role
+    console.log("this user",this.username)
+    console.log("this role",this.role)
+
   },
   methods:{
 
@@ -308,8 +319,8 @@ export default {
               <img src="@/assets/images/avatars/avtar_5.png" alt="User-Profile" class="theme-color-yellow-img img-fluid avatar avatar-50 avatar-rounded" />
               <img src="@/assets/images/avatars/avtar_3.png" alt="User-Profile" class="theme-color-pink-img img-fluid avatar avatar-50 avatar-rounded" />
               <div class="caption ms-3 d-none d-md-block">
-                <h6 class="mb-0 caption-title">Austin Robertson</h6>
-                <p class="mb-0 caption-sub-title">Marketing Administrator</p>
+                <h6 class="mb-0 caption-title">{{username}}</h6>
+                <p class="mb-0 caption-sub-title">{{role}}</p>
               </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
