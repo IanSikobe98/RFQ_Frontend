@@ -4,6 +4,7 @@ import axios from 'axios'
 import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
+import store from '@/store'
 // import Swal from "sweetalert2";
 // import store from "@/store";
 
@@ -11,6 +12,8 @@ export default {
   components: { AppLoader },
   data() {
     return {
+      loggedInPermissions: [],
+      user: {},
       loading: false,
       roleName:'',
       roleDescription:'',
@@ -22,6 +25,8 @@ export default {
     }
   },
   mounted() {
+    this.user = JSON.parse(store.state.user);
+    this.loggedInPermissions = this.user?.usersPerm;
     this.fetchPermissions();
     var jsonData = localStorage.getItem("selectedRole")
     console.log("Component mounted2.", jsonData);
@@ -37,7 +42,18 @@ export default {
       }
     }
   },
+  computed: {
+    canUpdateRoles () {
+      return this.hasPerm("UPDATE_ROLES");
+    },
+    canViewRoles () {
+      return this.hasPerm("VIEW_ROLES");
+    },
+  },
   methods: {
+    hasPerm (permission) {
+      return this.loggedInPermissions && this.loggedInPermissions.includes(permission)
+    },
     setFormData() {
       this.roleName = this.roleToEdit.roleName;
       this.roleDescription = this.roleToEdit.roleDescription;
@@ -188,7 +204,7 @@ export default {
           <h4 class="mb-0 font-weight-bold">Update Role</h4>
           <!-- Buttons -->
           <div class="d-flex justify-content-end gap-3">
-            <b-button variant="primary" class="px-4" @click="viewRoles">View Roles </b-button>
+            <b-button v-if="canViewRoles" variant="primary" class="px-4" @click="viewRoles">View Roles </b-button>
           </div>
         </b-card-header>
 
@@ -235,7 +251,7 @@ export default {
 
             <!-- Buttons -->
             <div class="d-flex justify-content-end gap-3">
-              <b-button variant="primary" class="px-4" @click="editRole">Edit Role </b-button>
+              <b-button v-if="canUpdateRoles" variant="primary" class="px-4" @click="editRole">Edit Role </b-button>
             </div>
           </b-form>
         </b-card-body>

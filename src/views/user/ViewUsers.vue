@@ -6,22 +6,16 @@ import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
 import updateUser from '@/views/user/UpdateUser.vue'
+import store from '@/store'
 
 export default {
   computed: {
     updateUser() {
       return updateUser
-    }
-  },
-  components: { AppLoader, DataTable },
-  data() {
-    return {
-      users: [],
-      showEnableModal: false,
-      showDisableModal: false,
-      loading: false,
-      comment: '',
-      columns: [
+    },
+    columns() {
+      const canUpdateUser = this.canUpdateUsers;
+      const cols = [
         { title: 'Name', data: 'username' },
         { title: 'Phone', data: 'phone' },
         { title: 'Email', data: 'email' },
@@ -29,7 +23,7 @@ export default {
         {
           title: 'Status',
           data: 'status',
-          render: function (data) {
+          render: function(data) {
             const id = Number(data.statusId)
             if (id === 1) return `<span class="badge bg-success">Active</span>`
             if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
@@ -37,32 +31,59 @@ export default {
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
             return data
           }
-        },
-        {
-          title: 'Actions',
-          data: null, // We don’t need data from backend here
-          orderable: false,
-          searchable: false,
-          render: function (data, type, row) {
-            const activeDisabled = row.status.statusId === 0? '' : 'disabled'
-            const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
-            return `<!--<button class="btn btn-sm btn-dark me-1 dt-edit" data-id="${row.id}" >View</button> -->
+        }
+      ];
+
+
+      if (canUpdateUser) {
+        cols.push(
+          {
+            title: 'Actions',
+            data: null, // We don’t need data from backend here
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row) {
+              const activeDisabled = row.status.statusId === 0 ? '' : 'disabled'
+              const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
+              return `<!--<button class="btn btn-sm btn-dark me-1 dt-edit" data-id="${row.id}" >View</button> -->
     <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}" @click="approveOrReject" >Edit</button>
  <button class="btn btn-sm btn-primary me-1 dt-enable" data-id="${row.id}" @click="approveOrReject"${activeDisabled}>Enable</button>
 <button class="btn btn-sm btn-danger me-1 dt-disable" data-id="${row.id}" ${inactiveDisabled}> Disable</button>`
+            }
           }
-        }
-      ],
+        )
+      }
+      return cols;
+    },
+
+    canUpdateUsers () {
+      return this.hasPerm("UPDATE_USERS");
+    },
+  },
+  components: { AppLoader, DataTable },
+  data() {
+    return {
+      tableReady: false,
+      permissions: [],
+      user: {},
+      users: [],
+      showEnableModal: false,
+      showDisableModal: false,
+      loading: false,
+      comment: '',
       row: {}
     }
   },
   mounted() {
-    // setTimeout(() => {
-    //   this.loading = false;
-    // }, 100);
+    this.user = JSON.parse(store.state.user);
+    this.permissions = this.user?.usersPerm;
+    this.tableReady = true;
     this.fetchUsers()
   },
   methods: {
+    hasPerm (permission) {
+      return this.permissions && this.permissions.includes(permission)
+    },
     editUsers(item){
       console.log("user ",JSON.stringify(item))
       localStorage.setItem("selectedUser", JSON.stringify(item))
@@ -203,7 +224,7 @@ export default {
           </div>
         </div>
         <div class="card-body px-3 pt-0 pb-3">
-          <data-table
+          <data-table v-if="tableReady"
             :data="users" :columns="columns" :isFooter="true" :striped="false"
             @enable="showEnableDialog" @disable="showDisableDialog"
           @edit ="editUsers"

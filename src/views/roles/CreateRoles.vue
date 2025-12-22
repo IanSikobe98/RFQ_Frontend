@@ -4,6 +4,7 @@ import axios from 'axios'
 import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
+import store from '@/store'
 // import Swal from "sweetalert2";
 // import store from "@/store";
 
@@ -11,6 +12,8 @@ export default {
   components: { AppLoader },
   data() {
     return {
+      loggedInPermissions: [],
+      user: {},
       loading: false,
       roleName:'',
       roleDescription:'',
@@ -21,9 +24,22 @@ export default {
     }
   },
   mounted() {
+    this.user = JSON.parse(store.state.user);
+    this.loggedInPermissions = this.user?.usersPerm;
     this.fetchPermissions();
   },
+  computed:{
+    canCreateRoles () {
+      return this.hasPerm("CREATE_ROLES");
+    },
+    canViewRoles () {
+      return this.hasPerm("VIEW_ROLES");
+    },
+  },
   methods: {
+    hasPerm (permission) {
+      return this.loggedInPermissions && this.loggedInPermissions.includes(permission)
+    },
     viewRoles(){
       this.$router.push('/viewRoles');
     },
@@ -162,7 +178,7 @@ export default {
           <h4 class="mb-0 font-weight-bold">Create Role</h4>
           <!-- Buttons -->
           <div class="d-flex justify-content-end gap-3">
-            <b-button variant="primary" class="px-4" @click="viewRoles">View Roles </b-button>
+            <b-button v-if="canViewRoles" variant="primary" class="px-4" @click="viewRoles">View Roles </b-button>
           </div>
         </b-card-header>
 
@@ -209,7 +225,7 @@ export default {
 
             <!-- Buttons -->
             <div class="d-flex justify-content-end gap-3">
-              <b-button variant="primary" class="px-4" @click="createRole">Create Role </b-button>
+              <b-button v-if="canCreateRoles" variant="primary" class="px-4" @click="createRole">Create Role </b-button>
             </div>
           </b-form>
         </b-card-body>

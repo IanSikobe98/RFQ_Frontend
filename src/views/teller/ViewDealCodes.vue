@@ -6,12 +6,16 @@ import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
 import updateUser from '@/views/user/UpdateUser.vue'
+import store from '@/store'
 
 export default {
 
   components: { AppLoader, DataTable },
   data() {
     return {
+      tableReady: false,
+      permissions: [],
+      user: {},
       accounts: [],
       customerInfo: {},
       users: [],
@@ -75,18 +79,26 @@ export default {
         { id: 'RWF', name: 'Rwandan Franc' },
         { id: 'UGX', name: 'Ugandan Shilling' }
       ],
-      columns: [
+      row: {}
+    }
+  },
+  computed: {
+    columns() {
+      const canApprove = this.canApproveDealCodeRequests;
+
+      const cols = [
         { title: 'Customer Name', data: 'customerName' },
         { title: 'AccountNumber', data: 'accountNumber' },
         { title: 'Amount', data: 'counterNominalAmount' },
         { title: 'Currency Pair', data: 'currencyPair' },
 
         { title: 'Buy/Sell', data: 'buySell' },
-        { title: 'Request Date', data: 'requestDate',
-        render: function(data){
-          var a = new Date(data)
-          return a.toISOString().split('T')[0]
-        }
+        {
+          title: 'Request Date', data: 'requestDate',
+          render: function(data) {
+            var a = new Date(data)
+            return a.toISOString().split('T')[0]
+          }
         },
         { title: 'Value Date', data: 'valueDate' },
         { title: 'Negotiated Rate', data: 'negotiatedRate' },
@@ -105,36 +117,57 @@ export default {
           }
         },
         { title: 'Deal Code', data: 'dealerCode' },
-        { title: 'Order Number', data: 'orderId' },
+        { title: 'Order Number', data: 'orderId' }
+      ]
 
-
-        {
-          title: 'Actions',
-          data: null, // We don’t need data from backend here
-          orderable: false,
-          searchable: false,
-          render: function(data, type, row) {
-            const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
-            return `<button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
+      //Push final row if user has permission
+      if (canApprove) {
+        cols.push({
+            title: 'Actions',
+            data: null, // We don’t need data from backend here
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row) {
+              if (canApprove) {
+                const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
+                return `<button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
                    <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
+              } else return ''
+            }
           }
-        }
-      ],
-      row: {}
-    }
-  },
-  computed: {
+        )
+      }
+      return cols;
+    },
+
+
+
     updateUser() {
       return updateUser
     },
+    canCreateDealCodeRequests() {
+      return this.hasPerm("CREATE_DEAL_REQUESTS");
+    },
+    canApproveDealCodeRequests() {
+      return this.hasPerm("APPROVE_DEAL_REQUESTS");
+    },
+
   },
     mounted() {
       // setTimeout(() => {
       //   this.loading = false;
       // }, 100);
+      this.user = JSON.parse(store.state.user);
+      this.permissions = this.user?.usersPerm;
+
+
+      this.tableReady = true;
       this.fetchDealRequests()
     },
     methods: {
+      hasPerm (permission) {
+        return this.permissions && this.permissions.includes(permission)
+      },
       filterCurrencyOptions() {
         if (this.selectedAccount) {
           console.log("test " ,this.selectedAccount)
@@ -725,11 +758,11 @@ export default {
             <h4 class="card-title">Requested Deals</h4>
           </div>
           <div class="d-flex justify-content-end gap-3">
-            <b-button variant="primary" class="px-4" @click="showCreateDealDialog"><i class="fa-solid fa-plus me-2"></i> Create Deal Code </b-button>
+            <b-button  v-if="canCreateDealCodeRequests" variant="primary" class="px-4" @click="showCreateDealDialog"><i class="fa-solid fa-plus me-2"></i> Create Deal Code </b-button>
           </div>
         </div>
         <div class="card-body px-3 pt-4 pb-3">
-          <data-table :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog"  />
+          <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog"  />
         </div>
       </div>
     </div>

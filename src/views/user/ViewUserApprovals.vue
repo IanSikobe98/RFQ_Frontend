@@ -5,17 +5,27 @@ import axios from 'axios'
 import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
+import store from '@/store'
 
 export default {
   components: { AppLoader, DataTable },
   data() {
     return {
+      tableReady: false,
+      permissions: [],
+      user: {},
       users: [],
       showApproveModal: false,
       showRejectModal: false,
       loading: false,
       comment: '',
-      columns: [
+      row: {}
+    }
+  },
+  computed:{
+    columns () {
+      const canApproveUser = this.canApproveUsers;
+      const cols = [
         { title: 'Name', data: 'username' },
         { title: 'Phone', data: 'phone' },
         { title: 'Email', data: 'email' },
@@ -34,28 +44,39 @@ export default {
             return data
           }
         },
-        {
+
+      ]
+
+      if(canApproveUser) {
+        cols.push({
           title: 'Actions',
           data: null, // We don’t need data from backend here
           orderable: false,
           searchable: false,
-          render: function (data, type, row) {
+          render: function(data, type, row) {
             const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
             return `<button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
                    <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
           }
-        }
-      ],
-      row: {}
-    }
+        })
+      }
+
+    return cols;
+    },
+    canApproveUsers () {
+      return this.hasPerm("APPROVE_USERS");
+    },
   },
   mounted() {
-    // setTimeout(() => {
-    //   this.loading = false;
-    // }, 100);
+    this.user = JSON.parse(store.state.user);
+    this.permissions = this.user?.usersPerm;
+    this.tableReady = true;
     this.fetchUsers()
   },
   methods: {
+    hasPerm (permission) {
+      return this.permissions && this.permissions.includes(permission)
+    },
     showApproveDialog(row) {
       this.comment = ''
       this.row = row
@@ -186,11 +207,11 @@ export default {
       <div class="card">
         <div class="card-header d-flex justify-content-between">
           <div class="header-title">
-            <h4 class="card-title">s</h4>
+            <h4 class="card-title">View User Approvals</h4>
           </div>
         </div>
         <div class="card-body px-3 pt-0 pb-3">
-          <data-table :data="users" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog" />
+          <data-table v-if="tableReady" :data="users" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog" />
         </div>
       </div>
     </div>

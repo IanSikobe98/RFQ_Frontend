@@ -43,6 +43,21 @@ export default {
     canViewUsers() {
       return this.hasPerm("VIEW_USERS");
     },
+    canApproveUsers () {
+      return this.hasPerm("APPROVE_USERS");
+    },
+    canViewDealCodeRequests() {
+      return this.hasPerm("VIEW_DEAL_REQUESTS");
+    },
+    canCreateRoles () {
+      return this.hasPerm("CREATE_ROLES");
+    },
+    canViewRoles () {
+      return this.hasPerm("VIEW_ROLES");
+    },
+    canApproveRoles() {
+      return this.hasPerm('APPROVE_ROLES')
+    },
   },
   methods: {
     hasPerm (permission) {
@@ -61,8 +76,8 @@ export default {
   <!-- Sidebar Component Start Here-->
   <default-sidebar>
     <ul class="navbar-nav iq-main-menu" id="sidebar-menu">
-      <side-menu title="Home" :static-item="true"></side-menu>
-      <side-menu isTag="router-link" title="Dashboard1" icon="view-grid" :route="{ to: 'default.dashboard' }"></side-menu>
+      <side-menu title="HOME" :static-item="true"></side-menu>
+      <side-menu isTag="router-link" title="Dashboard" icon="view-grid" :route="{ to: 'default.dashboard' }"></side-menu>
 
 <!--      <side-menu title="Menu Style" icon="adjustment" toggle-id="menu-style" :caret-icon="true" :route="{ popup: 'false', to: 'menu-style' }" @onClick="toggle" :active="currentRoute.includes('menu-style')">-->
 <!--        <b-collapse tag="ul" class="sub-nav" id="menu-style" accordion="sidebar-menu" :visible="currentRoute.includes('menu-style')">-->
@@ -81,52 +96,33 @@ export default {
 <!--      </side-menu>-->
 <!--      <li><hr class="hr-horizontal" /></li>-->
       <side-menu title="PAGES" :static-item="true"></side-menu>
-      <side-menu title="Special Pages" icon="document" toggle-id="special-pages" :caret-icon="true" :route="{ popup: 'false', to: 'special-pages' }" @onClick="toggle" :active="currentRoute.includes('special-pages')">
-        <b-collapse tag="ul" class="sub-nav" id="special-pages" accordion="sidebar-menu" :visible="currentRoute.includes('special-pages')">
-<!--          <side-menu isTag="router-link" title="Billing" icon="circle" :icon-size="10" icon-type="solid" miniTitle="B" :route="{ to: 'default.billing' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Calender" icon="circle" :icon-size="10" icon-type="solid" miniTitle="C" :route="{ to: 'default.calender' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Kanban" icon="circle" :icon-size="10" icon-type="solid" miniTitle="K" :route="{ to: 'default.kanban' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Pricing" icon="circle" :icon-size="10" icon-type="solid" miniTitle="P" :route="{ to: 'default.pricing' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Timeline" icon="circle" :icon-size="10" icon-type="solid" miniTitle="T" :route="{ to: 'default.timeline' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="RTL Support" icon="circle" :icon-size="10" icon-type="solid" miniTitle="R" :route="{ to: 'default.rtlsupport' }"></side-menu>-->
-        </b-collapse>
-      </side-menu>
-      <side-menu title="Authentication" icon="shield-check" toggle-id="auth-skins" :caret-icon="true" :route="{ popup: 'false', to: 'auth' }" @onClick="toggle" :active="currentRoute.includes('auth')">
-        <b-collapse tag="ul" class="sub-nav" id="auth-skins" accordion="sidebar-menu" :visible="currentRoute.includes('auth')">
-<!--          <side-menu isTag="router-link" title="Login" icon="circle" :icon-size="10" icon-type="solid" miniTitle="L" :route="{ to: 'auth.login' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Register" icon="circle" :icon-size="10" icon-type="solid" miniTitle="R" :route="{ to: 'auth.register' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Confirm Mail" icon="circle" :icon-size="10" icon-type="solid" miniTitle="CM" :route="{ to: 'auth.varify-email' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Lock Screen" icon="circle" :icon-size="10" icon-type="solid" miniTitle="LS" :route="{ to: 'auth.lock-screen' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Recover Password" icon="circle" :icon-size="10" icon-type="solid" miniTitle="RP" :route="{ to: 'auth.reset-password' }"></side-menu>-->
-        </b-collapse>
-      </side-menu>
-      <side-menu title="Users" icon="user-group" toggle-id="users" :caret-icon="true" :route="{ popup: 'false', to: 'user' }" @onClick="toggle" :active="currentRoute.includes('user')">
+      <side-menu v-if="canViewUsers" title="Users" icon="user-group" toggle-id="users" :caret-icon="true" :route="{ popup: 'false', to: 'user' }" @onClick="toggle" :active="currentRoute.includes('user')">
         <b-collapse tag="ul" class="sub-nav" id="users" accordion="sidebar-menu" :visible="currentRoute.includes('user')">
 <!--          <side-menu isTag="router-link" title="User Profile" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UP" :route="{ to: 'default.user-profile' }"></side-menu>-->
 <!--          <side-menu isTag="router-link" title="User Add" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UA" :route="{ to: 'default.user-add' }"></side-menu>-->
 <!--          <side-menu isTag="router-link" title="User List" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.user-list' }"></side-menu>-->
           <side-menu v-if="canCreateUsers" isTag="router-link" title="Create User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.createUser' }"></side-menu>
-          <side-menu isTag="router-link" title="View User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUsers' }"></side-menu>
-          <side-menu isTag="router-link" title="View User Approvals" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUserApprovals' }"></side-menu>
+          <side-menu v-if="canViewUsers" isTag="router-link" title="View User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUsers' }"></side-menu>
+          <side-menu  v-if="canApproveUsers" isTag="router-link" title="View User Approvals" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUserApprovals' }"></side-menu>
         </b-collapse>
       </side-menu>
-      <side-menu title="Roles" icon="user-group" toggle-id="roles" :caret-icon="true" :route="{ popup: 'false', to: 'role' }" @onClick="toggle" :active="currentRoute.includes('role')">
+      <side-menu v-if="canViewRoles"  title="Roles" icon="user-group" toggle-id="roles" :caret-icon="true" :route="{ popup: 'false', to: 'role' }" @onClick="toggle" :active="currentRoute.includes('role')">
         <b-collapse tag="ul" class="sub-nav" id="roles" accordion="sidebar-menu" :visible="currentRoute.includes('role')">
           <!--          <side-menu isTag="router-link" title="User Profile" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UP" :route="{ to: 'default.user-profile' }"></side-menu>-->
           <!--          <side-menu isTag="router-link" title="User Add" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UA" :route="{ to: 'default.user-add' }"></side-menu>-->
           <!--          <side-menu isTag="router-link" title="User List" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.user-list' }"></side-menu>-->
-          <side-menu isTag="router-link" title="Create Role" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.createRoles' }"></side-menu>
-          <side-menu isTag="router-link" title="View Role" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewRoles' }"></side-menu>
-          <side-menu isTag="router-link" title="View Role Approvals" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewRoleApprovals' }"></side-menu>
+          <side-menu v-if="canCreateRoles" isTag="router-link" title="Create Role" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.createRoles' }"></side-menu>
+          <side-menu v-if ="canViewRoles" isTag="router-link" title="View Role" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewRoles' }"></side-menu>
+          <side-menu v-if="canApproveRoles" isTag="router-link" title="View Role Approvals" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewRoleApprovals' }"></side-menu>
         </b-collapse>
       </side-menu>
 
-      <side-menu title="Teller" icon="user-group" toggle-id="teller" :caret-icon="true" :route="{ popup: 'false', to: 'teller' }" @onClick="toggle" :active="currentRoute.includes('teller')">
-        <b-collapse tag="ul" class="sub-nav" id="teller" accordion="sidebar-menu" :visible="currentRoute.includes('teller')">
+      <side-menu v-if="canViewDealCodeRequests" title="Deal Codes" icon="user-group" toggle-id="dealCodes" :caret-icon="true" :route="{ popup: 'false', to: 'dealCodes' }" @onClick="toggle" :active="currentRoute.includes('dealCodes')">
+        <b-collapse tag="ul" class="sub-nav" id="dealCodes" accordion="sidebar-menu" :visible="currentRoute.includes('dealCodes')">
           <!--          <side-menu isTag="router-link" title="User Profile" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UP" :route="{ to: 'default.user-profile' }"></side-menu>-->
           <!--          <side-menu isTag="router-link" title="User Add" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UA" :route="{ to: 'default.user-add' }"></side-menu>-->
           <!--          <side-menu isTag="router-link" title="User List" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.user-list' }"></side-menu>-->
-          <side-menu isTag="router-link" title="View Deal Codes" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewDealCodes' }"></side-menu>
+          <side-menu isTag="router-link" title="View Deal Requests" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewDealCodes' }"></side-menu>
         </b-collapse>
       </side-menu>
 <!--      <side-menu title="Utilities" icon="bookmark" toggle-id="utilities" :caret-icon="true" :route="{ popup: 'false', to: 'errors' }" @onClick="toggle" :active="currentRoute.includes('errors')">-->

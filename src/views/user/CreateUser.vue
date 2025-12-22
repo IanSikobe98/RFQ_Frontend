@@ -4,6 +4,7 @@ import axios from 'axios'
 import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
+import store from '@/store'
 // import Swal from "sweetalert2";
 // import store from "@/store";
 
@@ -11,6 +12,8 @@ export default {
   components: { AppLoader },
   data() {
     return {
+      permissions: [],
+      user: {},
       loading: false,
       userName: '',
       email: '',
@@ -20,10 +23,25 @@ export default {
       errors: {} // Store error messages
     }
   },
+  computed:{
+    canCreateUsers () {
+      return this.hasPerm("CREATE_USERS");
+    },
+    canViewUsers () {
+      return this.hasPerm("VIEW_USERS");
+    },
+
+  },
   mounted() {
+    this.user = JSON.parse(store.state.user);
+    this.permissions = this.user?.usersPerm;
     this.fetchRoles();
   },
   methods: {
+    hasPerm (permission) {
+      return this.permissions && this.permissions.includes(permission)
+    },
+
     viewUsers(){
       this.$router.push('/viewUsers');
     },
@@ -176,7 +194,7 @@ export default {
           <h4 class="mb-0 font-weight-bold">Create User</h4>
           <!-- Buttons -->
           <div class="d-flex justify-content-end gap-3">
-            <b-button variant="primary" class="px-4" @click="viewUsers">View Users </b-button>
+            <b-button v-if="canViewUsers" variant="primary" class="px-4" @click="viewUsers">View Users </b-button>
           </div>
         </b-card-header>
 
@@ -221,7 +239,7 @@ export default {
 
             <!-- Buttons -->
             <div class="d-flex justify-content-end gap-3">
-              <b-button variant="primary" class="px-4" @click="createUser">Create User </b-button>
+              <b-button v-if="canCreateUsers" variant="primary" class="px-4" @click="createUser">Create User </b-button>
             </div>
           </b-form>
         </b-card-body>

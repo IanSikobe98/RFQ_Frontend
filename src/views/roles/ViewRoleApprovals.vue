@@ -6,18 +6,32 @@ import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
 import '@/assets/css/global.scss'
+import store from '@/store'
 
 export default {
   components: { AppLoader, DataTable },
   data() {
     return {
+      tableReady: false,
+      loggedInPermissions: [],
+      user: {},
       roles: [],
       showApproveModal: false,
       showRejectModal: false,
       showDetailsModal: false,
       loading: false,
       comment: '',
-      columns: [
+      row: {}
+    }
+  },
+  computed: {
+    canApproveRoles() {
+      return this.hasPerm('APPROVE_ROLES')
+    },
+
+    columns() {
+      const canApproveRoles = this.canApproveRoles
+      return [
         { title: 'Name', data: 'roleName' },
         { title: 'Description', data: 'roleDescription' },
         { title: 'New Status', data: 'entityStatusName' },
@@ -39,25 +53,30 @@ export default {
           data: null, // We don’t need data from backend here
           orderable: false,
           searchable: false,
-          render: function (data, type, row) {
+          render: function(data, type, row) {
             const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
 
-            return `<button class="btn btn-sm btn-dark me-1 dt-view" data-id="${row.id}" >View</button>
-                    <button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
+            var actions = `<button class="btn btn-sm btn-dark me-1 dt-view" data-id="${row.id}" >View</button>`
+            if (canApproveRoles) {
+              actions += `<button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
                    <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
+            }
+            return actions
           }
         }
-      ],
-      row: {}
+      ]
     }
   },
   mounted() {
-    // setTimeout(() => {
-    //   this.loading = false;
-    // }, 100);
+    this.user = JSON.parse(store.state.user)
+    this.loggedInPermissions = this.user?.usersPerm
+    this.tableReady = true
     this.fetchRoles()
   },
   methods: {
+    hasPerm(permission) {
+      return this.loggedInPermissions && this.loggedInPermissions.includes(permission)
+    },
     showApproveDialog(row) {
       this.comment = ''
       this.row = row
@@ -201,7 +220,7 @@ export default {
           </div>
         </div>
         <div class="card-body px-3 pt-0 pb-3">
-          <data-table :data="roles" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog"  @view="showDetailsDialog"/>
+          <data-table v-if="tableReady" :data="roles" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog"  @view="showDetailsDialog"/>
         </div>
       </div>
     </div>

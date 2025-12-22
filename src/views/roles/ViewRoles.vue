@@ -7,23 +7,17 @@ import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
 import updateUser from '@/views/user/UpdateUser.vue'
 import '@/assets/css/global.scss'
+import store from '@/store'
 
 export default {
   computed: {
     updateUser() {
       return updateUser
-    }
-  },
-  components: { AppLoader, DataTable },
-  data() {
-    return {
-      roles: [],
-      showEnableModal: false,
-      showDisableModal: false,
-      showDetailsModal: false,
-      loading: false,
-      comment: '',
-      columns: [
+    },
+
+    columns() {
+      const canUpdateRole = this.canUpdateRoles
+      return [
         { title: 'Name', data: 'roleName' },
         { title: 'Description', data: 'roleDescription' },
         {
@@ -44,29 +38,55 @@ export default {
           orderable: false,
           searchable: false,
           render: function (data, type, row) {
-            const activeDisabled = row.status.statusId === 0? '' : 'disabled'
+            const activeDisabled = row.status.statusId === 0 ? '' : 'disabled'
             const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
-            return `<button class="btn btn-sm btn-dark me-1 dt-view" data-id="${row.id}" >View</button>
+
+            var actions = `<button class="btn btn-sm btn-dark me-1 dt-view" data-id="${row.id}" >View</button>`
+            if (canUpdateRole) {
+              actions += `
     <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}" @click="approveOrReject" >Edit</button>
  <button class="btn btn-sm btn-primary me-1 dt-enable" data-id="${row.id}" @click="approveOrReject"${activeDisabled}>Enable</button>
 <button class="btn btn-sm btn-danger me-1 dt-disable" data-id="${row.id}" ${inactiveDisabled}> Disable</button>`
+            }
+            return actions
           }
         }
-      ],
+      ]
+    },
+    canUpdateRoles() {
+      return this.hasPerm('UPDATE_ROLES')
+    },
+  },
+  components: { AppLoader, DataTable },
+  data() {
+    return {
+      tableReady: false,
+      loggedInPermissions: [],
+      user: {},
+      roles: [],
+      showEnableModal: false,
+      showDisableModal: false,
+      showDetailsModal: false,
+      loading: false,
+      comment: '',
+
       row: {}
     }
   },
   mounted() {
-    // setTimeout(() => {
-    //   this.loading = false;
-    // }, 100);
+    this.user = JSON.parse(store.state.user)
+    this.loggedInPermissions = this.user?.usersPerm
+    this.tableReady = true
     this.fetchRoles()
   },
   methods: {
-    editUsers(item){
-      console.log("role ",JSON.stringify(item))
-      localStorage.setItem("selectedRole", JSON.stringify(item))
-      this.$router.push('/updateRole');
+    hasPerm(permission) {
+      return this.loggedInPermissions && this.loggedInPermissions.includes(permission)
+    },
+    editUsers(item) {
+      console.log('role ', JSON.stringify(item))
+      localStorage.setItem('selectedRole', JSON.stringify(item))
+      this.$router.push('/updateRole')
     },
     showEnableDialog(row) {
       this.comment = ''
@@ -77,12 +97,12 @@ export default {
     showDetailsDialog(row) {
       this.comment = ''
       this.row = row
-      this.showDetailsModal= true
+      this.showDetailsModal = true
     },
     showDisableDialog(row) {
       this.comment = ''
       this.row = row
-      this.showDisableModal= true
+      this.showDisableModal = true
     },
 
     enableRecord(row) {
@@ -91,7 +111,7 @@ export default {
     disableRecord(row) {
       this.changeStatus(row, '0')
     },
-    changeStatus(row,status) {
+    changeStatus(row, status) {
       this.loading = true
       this.message = ''
 
@@ -168,22 +188,29 @@ export default {
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: data.responseMessage,
               customClass: {
-              confirmButton: 'btn btn-success px-4 me-2', // green button
+                confirmButton: 'btn btn-success px-4 me-2', // green button
                 cancelButton: 'btn btn-secondary px-4' // gray button
-            }
+              }
             })
             return
           }
           this.roles = data.data // reactive update, DataTable will redraw automatically
         })
         .catch((error) => {
-          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Roles',
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Error occurred fetching Roles',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2', // green button
               cancelButton: 'btn btn-secondary px-4' // gray button
-            }})
+            }
+          })
           console.error(error)
         })
         .finally(() => {
@@ -207,11 +234,7 @@ export default {
           </div>
         </div>
         <div class="card-body px-3 pt-0 pb-3">
-          <data-table
-            :data="roles" :columns="columns" :isFooter="true" :striped="false"
-            @enable="showEnableDialog" @disable="showDisableDialog"
-          @edit ="editUsers" @view = showDetailsDialog
-          />
+          <data-table v-if="tableReady" :data="roles" :columns="columns" :isFooter="true" :striped="false" @enable="showEnableDialog" @disable="showDisableDialog" @edit="editUsers" @view="showDetailsDialog" />
         </div>
       </div>
     </div>
@@ -251,7 +274,7 @@ export default {
         </p>
       </div>
       <div class="modal-footer justify-content-center" style="gap: 1rem">
-        <button class="btn btn-danger px-4" @click="showDisableModal= false">Cancel</button>
+        <button class="btn btn-danger px-4" @click="showDisableModal = false">Cancel</button>
         <button class="btn btn-success px-4" @click="disableRecord(row)">Disable</button>
       </div>
     </div>
@@ -264,7 +287,7 @@ export default {
         <button type="button" class="btn-close" @click="showDetailsModal = false"></button>
       </div>
       <div class="modal-body">
-        <div class="additional-info  p-4 rounded-lg shadow-inner">
+        <div class="additional-info p-4 rounded-lg shadow-inner">
           <div class="details-grid">
             <div class="detail-item">
               <strong>Role Name:</strong>
@@ -272,31 +295,26 @@ export default {
             </div>
             <div class="detail-item">
               <strong>Role Description:</strong>
-              <span> {{ row.roleDescription  }}</span>
+              <span> {{ row.roleDescription }}</span>
             </div>
             <div class="detail-item">
               <strong>Permissions:</strong>
             </div>
           </div>
-          <br>
+          <br />
           <div class="modal-list-container">
-            <div class="list-button"
-                 v-for="(permission, index) in row.privilegeList"
-                 :key="index">
+            <div class="list-button" v-for="(permission, index) in row.privilegeList" :key="index">
               <span>{{ permission.permission }}</span>
             </div>
           </div>
         </div>
       </div>
       <div class="modal-footer justify-content-center" style="gap: 1rem">
-        <button class="btn btn-danger px-4" @click="showDetailsModal= false">Close</button>
+        <button class="btn btn-danger px-4" @click="showDetailsModal = false">Close</button>
       </div>
     </div>
   </div>
-
 </template>
-
-
 
 <style scoped>
 .modal-backdrop {
@@ -341,7 +359,4 @@ export default {
   font-weight: 600;
   padding: 1rem;
 }
-
-
-
 </style>
