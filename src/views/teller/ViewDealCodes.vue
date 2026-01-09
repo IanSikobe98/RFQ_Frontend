@@ -17,6 +17,7 @@ export default {
       permissions: [],
       user: {},
       accounts: [],
+      accountInfo:{},
       customerInfo: {},
       users: [],
       dealRequests:[],
@@ -54,6 +55,7 @@ export default {
       useCurrentRate:true,
       isCustomer:false,
       useNegotiatedRate:false,
+      showDealDetailsModal:false,
       options: [
         { id: 'COR', name: 'Certificate of Registration' },
         { id: 'NATID', name: 'National id' },
@@ -130,7 +132,9 @@ export default {
             render: function(data, type, row) {
               if (canApprove) {
                 const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
-                return `<button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
+                return `
+                    <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}" >View Details</button>
+                    <button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
                    <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
               } else return ''
             }
@@ -665,6 +669,14 @@ export default {
         this.showRejectModal = true
       },
 
+      showDetailsDialog(row) {
+        this.row = row
+        this.fetchCustomerInformation()
+        this.comment = ''
+        this.showDealDetailsModal= true
+
+      },
+
       approveRecord(row) {
         this.approveOrReject(row, 'APPROVE')
       },
@@ -743,6 +755,56 @@ export default {
             }
           })
       },
+      fetchCustomerInformation() {
+        this.loading = true
+        const url = env.apiUrl.baseUrl + env.apiUrl.rfq.fetchCustomerInfo+ this.row?.accountNumber
+
+        axios
+          .post(url)
+          .then((response) => {
+            const data = response.data
+            // var responseMessage = data.responseMessage
+            if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: data.responseMessage,
+                customClass: {
+                  confirmButton: 'btn btn-success px-4 me-2', // green button
+                  cancelButton: 'btn btn-secondary px-4' // gray button
+                }
+              })
+              return
+            }
+            // Swal.fire({
+            //   icon: 'success',
+            //   title: 'Success!',
+            //   text: responseMessage,
+            //   timer: 3000, // Auto-closes after 3 seconds,
+            //   customClass: {
+            //     confirmButton: 'btn btn-success px-4 me-2', // green button
+            //     cancelButton: 'btn btn-secondary px-4' // gray button
+            //   }
+            // })
+            this.accountInfo = data?.entity // reactive update, DataTable will redraw automatically
+            console.log('Account', this.accountInfo)
+          })
+          .catch((error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'Error occurred fetching Accounts',
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2', // green button
+                cancelButton: 'btn btn-secondary px-4' // gray button
+              }
+            })
+            console.error(error)
+          })
+          .finally(() => {
+            this.loading = false // hide loader
+          })
+      },
   }
 }
 </script>
@@ -763,7 +825,7 @@ export default {
           </div>
         </div>
         <div class="card-body px-3 pt-4 pb-3">
-          <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog"  />
+          <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" @approve="showApproveDialog" @reject="showRejectionDialog"   @view ="showDetailsDialog" />
         </div>
       </div>
     </div>
@@ -1209,6 +1271,82 @@ export default {
       </div>
     </div>
   </div>
+
+  <div v-if="showDealDetailsModal"  class="modal-backdrop">
+    <div class="custom-modal modal-xl deal-details-modal ">
+
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-white">Deal Details</h5>
+        <span><i @click="showDealDetailsModal = false" class="fas fa-close"></i></span>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="row g-3">
+
+          <!-- Deal Info -->
+          <div class="col-md-6">
+            <div class="deal-card ">
+              <h6><i class="fa-solid fa-dollar-sign"></i> Deal Information</h6>
+              <p><strong>Order ID:</strong> {{row.orderId}}</p>
+              <p><strong>Status:</strong>
+                <span class="badge bg-warning">{{ row?.status?.statusName }}</span></p>
+              <p><strong>Currency Pair:</strong> {{ row?.currencyPair }}</p>
+              <p><strong>Side:</strong>
+                <span v-if="row.buySell === 'BUY'" class="badge bg-primary"> {{ row?.buySell }}</span>
+              <span v-if="row.buySell === 'SELL'" class="badge bg-danger"> {{ row?.buySell }}</span>
+              </p>
+              <p><strong>Amount:</strong> {{row.fromCurrency}} {{ row?.counterNominalAmount }}</p>
+              <p><strong>Account:</strong> {{ row?.accountNumber }}</p>
+              <p><strong>Request Date:</strong> {{ row?.requestDate }}</p>
+              <p><strong>Value Date:</strong> {{ row?.valueDate }}</p>
+            </div>
+          </div>
+
+          <!-- Customer Info -->
+          <div class="col-md-6">
+            <div class="deal-card">
+              <h6><i class="fa fa-user"></i> Customer Information</h6>
+              <p><strong>Name:</strong> {{ accountInfo?.accountName }}</p>
+              <p><strong>Issuer:</strong> {{ row.createdBy }}</p>
+              <p><strong>Originator:</strong> {{ row.createdBy }}</p>
+            </div>
+          </div>
+
+
+          <!-- Rates -->
+          <div class="col-md-12">
+            <div class = "deal-rate-box-ov">
+              <p><i class = "fas fa-chart-line"></i> Rate Information</p>
+            <div class="deal-rate-box">
+              <div>
+                <p>Offer Rate</p>
+                <strong>{{row.treasuryRate}}</strong>
+              </div>
+              <div>
+                <p>Negotiated Rate</p>
+                <strong class="text-success">{{row.negotiatedRate}}</strong>
+              </div>
+              <div>
+                <p>Expected Total ({{row.toCurrency}})</p>
+                <strong class="text-success fs-4">{{row.expectedAmount}}</strong>
+              </div>
+            </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="modal-footer justify-content-end">
+        <button class="btn btn-danger px-4" @click="showDealDetailsModal = false">Close</button>
+      </div>
+
+    </div>
+  </div>
+
+
 </template>
 
 <style scoped>
@@ -1314,5 +1452,55 @@ export default {
   line-height: 1.1;
   width: 100%;
 }
+
+
+
+
+.deal-details-modal {
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.deal-header {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.deal-card {
+  background: #f5f6f8; /* very light green */
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #f5f6f8;
+  height: 100%;
+}
+
+.deal-card h6 {
+  color: #166534;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.deal-rate-box {
+  display: flex;
+  justify-content: space-between;
+  background: #f5f6f8;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #f5f6f8;
+}
+
+.deal-rate-box-ov {
+  background: #f5f6f8;
+  padding: 10px;
+}
+
+.deal-rate-box p {
+  margin: 0;
+  color: #065f46;
+}
+
+.deal-rate-box strong {
+  color: #15803d;
+}
+
 
 </style>

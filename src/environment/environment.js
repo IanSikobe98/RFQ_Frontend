@@ -35,6 +35,8 @@ export default {
         getSinglePairExchangeRate:'/rfq/getSinglePairExchangeRate',
         createRFQ: '/rfq/createRFQ',
         getDealRequests:'/rfq/getDealRequests',
+        fetchCustomerInfo: '/rfq/fetchAccountDetails/',
+        getAllExchangeRates:'/rfq/getAllExchangeRates',
       }
 
     }
