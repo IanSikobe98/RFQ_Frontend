@@ -48,6 +48,7 @@ export default {
       idNumberValue: '',
       idTypeValue: '',
       rateFrom: '',
+      multiplyDivide:'',
       rateTo: '',
       rateValue: '',
       expectedValue: '',
@@ -593,13 +594,34 @@ export default {
             this.rateTo = accountCurrency
             if (this.bankDirection === 'Sell') {
               this.rateValue = data.entity?.sellingRate
-              this.rateFrom = counterCurrency
-              this.rateTo = accountCurrency
+              if(this.action === 'CREDIT'){
+                this.rateFrom = accountCurrency
+                this.rateTo = counterCurrency
+                this.multiplyDivide ="D"
+              }
+              else if(this.action === 'DEBIT'){
+                this.rateFrom = counterCurrency
+                this.rateTo = accountCurrency
+                this.multiplyDivide ="M"
+              }
             } else if (this.bankDirection === 'Buy') {
               this.rateValue = data.entity?.buyingRate
-              this.rateFrom = accountCurrency
-              this.rateTo = counterCurrency
+              if(this.action === 'CREDIT'){
+                this.rateFrom = counterCurrency
+                this.rateTo = accountCurrency
+                this.multiplyDivide ="M"
+              }
+              else if(this.action === 'DEBIT'){
+                this.rateFrom = accountCurrency
+                this.rateTo = counterCurrency
+                this.multiplyDivide ="D"
+              }
+            }
+            if(this.multiplyDivide === "M"){
               this.expectedValue = this.amount * this.rateValue
+            }
+            else if(this.multiplyDivide === "D"){
+              this.expectedValue = this.amount / this.rateValue
             }
 
             this.expectedValue = Number(this.expectedValue).toFixed(2)
@@ -626,7 +648,12 @@ export default {
     },
     displayNegotiatedRate(){
       if(this.currency && this.selectedAccount && this.action && this.amount && this.negotiatedRate){
-        this.expectedValue = this.amount * this.negotiatedRate
+        if(this.multiplyDivide === "M") {
+          this.expectedValue = this.amount * this.negotiatedRate
+        }
+        else if(this.multiplyDivide === "D") {
+          this.expectedValue = this.amount / this.negotiatedRate
+        }
         this.expectedValue = Number(this.expectedValue).toFixed(2)
         this.useCurrentRate = false;
         this.useNegotiatedRate = true;
@@ -1140,7 +1167,7 @@ export default {
                 <div>
                   <p class="info-label" v-if="useCurrentRate">Expected Total (Current Rate)</p>
                   <p class="info-label" v-if="useNegotiatedRate">Expected Total (Negotiated Rate)</p>
-                  <p class="info-value success">{{ expectedValue }} {{ rateTo }}</p>
+                  <p class="info-value success">{{ expectedValue }} {{ currency?.id }}</p>
                 </div>
               </div>
             </div>
