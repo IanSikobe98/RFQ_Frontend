@@ -1,58 +1,480 @@
 <template>
-<!--    <div class="iq-navbar-header" style="height: 100px">-->
-  <div class="iq-navbar-header" style="height: 215px">
+  <div class="iq-navbar-header modern-header">
     <b-container fluid class="iq-container">
       <b-row>
         <b-col md="12">
-          <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-              <h1>Welcome {{username}}!</h1>
-              <p>Get your deal in a matter of seconds in a seamless and easy way.</p>
+          <div class="header-content">
+            <div class="welcome-section">
+              <div class="greeting-wrapper">
+                <h1 class="welcome-title">
+                  <span class="wave-emoji">👋</span>
+                  Welcome back, <span class="username-highlight">{{ username }}</span>!
+                </h1>
+                <p class="welcome-subtitle">Get your deal in a matter of seconds in a seamless and easy way.</p>
+              </div>
+
+              <!-- Quick Stats Cards -->
+              <div class="quick-stats">
+                <div class="stat-card" v-for="(stat, index) in stats" :key="index">
+                  <div class="stat-icon" :class="`stat-icon-${index + 1}`" v-html="stat.icon"></div>
+                  <div class="stat-info">
+                    <div class="stat-value">{{ stat.value }}</div>
+                    <div class="stat-label">{{ stat.label }}</div>
+                  </div>
+                  <div class="stat-shimmer"></div>
+                </div>
+              </div>
             </div>
-<!--            <div>-->
-<!--              <a href="" class="btn btn-link btn-soft-light">-->
-<!--                <svg width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">-->
-<!--                  <path d="M11.8251 15.2171H12.1748C14.0987 15.2171 15.731 13.985 16.3054 12.2764C16.3887 12.0276 16.1979 11.7713 15.9334 11.7713H14.8562C14.5133 11.7713 14.2362 11.4977 14.2362 11.16C14.2362 10.8213 14.5133 10.5467 14.8562 10.5467H15.9005C16.2463 10.5467 16.5263 10.2703 16.5263 9.92875C16.5263 9.58722 16.2463 9.31075 15.9005 9.31075H14.8562C14.5133 9.31075 14.2362 9.03619 14.2362 8.69849C14.2362 8.35984 14.5133 8.08528 14.8562 8.08528H15.9005C16.2463 8.08528 16.5263 7.8088 16.5263 7.46728C16.5263 7.12575 16.2463 6.84928 15.9005 6.84928H14.8562C14.5133 6.84928 14.2362 6.57472 14.2362 6.23606C14.2362 5.89837 14.5133 5.62381 14.8562 5.62381H15.9886C16.2483 5.62381 16.4343 5.3789 16.3645 5.13113C15.8501 3.32401 14.1694 2 12.1748 2H11.8251C9.42172 2 7.47363 3.92287 7.47363 6.29729V10.9198C7.47363 13.2933 9.42172 15.2171 11.8251 15.2171Z" fill="currentColor"></path>-->
-<!--                  <path opacity="0.4" d="M19.5313 9.82568C18.9966 9.82568 18.5626 10.2533 18.5626 10.7823C18.5626 14.3554 15.6186 17.2627 12.0005 17.2627C8.38136 17.2627 5.43743 14.3554 5.43743 10.7823C5.43743 10.2533 5.00345 9.82568 4.46872 9.82568C3.93398 9.82568 3.5 10.2533 3.5 10.7823C3.5 15.0873 6.79945 18.6413 11.0318 19.1186V21.0434C11.0318 21.5715 11.4648 22.0001 12.0005 22.0001C12.5352 22.0001 12.9692 21.5715 12.9692 21.0434V19.1186C17.2006 18.6413 20.5 15.0873 20.5 10.7823C20.5 10.2533 20.066 9.82568 19.5313 9.82568Z" fill="currentColor"></path>-->
-<!--                </svg>-->
-<!--                Announcements-->
-<!--              </a>-->
-<!--            </div>-->
           </div>
         </b-col>
       </b-row>
     </b-container>
+
+    <!-- Animated Background -->
     <div class="iq-header-img">
-      <img src="@/assets/images/forex-trading-course.jpeg" alt="header" class="theme-color-default-img img-fluid w-100 h-100 animated-scaleX darken-img" />
+      <img
+        src="@/assets/images/forex-trading-course.jpeg"
+        alt="header"
+        class="header-bg-image"
+      />
+      <div class="overlay-gradient"></div>
+      <div class="animated-particles">
+        <div class="particle" v-for="i in 20" :key="i"></div>
+      </div>
+
+      <!-- Animated Grid -->
+      <div class="grid-overlay">
+        <div class="grid-line" v-for="i in 8" :key="`line-${i}`"></div>
+      </div>
     </div>
   </div>
 </template>
+
 <script>
 import store from '@/store'
 
 export default {
-  data () {
+  data() {
     return {
-      user:{},
-      username:'',
-      role:'',
+      user: {},
+      username: '',
+      role: '',
+      stats: [
+        {
+          icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          value: '24',
+          label: 'Active Deals'
+        },
+        {
+          icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          value: '98%',
+          label: 'Success Rate'
+        },
+        {
+          icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 12H18L15 21L9 3L6 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          value: '+12.5%',
+          label: 'This Week'
+        }
+      ]
     }
   },
-  mounted () {
+  mounted() {
     this.user = JSON.parse(store.state.user)
-    console.log("this user",this.user)
-    this.username= this.user?.user?.username
+    this.username = this.user?.user?.username || 'User'
     this.role = this.user?.role
-    console.log("this user",this.username)
-    console.log("this role",this.role)
-
-  },
+  }
 }
 </script>
 
-<style>
-.darken-img {
-  filter: brightness(50%); /* 0% = black, 100% = normal */
-  transition: filter 0.3s ease; /* optional smooth effect */
+<style scoped>
+.modern-header {
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+}
+
+.iq-header-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.header-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(35%);
+  transition: transform 0.3s ease;
+}
+
+.modern-header:hover .header-bg-image {
+  transform: scale(1.05);
+}
+
+.overlay-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,
+  rgba(16, 185, 129, 0.65) 0%,
+  rgba(5, 150, 105, 0.55) 35%,
+  rgba(4, 120, 87, 0.65) 70%,
+  rgba(6, 78, 59, 0.75) 100%);
+  z-index: 1;
+}
+
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: flex;
+  gap: 0;
+  opacity: 0.1;
+}
+
+.grid-line {
+  flex: 1;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  animation: gridPulse 3s ease-in-out infinite;
+}
+
+.grid-line:nth-child(1) { animation-delay: 0s; }
+.grid-line:nth-child(2) { animation-delay: 0.2s; }
+.grid-line:nth-child(3) { animation-delay: 0.4s; }
+.grid-line:nth-child(4) { animation-delay: 0.6s; }
+.grid-line:nth-child(5) { animation-delay: 0.8s; }
+.grid-line:nth-child(6) { animation-delay: 1s; }
+.grid-line:nth-child(7) { animation-delay: 1.2s; }
+.grid-line:nth-child(8) { animation-delay: 1.4s; }
+
+@keyframes gridPulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.iq-container {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.header-content {
+  width: 100%;
+}
+
+.welcome-section {
+  animation: slideInUp 0.8s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.greeting-wrapper {
+  margin-bottom: 2rem;
+}
+
+.welcome-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.wave-emoji {
+  display: inline-block;
+  animation: wave 2s ease-in-out infinite;
+  transform-origin: 70% 70%;
+  margin-right: 0.5rem;
+  font-size: 2.5rem;
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  40% { transform: rotate(14deg); }
+  50% { transform: rotate(-4deg); }
+  60% { transform: rotate(10deg); }
+}
+
+.username-highlight {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  font-weight: 800;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.4));
+}
+
+.welcome-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  font-weight: 400;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.quick-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInScale 0.6s ease-out backwards;
+  min-width: 180px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.2s; }
+.stat-card:nth-child(2) { animation-delay: 0.3s; }
+.stat-card:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.stat-shimmer {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) rotate(45deg);
+  }
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(16, 185, 129, 0.3);
+  border-color: rgba(52, 211, 153, 0.5);
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.stat-icon-1 {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.8));
+}
+
+.stat-icon-2 {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.9), rgba(16, 185, 129, 0.8));
+}
+
+.stat-icon-3 {
+  background: linear-gradient(135deg, rgba(110, 231, 183, 0.9), rgba(52, 211, 153, 0.8));
+}
+
+.stat-icon svg {
+  width: 26px;
+  height: 26px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.animated-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, rgba(110, 231, 183, 0.8), rgba(52, 211, 153, 0.4));
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+.particle:nth-child(2) { left: 20%; animation-delay: 1s; }
+.particle:nth-child(3) { left: 30%; animation-delay: 2s; }
+.particle:nth-child(4) { left: 40%; animation-delay: 3s; }
+.particle:nth-child(5) { left: 50%; animation-delay: 4s; }
+.particle:nth-child(6) { left: 60%; animation-delay: 0.5s; }
+.particle:nth-child(7) { left: 70%; animation-delay: 1.5s; }
+.particle:nth-child(8) { left: 80%; animation-delay: 2.5s; }
+.particle:nth-child(9) { left: 90%; animation-delay: 3.5s; }
+.particle:nth-child(10) { left: 15%; animation-delay: 0.8s; }
+.particle:nth-child(11) { left: 25%; animation-delay: 1.8s; }
+.particle:nth-child(12) { left: 35%; animation-delay: 2.8s; }
+.particle:nth-child(13) { left: 45%; animation-delay: 3.8s; }
+.particle:nth-child(14) { left: 55%; animation-delay: 0.3s; }
+.particle:nth-child(15) { left: 65%; animation-delay: 1.3s; }
+.particle:nth-child(16) { left: 75%; animation-delay: 2.3s; }
+.particle:nth-child(17) { left: 85%; animation-delay: 3.3s; }
+.particle:nth-child(18) { left: 95%; animation-delay: 0.6s; }
+.particle:nth-child(19) { left: 5%; animation-delay: 1.6s; }
+.particle:nth-child(20) { left: 50%; animation-delay: 2.6s; }
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-120px) translateX(30px) scale(1.5);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .modern-header {
+    height: auto;
+    min-height: 340px;
+    padding: 20px 0;
+  }
+
+  .welcome-title {
+    font-size: 1.75rem;
+  }
+
+  .wave-emoji {
+    font-size: 1.75rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 1rem;
+  }
+
+  .quick-stats {
+    flex-direction: column;
+  }
+
+  .stat-card {
+    width: 100%;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .greeting-wrapper {
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    padding: 1rem 1.25rem;
+    min-width: auto;
+  }
+
+  .stat-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .stat-icon svg {
+    width: 22px;
+    height: 22px;
+  }
 }
 </style>

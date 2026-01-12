@@ -1,116 +1,108 @@
 <template>
-  <div class="row">
-      <div class="col-md-12 col-xl-12" data-aos="fade-up" data-aos-delay="800">
-        <div class="d-slider1 overflow-hidden swiper-container-initialized swiper-container-horizontal swiper-container-pointer-events">
-          <!--          <Swiper-->
-          <!--            class="p-0 m-0 mb-2 swiper-wrapper list-inline"-->
-          <!--            :modules="modules"-->
-          <!--            :slide-per-view="4"-->
-          <!--            :space-between="32"-->
-          <!--            :breakpoints="{-->
-          <!--              320: { slidesPerView: 1 },-->
-          <!--              550: { slidesPerView: 2 },-->
-          <!--              991: { slidesPerView: 3 },-->
-          <!--              1400: { slidesPerView: 3 },-->
-          <!--              1500: { slidesPerView: 4 },-->
-          <!--              1920: { slidesPerView: 4 },-->
-          <!--              2040: { slidesPerView: 7 },-->
-          <!--              2440: { slidesPerView: 8 }-->
-          <!--            }"-->
-          <!--            :navigation="{-->
-          <!--              nextEl: '#blog-tranding-next',-->
-          <!--              prevEl: '#blog-tranding-prev'-->
-          <!--            }">-->
-          <!--            <SwiperSlide class="swiper-slide card card-slide" v-for="(item, index) in swiperItems" :key="index">-->
-          <!--&lt;!&ndash;              <b-card-body>&ndash;&gt;-->
-          <!--&lt;!&ndash;                <div class="progress-widget">&ndash;&gt;-->
-          <!--&lt;!&ndash;                  <analytics-widget :index="index" :title="item.title" :size="item.size" :sub-title="item.subTitle" :value="item.value" :color="item.color" :is-profit="item.isProfit">&ndash;&gt;-->
-          <!--&lt;!&ndash;                    <svg class="card-slie-arrow" width="24" height="24px" viewBox="0 0 24 24" v-if="index % 2">&ndash;&gt;-->
-          <!--&lt;!&ndash;                      <path fill="currentColor" d="M19,6.41L17.59,5L7,15.59V9H5V19H15V17H8.41L19,6.41Z"></path>&ndash;&gt;-->
-          <!--&lt;!&ndash;                    </svg>&ndash;&gt;-->
-          <!--&lt;!&ndash;                    <svg class="card-slie-arrow" width="24" height="24" viewBox="0 0 24 24" v-else>&ndash;&gt;-->
-          <!--&lt;!&ndash;                      <path fill="currentColor" d="M5,17.59L15.59,7H9V5H19V15H17V8.41L6.41,19L5,17.59Z"></path>&ndash;&gt;-->
-          <!--&lt;!&ndash;                    </svg>&ndash;&gt;-->
-          <!--&lt;!&ndash;                  </analytics-widget>&ndash;&gt;-->
-          <!--&lt;!&ndash;                  <div class="progress-detail">&ndash;&gt;-->
-          <!--&lt;!&ndash;                    <p class="mb-2">{{ item.subTitle }}</p>&ndash;&gt;-->
-          <!--&lt;!&ndash;                    <h4 class="counter">{{ item.amount }}</h4>&ndash;&gt;-->
-          <!--&lt;!&ndash;                  </div>&ndash;&gt;-->
-          <!--&lt;!&ndash;                </div>&ndash;&gt;-->
-          <!--&lt;!&ndash;              </b-card-body>&ndash;&gt;-->
-          <!--              <div class="credit-card-widget" data-aos="fade-up" data-aos-delay="700">-->
-          <!--              <div class="card-header pb-4 border-0">-->
-          <!--                <div class="p-4 primary-gradient-card rounded border border-white">-->
-          <!--                  <div class="d-flex justify-content-between align-items-center">-->
-          <!--                    <div>-->
-          <!--                      <h5 class="font-weight-bold">VISA</h5>-->
-          <!--                      <p class="mb-0">PREMIUM ACCOUNT</p>-->
-          <!--                    </div>-->
-          <!--                    <div class="master-card-content">-->
-          <!--                      <svg class="master-card-1" width="60" height="60" viewBox="0 0 24 24">-->
-          <!--                        <path fill="#ffffff" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />-->
-          <!--                      </svg>-->
-          <!--                      <svg class="master-card-2" width="60" height="60" viewBox="0 0 24 24">-->
-          <!--                        <path fill="#ffffff" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />-->
-          <!--                      </svg>-->
-          <!--                    </div>-->
-          <!--                  </div>-->
-          <!--                  <div class="my-4">-->
-          <!--                    <div class="card-number">-->
-          <!--                      <span class="fs-5 me-2">5789</span>-->
-          <!--                      <span class="fs-5 me-2">****</span>-->
-          <!--                      <span class="fs-5 me-2">****</span>-->
-          <!--                      <span class="fs-5">2847</span>-->
-          <!--                    </div>-->
-          <!--                  </div>-->
-          <!--                  <div class="d-flex align-items-center mb-2 justify-content-between">-->
-          <!--                    <p class="mb-0">Card holder</p>-->
-          <!--                    <p class="mb-0">Expire Date</p>-->
-          <!--                  </div>-->
-          <!--                  <div class="d-flex align-items-center justify-content-between">-->
-          <!--                    <h6>Mike Smith</h6>-->
-          <!--                    <h6 class="ms-5">06/11</h6>-->
-          <!--                  </div>-->
-          <!--                </div>-->
-          <!--              </div>-->
-          <!--              </div>-->
-          <!--            </SwiperSlide>-->
-          <!--          </Swiper>-->
-
-          <div class="page">
-            <RateCarousel :rates="rates" />
+  <div class="main-content-wrapper">
+    <!-- Rate Carousel Section -->
+    <div class="row mb-4">
+      <div class="col-12" data-aos="fade-up" data-aos-delay="400">
+        <div class="section-header">
+          <div class="d-flex align-items-center gap-3">
+            <h4 class="section-title mb-0"></h4>
           </div>
+        </div>
 
-          <div class="swiper-button swiper-button-next" id="blog-tranding-next"></div>
-          <div class="swiper-button swiper-button-prev" id="blog-tranding-prev"></div>
-          <span class="swiper-notification" aria-live="assertive" aria-atomic="true"></span>
+        <div class="rate-carousel-container">
+          <RateCarousel :rates="rates" />
         </div>
       </div>
     </div>
-      <div class="row">
-        <div class="col-md-12 col-xl-12">
-          <div class="overflow-hidden card aos-init aos-animate" data-aos="fade-up" data-aos-delay="600">
-            <div class="flex-wrap card-header d-flex justify-content-between">
-              <div class="header-title">
-                <h4 class="mb-2 card-title">Requested Deals</h4>
-              </div>
+
+    <!-- Quick Actions Section -->
+    <div class="row mb-4" data-aos="fade-up" data-aos-delay="600">
+      <div class="col-md-6 mb-4">
+        <div class="action-card action-primary">
+          <div class="action-content">
+            <div class="action-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+              </svg>
             </div>
-            <div class="p-0 card-body">
-              <div class="mt-4 table-responsive">
-                <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" />
-              </div>
+            <div>
+              <h5 class="action-title">New Deal Request</h5>
+              <p class="action-description">Start a new forex transaction with competitive rates</p>
+            </div>
+          </div>
+          <button class="action-btn">
+            <span>Create Request</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-4">
+        <div class="action-card action-secondary">
+          <div class="action-content">
+            <div class="action-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M9 3V21M3 9H21M3 15H21" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </div>
+            <div>
+              <h5 class="action-title">View All Deals</h5>
+              <p class="action-description">Track and manage your forex transactions</p>
+            </div>
+          </div>
+          <button class="action-btn">
+            <span>View Dashboard</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deals Table Section -->
+    <div class="row mb-5">
+      <div class="col-12">
+        <div class="table-card" data-aos="fade-up" data-aos-delay="800">
+          <div class="table-header">
+            <div>
+              <h4 class="table-title">Requested Deals</h4>
+              <p class="table-subtitle">Recent forex deal requests and their status</p>
+            </div>
+            <div class="table-actions">
+              <button class="filter-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Filter
+              </button>
+              <button class="export-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Export
+              </button>
+            </div>
+          </div>
+
+          <div class="table-body">
+            <div class="table-responsive">
+              <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" />
             </div>
           </div>
         </div>
       </div>
-
+    </div>
+  </div>
 </template>
 
 <script>
-import { onMounted, ref } from 'vue'
-import { Navigation } from 'swiper'
+import { onMounted } from 'vue'
 import AOS from 'aos'
-import updateUser from '@/views/user/UpdateUser.vue'
 import store from '@/store'
 import env from '@/environment/environment'
 import axios from 'axios'
@@ -118,249 +110,24 @@ import config from '@/config/config'
 import Swal from 'sweetalert2'
 import DataTable from '@/components/DataTable.vue'
 import RateCarousel from '@/components/RateCarousel.vue'
+
 export default {
   components: {
     RateCarousel,
     DataTable,
   },
   setup() {
-    const modules = [Navigation]
-    const grossSaleChart = ref({
-      series: [
-        {
-          name: 'total',
-          data: [94, 80, 94, 80, 94, 80, 94]
-        },
-        {
-          name: 'pipline',
-          data: [72, 60, 84, 60, 74, 60, 78]
-        }
-      ],
-      options: {
-        chart: {
-          fontFamily: '"Inter", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
-          height: 245,
-          type: 'area',
-          toolbar: {
-            show: false
-          },
-          sparkline: {
-            enabled: false
-          }
-        },
-        colors: ['#3a57e8', '#079aa2'],
-        dataLabels: {
-          enabled: false
-        },
-        stroke: {
-          curve: 'smooth',
-          width: 3
-        },
-        yaxis: {
-          show: true,
-          labels: {
-            show: true,
-            minWidth: 19,
-            maxWidth: 19,
-            style: {
-              colors: '#8A92A6'
-            },
-            offsetX: -5
-          }
-        },
-        legend: {
-          show: false
-        },
-        xaxis: {
-          labels: {
-            minHeight: 22,
-            maxHeight: 22,
-            show: true,
-            style: {
-              colors: '#8A92A6'
-            }
-          },
-          lines: {
-            show: false // or just here to disable only x axis grids
-          },
-          categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Aug']
-        },
-        grid: {
-          show: false
-        },
-        fill: {
-          type: 'gradient',
-          gradient: {
-            shade: 'dark',
-            type: 'vertical',
-            shadeIntensity: 0,
-            gradientToColors: undefined, // optional, if not defined - uses the shades of same color in series
-            inverseColors: true,
-            opacityFrom: 0.4,
-            opacityTo: 0.1,
-            stops: [0, 50, 80],
-            colors: ['#3a57e8', '#4bc7d2']
-          }
-        },
-        tooltip: {
-          enabled: true
-        }
-      }
-    })
-    const earningChart = ref({
-      series: [55, 75],
-      options: {
-        chart: {
-          height: 260,
-          type: 'radialBar'
-        },
-        colors: ['#4bc7d2', '#3a57e8'],
-        plotOptions: {
-          radialBar: {
-            hollow: {
-              margin: 10,
-              size: '50%'
-            },
-            track: {
-              margin: 10,
-              strokeWidth: '50%'
-            },
-            dataLabels: {
-              show: false
-            }
-          }
-        }
-      }
-    })
-    const conversionChart = ref({
-      series: [
-        {
-          name: 'Successful deals',
-          data: [30, 50, 35, 60, 40, 60, 60, 30, 50, 35]
-        },
-        {
-          name: 'Failed deals',
-          data: [40, 50, 55, 50, 30, 80, 30, 40, 50, 55]
-        }
-      ],
-      options: {
-        chart: {
-          type: 'bar',
-          height: 230,
-          stacked: true,
-          toolbar: {
-            show: false
-          }
-        },
-        colors: ['#3a57e8', '#4bc7d2'],
-        plotOptions: {
-          bar: {
-            horizontal: false,
-            columnWidth: '28%',
-            endingShape: 'rounded',
-            borderRadius: 5
-          }
-        },
-        legend: {
-          show: false
-        },
-        dataLabels: {
-          enabled: false
-        },
-        stroke: {
-          show: true,
-          width: 2,
-          colors: ['transparent']
-        },
-        xaxis: {
-          categories: ['S', 'M', 'T', 'W', 'T', 'F', 'S', 'M', 'T', 'W'],
-          labels: {
-            minHeight: 20,
-            maxHeight: 20,
-            style: {
-              colors: '#8A92A6'
-            }
-          }
-        },
-        yaxis: {
-          title: {
-            text: ''
-          },
-          labels: {
-            minWidth: 19,
-            maxWidth: 19,
-            style: {
-              colors: '#8A92A6'
-            }
-          }
-        },
-        fill: {
-          opacity: 1
-        },
-        tooltip: {
-          y: {
-            formatter: function (val) {
-              return '$ ' + val + ' thousands'
-            }
-          }
-        }
-      }
-    })
-    const swiperItems = ref([
-      {
-        size: 90,
-        amount: '560K',
-        subTitle: 'Total Sales',
-        color: 'primary'
-      },
-      {
-        size: 80,
-        amount: '185K',
-        subTitle: 'Total Profit',
-        color: 'info'
-      },
-      {
-        size: 70,
-        amount: '375K',
-        subTitle: 'Total Cost',
-        color: 'primary'
-      },
-      {
-        size: 60,
-        amount: '742K',
-        subTitle: 'Revenue',
-        color: 'info'
-      },
-      {
-        size: 50,
-        amount: '150K',
-        subTitle: 'Net Income',
-        color: 'primary'
-      },
-      {
-        size: 40,
-        amount: '4600',
-        subTitle: 'Today',
-        color: 'info'
-      },
-      {
-        size: 30,
-        amount: '11.2M',
-        subTitle: 'Members',
-        color: 'primary'
-      }
-    ])
     onMounted(() => {
       AOS.init({
         disable: function () {
-          var maxWidth = 996
-          return window.innerWidth < maxWidth
+          return window.innerWidth < 996
         },
         once: true,
         duration: 800
       })
     })
-    return { modules, grossSaleChart, earningChart, conversionChart, swiperItems }
+
+    return {}
   },
   data() {
     return {
@@ -369,76 +136,66 @@ export default {
       dealRequests: [],
       permissions: [],
       exchangeRates: [],
-      rates : [
+      rates: [
         { pair: 'DKK/KES', label: 'Danish Krone / Kenyan Shilling', buy: '-', sell: '22.23928' },
         { pair: 'JPY/KES', label: 'Japanese Yen / Kenyan Shilling', buy: '0.75437', sell: '0.91167' },
-        { pair: 'KES/UGX', label: 'Kenyan Shilling / Ugandan Shilling', buy: '20.83043', sell: '32.98579' }
+        { pair: 'KES/UGX', label: 'Kenyan Shilling / Ugandan Shilling', buy: '20.83043', sell: '32.98579' },
+        { pair: 'EUR/KES', label: 'Euro / Kenyan Shilling', buy: '138.45', sell: '142.30' },
+        { pair: 'USD/KES', label: 'US Dollar / Kenyan Shilling', buy: '128.50', sell: '131.20' },
+        { pair: 'GBP/KES', label: 'British Pound / Kenyan Shilling', buy: '163.20', sell: '167.80' }
       ]
     }
   },
   computed: {
     columns() {
       const canApprove = this.canApproveDealCodeRequests
-
-
-
       const cols = [
         { title: 'Customer Name', data: 'customerName' },
-        { title: 'AccountNumber', data: 'accountNumber' },
+        { title: 'Account Number', data: 'accountNumber' },
         { title: 'Amount', data: 'counterNominalAmount' },
         { title: 'Currency Pair', data: 'currencyPair' },
-
         { title: 'Buy/Sell', data: 'buySell' },
         {
           title: 'Request Date',
           data: 'requestDate',
           render: function (data) {
-            var a = new Date(data)
-            return a.toISOString().split('T')[0]
+            return new Date(data).toISOString().split('T')[0]
           }
         },
         { title: 'Value Date', data: 'valueDate' },
         { title: 'Negotiated Rate', data: 'negotiatedRate' },
-
         {
           title: 'Deal Status',
           data: 'status',
           render: function (data) {
             const id = Number(data.statusId)
             if (id === 1) return `<span class="badge bg-success">Active</span>`
-            if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
+            if (id === 0) return `<span class="badge bg-danger">Inactive</span>`
             if (id === 6) return `<span class="badge bg-warning">Pending</span>`
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            else return `<span class="badge bg-primary">data.statusName</span>`
+            return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         },
         { title: 'Deal Code', data: 'dealerCode' },
         { title: 'Order Number', data: 'orderId' }
       ]
 
-      //Push final row if user has permission
       if (canApprove) {
         cols.push({
           title: 'Actions',
-          data: null, // We don’t need data from backend here
+          data: null,
           orderable: false,
           searchable: false,
           render: function (data, type, row) {
-            if (canApprove) {
-              const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
-              return `
-                    <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}" >View Details</button>
-                    <button class="btn btn-sm btn-primary me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
-                   <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
-            } else return ''
+            const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
+            return `
+              <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}">View Details</button>
+              <button class="btn btn-sm btn-success me-1 dt-approve" data-id="${row.id}" ${approveDisabled}>Approve</button>
+              <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
           }
         })
       }
       return cols
-    },
-
-    updateUser() {
-      return updateUser
     },
     canCreateDealCodeRequests() {
       return this.hasPerm('CREATE_DEAL_REQUESTS')
@@ -464,11 +221,7 @@ export default {
       const token = localStorage.getItem('token')
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-      axios
-        .post(url, {
-          page: 0,
-          size: 10
-        })
+      axios.post(url, { page: 0, size: 10 })
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
@@ -477,13 +230,13 @@ export default {
               title: 'Error!',
               text: data.responseMessage,
               customClass: {
-                confirmButton: 'btn btn-success px-4 me-2', // green button
-                cancelButton: 'btn btn-secondary px-4' // gray button
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
               }
             })
             return
           }
-          this.dealRequests = data.data // reactive update, DataTable will redraw automatically
+          this.dealRequests = data.data
         })
         .catch((error) => {
           Swal.fire({
@@ -491,26 +244,21 @@ export default {
             title: 'Error!',
             text: 'Error occurred fetching Deal Requests',
             customClass: {
-              confirmButton: 'btn btn-success px-4 me-2', // green button
-              cancelButton: 'btn btn-secondary px-4' // gray button
+              confirmButton: 'btn btn-success px-4 me-2',
+              cancelButton: 'btn btn-secondary px-4'
             }
           })
           console.error(error)
         })
         .finally(() => {
-          this.loading = false // hide loader
+          this.loading = false
         })
     },
-
     getAllExchangeRates() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getAllExchangeRates
 
-      axios
-        .post(url, {
-          page: 0,
-          size: 10
-        })
+      axios.post(url, { page: 0, size: 10 })
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
@@ -519,31 +267,408 @@ export default {
               title: 'Error!',
               text: data.responseMessage,
               customClass: {
-                confirmButton: 'btn btn-success px-4 me-2', // green button
-                cancelButton: 'btn btn-secondary px-4' // gray button
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
               }
             })
             return
           }
-          this.exchangeRates = data.data // reactive update, DataTable will redraw automatically
-          console.log('exchange rates ', this.exchangeRates)
+          this.exchangeRates = data.data
+          console.log('exchange rates', this.exchangeRates)
         })
         .catch((error) => {
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'Error occurred fetching Deal Requests',
+            text: 'Error occurred fetching Exchange Rates',
             customClass: {
-              confirmButton: 'btn btn-success px-4 me-2', // green button
-              cancelButton: 'btn btn-secondary px-4' // gray button
+              confirmButton: 'btn btn-success px-4 me-2',
+              cancelButton: 'btn btn-secondary px-4'
             }
           })
           console.error(error)
         })
         .finally(() => {
-          this.loading = false // hide loader
+          this.loading = false
         })
     }
   }
 }
 </script>
+
+<style scoped>
+/* Main Content Wrapper - Prevents footer overlap */
+.main-content-wrapper {
+  min-height: calc(100vh - 280px - 80px); /* viewport height - header - footer */
+  padding-bottom: 60px;
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 26px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+}
+
+/* Action Cards */
+.action-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 20px;
+  padding: 28px;
+  border: 2px solid rgba(16, 185, 129, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+}
+
+.action-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.action-card:hover::before {
+  opacity: 1;
+}
+
+.action-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.action-primary {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+}
+
+.action-secondary {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.action-content {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.action-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.action-primary .action-icon {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.15));
+  color: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.action-secondary .action-icon {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(16, 185, 129, 0.15));
+  color: #10b981;
+  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.15);
+}
+
+.action-card:hover .action-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.action-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #064e3b;
+  margin-bottom: 6px;
+}
+
+.action-description {
+  font-size: 14px;
+  color: #047857;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.action-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-primary .action-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.action-secondary .action-btn {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.action-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.action-btn svg {
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.action-btn:hover svg {
+  transform: translateX(6px);
+}
+
+.action-btn span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Table Card */
+.table-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
+  border: 2px solid rgba(16, 185, 129, 0.1);
+  transition: all 0.3s ease;
+}
+
+.table-card:hover {
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.table-header {
+  padding: 28px;
+  border-bottom: 2px solid #f0fdf4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.table-title {
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.table-subtitle {
+  font-size: 14px;
+  color: #059669;
+  margin: 0;
+}
+
+.table-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.filter-btn,
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #fff;
+  border: 2px solid #d1fae5;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #059669;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover,
+.export-btn:hover {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #047857;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.table-body {
+  padding: 28px;
+}
+
+.rate-carousel-container {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
+  border: 2px solid rgba(16, 185, 129, 0.1);
+  transition: all 0.3s ease;
+}
+
+.rate-carousel-container:hover {
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+/* Custom Badge Styles for Green Theme */
+:deep(.badge.bg-success) {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+:deep(.dt-approve) {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+:deep(.dt-approve):hover {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+@media (max-width: 768px) {
+  .main-content-wrapper {
+    min-height: auto;
+    padding-bottom: 40px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-size: 22px;
+  }
+
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .table-actions {
+    width: 100%;
+  }
+
+  .filter-btn,
+  .export-btn {
+    flex: 1;
+  }
+
+  .action-card {
+    padding: 20px;
+  }
+
+  .action-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .action-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 576px) {
+  .action-title {
+    font-size: 18px;
+  }
+
+  .action-description {
+    font-size: 13px;
+  }
+
+  .rate-carousel-container,
+  .table-card {
+    border-radius: 16px;
+  }
+}
+</style>
