@@ -34,12 +34,10 @@ export default {
     }
   },
   computed: {
-
     //Permission Check Functions
     canCreateUsers() {
       return this.hasPerm("CREATE_USERS");
     },
-    //Permission Check Functions
     canViewUsers() {
       return this.hasPerm("VIEW_USERS");
     },
@@ -69,138 +67,462 @@ export default {
     this.permissions = this.user?.usersPerm;
   }
 }
-
-
 </script>
+
 <template>
   <!-- Sidebar Component Start Here-->
   <default-sidebar>
     <ul class="navbar-nav iq-main-menu" id="sidebar-menu">
+      <!-- Home Section -->
       <side-menu title="HOME" :static-item="true"></side-menu>
-      <side-menu isTag="router-link" title="Dashboard" icon="view-grid" :route="{ to: 'default.dashboard' }"></side-menu>
+      <side-menu
+        isTag="router-link"
+        title="Dashboard"
+        icon="view-grid"
+        :route="{ to: 'default.dashboard' }"
+      ></side-menu>
 
-<!--      <side-menu title="Menu Style" icon="adjustment" toggle-id="menu-style" :caret-icon="true" :route="{ popup: 'false', to: 'menu-style' }" @onClick="toggle" :active="currentRoute.includes('menu-style')">-->
-<!--        <b-collapse tag="ul" class="sub-nav" id="menu-style" accordion="sidebar-menu" :visible="currentRoute.includes('menu-style')">-->
-<!--          <side-menu title="Horizontal" icon="circle" :icon-size="10" icon-type="solid" miniTitle="H" :route="{ to: 'horizontal.dashboard' }"></side-menu>-->
-<!--          <side-menu title="Dual Horizontal" icon="circle" :icon-size="10" icon-type="solid" miniTitle="D" :route="{ to: 'dual-horizontal.dashboard' }"></side-menu>-->
-<!--          <side-menu title="Dual Compact" icon="circle" :icon-size="10" icon-type="solid" miniTitle="D" :route="{ to: 'dual-compact' }"></side-menu>-->
-<!--          <side-menu title="Boxed Horizontal" icon="circle" :icon-size="10" icon-type="solid" miniTitle="B" :route="{ to: 'boxed.dashboard' }"></side-menu>-->
-<!--          <side-menu title="Boxed Fancy" icon="circle" :icon-size="10" icon-type="solid" miniTitle="B" :route="{ to: 'boxed-fancy.dashboard' }"></side-menu>-->
-<!--        </b-collapse>-->
-<!--      </side-menu>-->
-<!--      <side-menu title="Design System" icon="wallet" :route="{ to: 'design-system.main' }">-->
-<!--        <template #title>-->
-<!--          Design System-->
-<!--          <b-badge variant="success" pill>UI</b-badge>-->
-<!--        </template>-->
-<!--      </side-menu>-->
-<!--      <li><hr class="hr-horizontal" /></li>-->
-      <side-menu title="PAGES" :static-item="true"></side-menu>
-      <side-menu v-if="canViewUsers" title="Users" icon="user-group" toggle-id="users" :caret-icon="true" :route="{ popup: 'false', to: 'user' }" @onClick="toggle" :active="currentRoute.includes('user')">
-        <b-collapse tag="ul" class="sub-nav" id="users" accordion="sidebar-menu" :visible="currentRoute.includes('user')">
-<!--          <side-menu isTag="router-link" title="User Profile" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UP" :route="{ to: 'default.user-profile' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="User Add" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UA" :route="{ to: 'default.user-add' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="User List" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.user-list' }"></side-menu>-->
-          <side-menu v-if="canCreateUsers" isTag="router-link" title="Create User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.createUser' }"></side-menu>
-          <side-menu v-if="canViewUsers" isTag="router-link" title="View User" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUsers' }"></side-menu>
-          <side-menu  v-if="canApproveUsers" isTag="router-link" title="View User Approvals" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewUserApprovals' }"></side-menu>
-        </b-collapse>
-      </side-menu>
-      <side-menu v-if="canViewRoles"  title="Roles" icon="user-group" toggle-id="roles" :caret-icon="true" :route="{ popup: 'false', to: 'role' }" @onClick="toggle" :active="currentRoute.includes('role')">
-        <b-collapse tag="ul" class="sub-nav" id="roles" accordion="sidebar-menu" :visible="currentRoute.includes('role')">
-          <!--          <side-menu isTag="router-link" title="User Profile" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UP" :route="{ to: 'default.user-profile' }"></side-menu>-->
-          <!--          <side-menu isTag="router-link" title="User Add" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UA" :route="{ to: 'default.user-add' }"></side-menu>-->
-          <!--          <side-menu isTag="router-link" title="User List" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.user-list' }"></side-menu>-->
-          <side-menu v-if="canCreateRoles" isTag="router-link" title="Create Role" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.createRoles' }"></side-menu>
-          <side-menu v-if ="canViewRoles" isTag="router-link" title="View Role" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewRoles' }"></side-menu>
-          <side-menu v-if="canApproveRoles" isTag="router-link" title="View Role Approvals" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewRoleApprovals' }"></side-menu>
-        </b-collapse>
-      </side-menu>
-
-      <side-menu v-if="canViewDealCodeRequests" title="Deal Codes" icon="user-group" toggle-id="dealCodes" :caret-icon="true" :route="{ popup: 'false', to: 'dealCodes' }" @onClick="toggle" :active="currentRoute.includes('dealCodes')">
-        <b-collapse tag="ul" class="sub-nav" id="dealCodes" accordion="sidebar-menu" :visible="currentRoute.includes('dealCodes')">
-          <!--          <side-menu isTag="router-link" title="User Profile" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UP" :route="{ to: 'default.user-profile' }"></side-menu>-->
-          <!--          <side-menu isTag="router-link" title="User Add" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UA" :route="{ to: 'default.user-add' }"></side-menu>-->
-          <!--          <side-menu isTag="router-link" title="User List" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.user-list' }"></side-menu>-->
-          <side-menu isTag="router-link" title="View Deal Requests" icon="circle" :icon-size="10" icon-type="solid" miniTitle="UL" :route="{ to: 'default.viewDealCodes' }"></side-menu>
-        </b-collapse>
-      </side-menu>
-<!--      <side-menu title="Utilities" icon="bookmark" toggle-id="utilities" :caret-icon="true" :route="{ popup: 'false', to: 'errors' }" @onClick="toggle" :active="currentRoute.includes('errors')">-->
-<!--        <b-collapse tag="ul" class="sub-nav" id="utilities" accordion="sidebar-menu" :visible="currentRoute.includes('errors')">-->
-<!--          <side-menu title="Error 404" icon="circle" :icon-size="10" icon-type="solid" miniTitle="404" :route="{ to: 'errors.404' }"></side-menu>-->
-<!--          <side-menu title="Error 500" icon="circle" :icon-size="10" icon-type="solid" miniTitle="500" :route="{ to: 'errors.500' }"></side-menu>-->
-<!--          <side-menu title="Maintenance" icon="circle" :icon-size="10" icon-type="solid" miniTitle="M" :route="{ to: 'errors.maintenance' }"></side-menu>-->
-<!--        </b-collapse>-->
-<!--      </side-menu>-->
-<!--      <side-menu isTag="router-link" title="Admin" icon="lock-open" :route="{ to: 'default.admin-permissions' }"></side-menu>-->
-<!--      <side-menu isTag="router-link" title="Evaluate Template" icon="lock-open" :route="{ to: 'default.evalTemplate' }"></side-menu>-->
       <li><hr class="hr-horizontal" /></li>
-<!--      <side-menu title="ELEMENTS" :static-item="true"></side-menu>-->
-<!--      <side-menu title="Components" icon="brief-case"></side-menu>-->
-<!--      <side-menu title="Widgets" icon="offer" toggle-id="widgets" :caret-icon="true" :route="{ popup: 'false', to: 'widget' }" @onClick="toggle" :active="currentRoute.includes('widget')">-->
-<!--        <b-collapse tag="ul" class="sub-nav" id="widgets" accordion="sidebar-menu" :visible="currentRoute.includes('widget')">-->
-<!--          <side-menu isTag="router-link" title="Widgets Basic" icon="circle" :icon-size="10" icon-type="solid" miniTitle="WB" :route="{ to: 'default.widget-basic' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Widgets Chart" icon="circle" :icon-size="10" icon-type="solid" miniTitle="WC" :route="{ to: 'default.widget-chart' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Widgets Card" icon="circle" :icon-size="10" icon-type="solid" miniTitle="WC" :route="{ to: 'default.widget-card' }"></side-menu>-->
-<!--        </b-collapse>-->
-<!--      </side-menu>-->
-<!--      <side-menu title="Maps" icon="location" toggle-id="maps" :caret-icon="true" :route="{ popup: 'false', to: 'maps' }" @onClick="toggle" :active="currentRoute.includes('maps')">-->
-<!--        <b-collapse tag="ul" class="sub-nav" id="maps" accordion="sidebar-menu" :visible="currentRoute.includes('maps')">-->
-<!--          <side-menu isTag="router-link" title="Google" icon="circle" :icon-size="10" icon-type="solid" miniTitle="G" :route="{ to: 'default.map-google' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Vector" icon="circle" :icon-size="10" icon-type="solid" miniTitle="V" :route="{ to: 'default.map-vector' }"></side-menu>-->
-<!--        </b-collapse>-->
-<!--      </side-menu>-->
-<!--      <side-menu title="Form" icon="file" toggle-id="form" :caret-icon="true" :route="{ popup: 'false', to: 'form' }" @onClick="toggle" :active="currentRoute.includes('form')">-->
-<!--        <b-collapse tag="ul" class="sub-nav" id="form" accordion="sidebar-menu" :visible="currentRoute.includes('form')">-->
-<!--          <side-menu isTag="router-link" title="Elements" icon="circle" :icon-size="10" icon-type="solid" miniTitle="E" :route="{ to: 'default.elements' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Wizard" icon="circle" :icon-size="10" icon-type="solid" miniTitle="W" :route="{ to: 'default.wizard' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Validation" icon="circle" :icon-size="10" icon-type="solid" miniTitle="V" :route="{ to: 'default.validation' }"></side-menu>-->
-<!--        </b-collapse>-->
-<!--      </side-menu>-->
-<!--      <side-menu title="Table" icon="table" toggle-id="table" :caret-icon="true" :route="{ popup: 'false', to: 'table' }" @onClick="toggle" :active="currentRoute.includes('table')">-->
-<!--        <b-collapse tag="ul" class="sub-nav" id="table" accordion="sidebar-menu" :visible="currentRoute.includes('table')">-->
-<!--          <side-menu isTag="router-link" title="Bootstrap Table" icon="circle" :icon-size="10" icon-type="solid" miniTitle="BS" :route="{ to: 'default.bootstrap-table' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Datatable" icon="circle" :icon-size="10" icon-type="solid" miniTitle="DT" :route="{ to: 'default.data-table' }"></side-menu>-->
-<!--        </b-collapse>-->
-<!--      </side-menu>-->
-<!--      <side-menu title="Icons" icon="i" toggle-id="icons" :caret-icon="true" :route="{ popup: 'false', to: 'icons' }" @onClick="toggle" :active="currentRoute.includes('icons')">-->
-<!--        <b-collapse tag="ul" class="sub-nav" id="icons" accordion="sidebar-menu" :visible="currentRoute.includes('icons')">-->
-<!--          <side-menu isTag="router-link" title="Solid" icon="circle" :icon-size="10" icon-type="solid" miniTitle="S" :route="{ to: 'default.icons.solid' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Outlined" icon="circle" :icon-size="10" icon-type="solid" miniTitle="O" :route="{ to: 'default.icons.outlined' }"></side-menu>-->
-<!--          <side-menu isTag="router-link" title="Dual Tone" icon="circle" :icon-size="10" icon-type="solid" miniTitle="DT" :route="{ to: 'default.icons.dual-tone' }"></side-menu>-->
-<!--        </b-collapse>-->
-<!--      </side-menu>-->
+
+      <!-- Main Navigation Section -->
+      <side-menu title="MAIN MENU" :static-item="true"></side-menu>
+
+      <!-- Users Menu -->
+      <side-menu
+        v-if="canViewUsers"
+        title="Users"
+        icon="user-group"
+        toggle-id="users"
+        :caret-icon="true"
+        :route="{ popup: 'false', to: 'user' }"
+        @onClick="toggle"
+        :active="currentRoute.includes('user')"
+      >
+        <b-collapse
+          tag="ul"
+          class="sub-nav"
+          id="users"
+          accordion="sidebar-menu"
+          :visible="currentRoute.includes('user')"
+        >
+          <side-menu
+            v-if="canCreateUsers"
+            isTag="router-link"
+            title="Create User"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="CU"
+            :route="{ to: 'default.createUser' }"
+          ></side-menu>
+          <side-menu
+            v-if="canViewUsers"
+            isTag="router-link"
+            title="View Users"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="VU"
+            :route="{ to: 'default.viewUsers' }"
+          ></side-menu>
+          <side-menu
+            v-if="canApproveUsers"
+            isTag="router-link"
+            title="User Approvals"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="UA"
+            :route="{ to: 'default.viewUserApprovals' }"
+          ></side-menu>
+        </b-collapse>
+      </side-menu>
+
+      <!-- Roles Menu -->
+      <side-menu
+        v-if="canViewRoles"
+        title="Roles"
+        icon="user-group"
+        toggle-id="roles"
+        :caret-icon="true"
+        :route="{ popup: 'false', to: 'role' }"
+        @onClick="toggle"
+        :active="currentRoute.includes('role')"
+      >
+        <b-collapse
+          tag="ul"
+          class="sub-nav"
+          id="roles"
+          accordion="sidebar-menu"
+          :visible="currentRoute.includes('role')"
+        >
+          <side-menu
+            v-if="canCreateRoles"
+            isTag="router-link"
+            title="Create Role"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="CR"
+            :route="{ to: 'default.createRoles' }"
+          ></side-menu>
+          <side-menu
+            v-if="canViewRoles"
+            isTag="router-link"
+            title="View Roles"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="VR"
+            :route="{ to: 'default.viewRoles' }"
+          ></side-menu>
+          <side-menu
+            v-if="canApproveRoles"
+            isTag="router-link"
+            title="Role Approvals"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="RA"
+            :route="{ to: 'default.viewRoleApprovals' }"
+          ></side-menu>
+        </b-collapse>
+      </side-menu>
+
+      <!-- Deal Codes Menu -->
+      <side-menu
+        v-if="canViewDealCodeRequests"
+        title="Deal Codes"
+        icon="user-group"
+        toggle-id="dealCodes"
+        :caret-icon="true"
+        :route="{ popup: 'false', to: 'dealCodes' }"
+        @onClick="toggle"
+        :active="currentRoute.includes('dealCodes')"
+      >
+        <b-collapse
+          tag="ul"
+          class="sub-nav"
+          id="dealCodes"
+          accordion="sidebar-menu"
+          :visible="currentRoute.includes('dealCodes')"
+        >
+          <side-menu
+            isTag="router-link"
+            title="View Deal Requests"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="VD"
+            :route="{ to: 'default.viewDealCodes' }"
+          ></side-menu>
+        </b-collapse>
+      </side-menu>
+
+      <li><hr class="hr-horizontal" /></li>
     </ul>
   </default-sidebar>
   <!-- Sidebar Component End Here-->
 </template>
 
-<!-- <script>
-import { ref } from 'vue'
-import { useRoute } from 'vue-router'
-import DefaultSidebar from '@/components/custom/sidebar/DefaultSidebar.vue'
-import SideMenu from '@/components/custom/nav/SideMenu.vue'
-export default {
-  components: { DefaultSidebar, SideMenu },
-  setup() {
-    const visible = ref(false)
-    const currentRoute = useRoute()
-    const openMenu = () => {
-      visible.value = !visible.value
-    }
-    const checkActive = (route) => {
-      if (currentRoute.name === route) {
-        return true
-      }
-      if (route.includes(currentRoute.name)) {
-        return true
-      }
-    }
+<style scoped>
+/* Sidebar Enhancement Styles */
 
-    return { visible, openMenu, checkActive }
-  },
-  methods: {}
+/* Main Menu Styling */
+.iq-main-menu {
+  padding: 0;
 }
-</script> -->
 
-<style></style>
+/* Static Menu Items (Section Headers) */
+:deep(.nav-item .nav-text.static-item) {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #6b7280;
+  padding: 20px 24px 8px 24px;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* Main Navigation Items */
+:deep(.nav-item > .nav-link) {
+  padding: 12px 24px;
+  margin: 4px 12px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  color: #374151;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Active Navigation Item */
+:deep(.nav-item > .nav-link.active) {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transform: translateX(4px);
+}
+
+/* Hover State for Navigation Items */
+:deep(.nav-item > .nav-link:hover:not(.active)) {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  color: #047857;
+  transform: translateX(4px);
+}
+
+/* Navigation Icons */
+:deep(.nav-item .icon svg) {
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s ease;
+}
+
+:deep(.nav-item > .nav-link.active .icon svg) {
+  filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
+}
+
+/* Sub-navigation Styling */
+:deep(.sub-nav) {
+  padding: 4px 0;
+  margin-left: 24px;
+  border-left: 2px solid #e5e7eb;
+}
+
+:deep(.sub-nav .nav-item) {
+  margin: 2px 0;
+}
+
+:deep(.sub-nav .nav-link) {
+  padding: 10px 20px;
+  margin: 2px 8px 2px 0;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+:deep(.sub-nav .nav-link::before) {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 0;
+  background: linear-gradient(135deg, #10b981, #059669);
+  transition: all 0.3s ease;
+}
+
+:deep(.sub-nav .nav-link.active::before) {
+  height: 100%;
+}
+
+:deep(.sub-nav .nav-link:hover::before) {
+  height: 60%;
+}
+
+/* Active Sub-navigation Item */
+:deep(.sub-nav .nav-link.active) {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #047857;
+  font-weight: 600;
+  border-left: 2px solid transparent;
+}
+
+/* Hover State for Sub-navigation */
+:deep(.sub-nav .nav-link:hover:not(.active)) {
+  background: #f9fafb;
+  color: #059669;
+  transform: translateX(4px);
+}
+
+/* Caret Icon for Expandable Menus */
+:deep(.nav-item .right-icon) {
+  transition: all 0.3s ease;
+}
+
+:deep(.nav-item.show .right-icon),
+:deep(.nav-item[aria-expanded="true"] .right-icon) {
+  transform: rotate(90deg);
+}
+
+:deep(.nav-item > .nav-link.active .right-icon svg) {
+  filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
+}
+
+/* Horizontal Rule Styling */
+.hr-horizontal {
+  margin: 16px 24px;
+  border: 0;
+  border-top: 2px solid #f0fdf4;
+  opacity: 1;
+}
+
+/* Mini Title (When Sidebar is Collapsed) */
+:deep(.mini-title) {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #059669;
+  transition: all 0.3s ease;
+}
+
+:deep(.nav-link.active .mini-title) {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+/* Badge Styling (if any badges are added) */
+:deep(.badge) {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+:deep(.badge.badge-success) {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+/* Scrollbar Styling for Sidebar */
+:deep(.sidebar-body::-webkit-scrollbar) {
+  width: 6px;
+}
+
+:deep(.sidebar-body::-webkit-scrollbar-track) {
+  background: #f9fafb;
+  border-radius: 10px;
+}
+
+:deep(.sidebar-body::-webkit-scrollbar-thumb) {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+:deep(.sidebar-body::-webkit-scrollbar-thumb:hover) {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+/* Animation for Menu Items */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+:deep(.nav-item) {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Focus State for Accessibility */
+:deep(.nav-link:focus) {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1199px) {
+  :deep(.nav-item > .nav-link) {
+    padding: 10px 20px;
+    margin: 3px 10px;
+  }
+
+  :deep(.sub-nav .nav-link) {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 991px) {
+  :deep(.nav-item .nav-text.static-item) {
+    font-size: 10px;
+    padding: 16px 20px 6px 20px;
+  }
+
+  .hr-horizontal {
+    margin: 12px 20px;
+  }
+}
+
+/* Dark Mode Support (if applicable) */
+@media (prefers-color-scheme: dark) {
+  :deep(.nav-item > .nav-link:not(.active)) {
+    color: #e5e7eb;
+  }
+
+  :deep(.sub-nav .nav-link:not(.active)) {
+    color: #d1d5db;
+  }
+
+  :deep(.nav-item .nav-text.static-item) {
+    color: #9ca3af;
+  }
+}
+
+/* Smooth Transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+/* Tooltip Enhancement (if tooltips are used) */
+:deep(.nav-item [data-bs-toggle="tooltip"]) {
+  cursor: pointer;
+}
+
+/* Loading State (if needed) */
+.sidebar-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Empty State Message */
+.sidebar-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+/* Notification Badge on Menu Items */
+:deep(.notification-badge) {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+</style>

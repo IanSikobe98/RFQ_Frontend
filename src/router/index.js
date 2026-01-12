@@ -11,6 +11,7 @@ import CreateRoles from '@/views/roles/CreateRoles.vue'
 import ViewRoleApprovals from '@/views/roles/ViewRoleApprovals.vue'
 import UpdateRole from '@/views/roles/UpdateRole.vue'
 import ViewDealCodes from '@/views/teller/ViewDealCodes.vue'
+import ConvertCurrency from '@/views/currency/ConvertCurrency.vue'
 
 
 const defaultChildRoutes = (prefix) => [
@@ -67,6 +68,13 @@ const defaultChildRoutes = (prefix) => [
     meta: { auth: true, name: 'viewDealCodes', isBanner: true, requiresAuth: true },
     component: ViewDealCodes
   },
+  {
+    path: '/convertCurrency',
+    name: prefix + '.convertCurrency',
+    meta: { auth: true, name: 'convertCurrency', isBanner: true, requiresAuth: true },
+    component: ConvertCurrency
+  },
+
 
   {
     path: '/viewRoleApprovals',
