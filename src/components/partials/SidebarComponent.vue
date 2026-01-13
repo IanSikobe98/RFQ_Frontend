@@ -56,6 +56,9 @@ export default {
     canApproveRoles() {
       return this.hasPerm('APPROVE_ROLES')
     },
+    canConvertCurrency() {
+      return this.hasPerm('CONVERT_CURRENCY')
+    },
   },
   methods: {
     hasPerm (permission) {
@@ -221,7 +224,7 @@ export default {
 
       <!-- Deal Codes Menu -->
       <side-menu
-        v-if="canViewDealCodeRequests"
+        v-if="canConvertCurrency"
         title="Currency"
         icon="user-group"
         toggle-id="currency"

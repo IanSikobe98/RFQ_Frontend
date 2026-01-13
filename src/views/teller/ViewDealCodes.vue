@@ -335,7 +335,7 @@ export default {
             }
           })
           console.log('Deal Code  Request created successfully  ', this.userName)
-          this.$router.push('/viewUsers')
+          this.fetchDealRequests()
         })
         .catch((error) => {
           console.log('Error is ', error)
@@ -355,6 +355,7 @@ export default {
           this.loading = false
           this.showEnableModal = false
           this.showDisableModal = false
+          this.showCreateRFQModal = false
         })
     },
     fetchDealRequests() {
@@ -1168,7 +1169,7 @@ export default {
                 <div>
                   <p class="info-label" v-if="useCurrentRate">Expected Total (Current Rate)</p>
                   <p class="info-label" v-if="useNegotiatedRate">Expected Total (Negotiated Rate)</p>
-                  <p class="info-value success">{{ expectedValue }} {{ currency?.id }}</p>
+                  <p class="info-value success">{{ expectedValue }} {{ selectedAccount.currency }}</p>
                 </div>
               </div>
             </div>

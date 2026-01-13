@@ -17,29 +17,8 @@
 
     <!-- Quick Actions Section -->
     <div class="row mb-4" data-aos="fade-up" data-aos-delay="600">
-      <div class="col-md-6 mb-4">
-        <div class="action-card action-primary">
-          <div class="action-content">
-            <div class="action-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
-              </svg>
-            </div>
-            <div>
-              <h5 class="action-title">New Deal Request</h5>
-              <p class="action-description">Start a new forex transaction with competitive rates</p>
-            </div>
-          </div>
-          <button class="action-btn">
-            <span>Create Request</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-        </div>
-      </div>
 
-      <div class="col-md-6 mb-4">
+      <div v-if = "canViewDealCodeRequests" class="col-md-6 mb-4">
         <div class="action-card action-secondary">
           <div class="action-content">
             <div class="action-icon">
@@ -53,8 +32,30 @@
               <p class="action-description">Track and manage your forex transactions</p>
             </div>
           </div>
-          <button class="action-btn">
-            <span>View Dashboard</span>
+          <button class="action-btn" @click="viewDeals">
+            <span>View Deals</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div v-if="canConvertCurrency" class="col-md-6 mb-4">
+        <div class="action-card action-primary">
+          <div class="action-content">
+            <div class="action-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div>
+              <h5 class="action-title">Convert Currency</h5>
+              <p class="action-description">Convert amount to a new currency using current rate</p>
+            </div>
+          </div>
+          <button class="action-btn" @click="convertCurrency">
+            <span>Create Request</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
@@ -73,19 +74,31 @@
               <p class="table-subtitle">Recent forex deal requests and their status</p>
             </div>
             <div class="table-actions">
-              <button class="filter-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Filter
-              </button>
-              <button class="export-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Export
-              </button>
+<!--              <button class="filter-btn">-->
+<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+<!--                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                Filter-->
+<!--              </button>-->
+<!--              <button class="export-btn">-->
+<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+<!--                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                Export-->
+<!--              </button>              <button class="filter-btn">-->
+<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+<!--                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                Filter-->
+<!--              </button>-->
+<!--              <button class="export-btn">-->
+<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+<!--                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                Export-->
+<!--              </button>-->
             </div>
           </div>
 
@@ -220,6 +233,12 @@ export default {
     canCreateDealCodeRequests() {
       return this.hasPerm('CREATE_DEAL_REQUESTS')
     },
+    canConvertCurrency() {
+      return this.hasPerm('CONVERT_CURRENCY')
+    },
+    canViewDealCodeRequests() {
+      return this.hasPerm("VIEW_DEAL_REQUESTS");
+    },
     canApproveDealCodeRequests() {
       return this.hasPerm('APPROVE_DEAL_REQUESTS')
     }
@@ -323,7 +342,13 @@ export default {
         .finally(() => {
           this.loading = false
         })
-    }
+    },
+    viewDeals(){
+      this.$router.push('/viewDealCodes');
+    },
+    convertCurrency(){
+      this.$router.push('/convertCurrency');
+    },
   }
 }
 </script>
