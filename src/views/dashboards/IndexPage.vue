@@ -10,7 +10,7 @@
         </div>
 
         <div class="rate-carousel-container">
-          <RateCarousel :rates="rates" />
+          <RateCarousel :rates="exchangeRates" />
         </div>
       </div>
     </div>
@@ -136,6 +136,26 @@ export default {
       dealRequests: [],
       permissions: [],
       exchangeRates: [],
+      currencyOptions: [
+        { id: 'USD', name: 'United States Dollar' },
+        { id: 'KES', name: 'Kenyan Shilling' },
+        { id: 'EUR', name: 'Euro' },
+        { id: 'GBP', name: 'British Pound Sterling' },
+        { id: 'ZAR', name: 'South African Rand' },
+        { id: 'CAD', name: 'Canadian Dollar' },
+        { id: 'CHF', name: 'Swiss Franc' },
+        { id: 'JPY', name: 'Japanese Yen' },
+        { id: 'AUD', name: 'Australian Dollar' },
+        { id: 'DKK', name: 'Danish Krone' },
+        { id: 'SEK', name: 'Swedish Krona' },
+        { id: 'NOK', name: 'Norwegian Krone' },
+        { id: 'INR', name: 'Indian Rupee' },
+        { id: 'AED', name: 'United Arab Emirates Dirham' },
+        { id: 'CNY', name: 'Chinese Yuan' },
+        { id: 'TZS', name: 'Tanzanian Shilling' },
+        { id: 'RWF', name: 'Rwandan Franc' },
+        { id: 'UGX', name: 'Ugandan Shilling' }
+      ],
       rates: [
         { pair: 'DKK/KES', label: 'Danish Krone / Kenyan Shilling', buy: '-', sell: '22.23928' },
         { pair: 'JPY/KES', label: 'Japanese Yen / Kenyan Shilling', buy: '0.75437', sell: '0.91167' },
@@ -273,7 +293,19 @@ export default {
             })
             return
           }
-          this.exchangeRates = data.data
+          this.exchangeRates = data?.entity
+          this.exchangeRates.forEach((exchangeRate) => {
+            var fromCurrencyString = this.currencyOptions.find(
+              item => item.id === exchangeRate.fromCurrency
+            )?.name;
+
+
+
+            var toCurrencyString = this.currencyOptions.find(
+              item => item.id === exchangeRate.toCurrency
+            )?.name;
+            exchangeRate.label = fromCurrencyString +"/"+toCurrencyString;
+          })
           console.log('exchange rates', this.exchangeRates)
         })
         .catch((error) => {

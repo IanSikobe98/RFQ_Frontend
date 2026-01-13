@@ -22,7 +22,7 @@
 
           <!-- Currency Pair Header -->
           <div class="card-header">
-            <h3 class="pair-title">{{ rate.pair }}</h3>
+            <h3 class="pair-title">{{ rate.combination }}</h3>
 
           </div>
 
@@ -37,7 +37,7 @@
                 </svg>
                 <span>Buy</span>
               </div>
-              <strong class="rate-value">{{ rate.buy }}</strong>
+              <strong class="rate-value">{{ rate.buyingRate }}</strong>
             </div>
 
             <div class="rate-divider"></div>
@@ -50,7 +50,7 @@
                 </svg>
                 <span>Sell</span>
               </div>
-              <strong class="rate-value">{{ rate.sell }}</strong>
+              <strong class="rate-value">{{ rate.sellingRate }}</strong>
             </div>
           </div>
 
