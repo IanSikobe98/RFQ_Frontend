@@ -62,6 +62,7 @@ export default {
         { id: 'NATID', name: 'National id' },
         { id: 'ACCNO', name: 'Account Number' }
       ],
+      filteredCurrencyOptions:[],
       currencyOptions: [
         { id: 'USD', name: 'United States Dollar' },
         { id: 'KES', name: 'Kenyan Shilling' },
@@ -166,7 +167,7 @@ export default {
       if (this.selectedAccount) {
         console.log("test " ,this.selectedAccount)
         this.sourceAccCurrency = this.selectedAccount?.currency
-        this.currencyOptions = this.currencyOptions.filter(
+        this.filteredCurrencyOptions = this.currencyOptions.filter(
           currency => currency.id !== this.sourceAccCurrency
         );
         this.checkBankDirection();
@@ -1097,7 +1098,7 @@ export default {
               <label class="form-label">Counter Currency <span class="text-danger">*</span></label>
               <select class="form-select modern-select" v-model="currency" @change="checkBankDirection">
                 <option value="">Select currency</option>
-                <option v-for="option in currencyOptions" :key="option" :value="option">
+                <option v-for="option in filteredCurrencyOptions" :key="option" :value="option">
                   {{ option.id }} - {{ option.name }}
                 </option>
               </select>

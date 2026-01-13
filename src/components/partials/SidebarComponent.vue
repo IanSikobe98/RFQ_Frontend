@@ -219,6 +219,36 @@ export default {
         </b-collapse>
       </side-menu>
 
+      <!-- Deal Codes Menu -->
+      <side-menu
+        v-if="canViewDealCodeRequests"
+        title="Currency"
+        icon="user-group"
+        toggle-id="currency"
+        :caret-icon="true"
+        :route="{ popup: 'false', to: 'currency' }"
+        @onClick="toggle"
+        :active="currentRoute.includes('currency')"
+      >
+        <b-collapse
+          tag="ul"
+          class="sub-nav"
+          id="currency"
+          accordion="sidebar-menu"
+          :visible="currentRoute.includes('currency')"
+        >
+          <side-menu
+            isTag="router-link"
+            title="Conversion"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="VD"
+            :route="{ to: 'default.convertCurrency' }"
+          ></side-menu>
+        </b-collapse>
+      </side-menu>
+
       <li><hr class="hr-horizontal" /></li>
     </ul>
   </default-sidebar>

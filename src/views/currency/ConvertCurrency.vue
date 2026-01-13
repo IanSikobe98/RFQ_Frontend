@@ -13,12 +13,19 @@ export default {
       permissions: [],
       user: {},
       loading: false,
+      amount: '',
+      fromCurrency: '',
+      toCurrency: '',
+      bankDirection:'',
+      rateValue:'',
+      convertedAmount:'',
       userName: '',
       email: '',
       phone: '',
       role: '',
       roles: [],
       errors: {},
+      filteredCurrencyOptions: [],
       currencyOptions: [
         { id: 'USD', name: 'United States Dollar' },
         { id: 'KES', name: 'Kenyan Shilling' },
@@ -100,106 +107,158 @@ export default {
           this.loading = false
         })
     },
-    createUser() {
-      if (!this.validateForm()) {
-        console.log('Validation failed', this.errors)
-        return
-      }
-      console.log('validation passed ')
-      this.loading = true
-      this.message = ''
-
-      var url = env.apiUrl.baseUrl + env.apiUrl.user.createUser
-      console.log('url ', url)
-      const token = localStorage.getItem('token')
-      console.log('token', token)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      axios
-        .post(url, {
-          userName: this.userName,
-          phoneNumber: this.phone,
-          email: this.email,
-          roleId: this.role
-        })
-        .then((response) => {
-          var data = response.data
-          var responseCode = data.responseCode
-          var responseMessage = data.responseMessage
-          if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            this.responseMessage = responseMessage
-            this.errorMessage = responseMessage
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: this.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.log(this.responseMessage)
-            return
-          }
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: responseMessage,
-            timer: 3000,
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.log('User created successfully  ', this.userName)
-          this.$router.push('/viewUsers')
-        })
-        .catch((error) => {
-          console.log('Error is ', error)
-          this.errorMessage = 'User Creation error'
-          console.log(this.errorMessage)
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'An error occurred during User Creation',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-        })
-        .finally(() => {
-          this.loading = false
-        })
-    },
     validateForm() {
       this.errors = {}
-      if (!this.userName) {
-        this.errors.userName = 'UserName is required.'
-      } else if (!config.TEXT_REGEX.test(this.userName) && !config.EMAIL_REGEX.test(this.userName)) {
-        this.errors.userName = 'Invalid UserName Input'
+      if (!this.amount) {
+        this.errors.amount = 'Amount is required.'
+      } else if (!config.NUMBER_ONLY_REGEX.test(this.amount)) {
+        this.errors.amount = 'Invalid Amount Input'
       }
-
-      if (!this.email) {
-        this.errors.email = 'Email is required.'
-      } else if (!config.EMAIL_REGEX.test(this.email)) {
-        this.errors.email = 'Invalid email format.'
+      if (!this.fromCurrency) {
+        this.errors.fromCurrency = 'From Currency Field is required.'
       }
-
-      if (!this.phone) {
-        this.errors.phone = 'Phone is required.'
-      } else if (!config.PHONE_REGEX.test(this.phone)) {
-        this.errors.phone = 'Invalid phone number format.'
-      }
-
-      if (!this.role) {
-        this.errors.role = 'Role is required.'
+      if (!this.toCurrency) {
+        this.errors.toCurrency = 'To Currency Field is required.'
       }
 
       if (Object.keys(this.errors).length > 0) {
         return false
       }
       return true
+    },
+    checkBankDirection() {
+      if (this.fromCurrency && this.toCurrency ) {
+        this.loading = true
+        const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getCurrencyDirection
+
+        axios
+          .post(url, {
+            fromCurrency: this.fromCurrency,
+            toCurrency: this.toCurrency
+          })
+          .then((response) => {
+            const data = response.data
+            // var responseMessage = data.responseMessage
+            if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: data.responseMessage,
+                customClass: {
+                  confirmButton: 'btn btn-success px-4 me-2',
+                  cancelButton: 'btn btn-secondary px-4'
+                }
+              })
+              return
+            }
+            // Swal.fire({
+            //   icon: 'success',
+            //   title: 'Success!',
+            //   text: responseMessage,
+            //   timer: 3000,
+            //   customClass: {
+            //     confirmButton: 'btn btn-success px-4 me-2',
+            //     cancelButton: 'btn btn-secondary px-4'
+            //   }
+            // })
+            console.log('data', data)
+            this.bankDirection = data?.entity
+          })
+          .catch((error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'Error occurred fetching Accounts',
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
+              }
+            })
+            console.error(error)
+          })
+          .finally(() => {
+            this.loading = false
+          })
+        if(this.rateValue && this.convertedAmount){
+          this.fetchExchangeRates();
+        }
+      }
+    },
+    fetchExchangeRates() {
+      if (!this.validateForm()) {
+        console.log('Validation failed', this.errors)
+        return
+      }
+      console.log('validation passed ')
+        this.loading = true
+        const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getSinglePairExchangeRate
+
+        axios
+          .post(url, {
+            fromCurrency: this.fromCurrency,
+            toCurrency: this.toCurrency,
+            transactionAmount: this.amount
+          })
+          .then((response) => {
+            const data = response.data
+            var responseMessage = data.responseMessage
+            if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: data.responseMessage,
+                customClass: {
+                  confirmButton: 'btn btn-success px-4 me-2',
+                  cancelButton: 'btn btn-secondary px-4'
+                }
+              })
+              return
+            }
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: responseMessage,
+              timer: 3000,
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
+              }
+            })
+            console.log('data', data)
+            if (this.bankDirection === 'Sell') {
+              this.rateValue = data.entity?.sellingRate
+              this.convertedAmount = data.entity?.sellingConvertedAmount
+            } else if (this.bankDirection === 'Buy') {
+              this.rateValue = data.entity?.buyingRate
+              this.convertedAmount = data.entity?.buyingConvertedAmount
+            }
+          })
+          .catch((error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'Error occurred fetching Exchange Rates',
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
+              }
+            })
+            console.error(error)
+          })
+          .finally(() => {
+            this.loading = false
+          })
+
+    },
+
+    filterCurrencyOptions(){
+      this.filteredCurrencyOptions = this.currencyOptions.filter(
+        currency => currency.id !== this.fromCurrency
+      );
+      this.checkBankDirection();
     }
+
+
   }
 }
 </script>
@@ -234,7 +293,7 @@ export default {
 
           <!-- Card Body -->
           <div class="form-card-body">
-            <form @submit.prevent="createUser">
+            <form @submit.prevent="fetchExchangeRates">
               <!-- Info Banner -->
               <div class="info-banner">
                 <div class="info-icon">
@@ -254,8 +313,9 @@ export default {
                 <div class="section-header">
                   <div class="section-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M12 2V22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M17 6H9.5C7.567 6 6 7.567 6 9.5C6 11.433 7.567 13 9.5 13H14.5C16.433 13 18 14.567 18 16.5C18 18.433 16.433 20 14.5 20H6"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                   </div>
                   <h5 class="section-title">Currency Information</h5>
@@ -270,25 +330,26 @@ export default {
                       </label>
                       <div class="input-wrapper">
                         <div class="input-icon">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2V22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M17 6H9.5C7.567 6 6 7.567 6 9.5C6 11.433 7.567 13 9.5 13H14.5C16.433 13 18 14.567 18 16.5C18 18.433 16.433 20 14.5 20H6"
+                                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                           </svg>
                         </div>
                         <input
-                          v-model="userName"
+                          v-model="amount"
                           type="text"
                           class="form-control modern-input"
-                          :class="{ 'is-invalid': errors.userName }"
+                          :class="{ 'is-invalid': errors.amount }"
                           placeholder="Enter amount"
                         />
                       </div>
-                      <small v-if="errors.userName" class="error-message">
+                      <small v-if="errors.amount" class="error-message">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                           <path d="M12 8V12M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        {{ errors.userName }}
+                        {{ errors.amount }}
                       </small>
                     </div>
                   </div>
@@ -301,28 +362,33 @@ export default {
                       </label>
                       <div class="input-wrapper">
                         <div class="input-icon">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 15C15.866 15 19 11.866 19 8C19 4.13401 15.866 1 12 1C8.13401 1 5 4.13401 5 8C5 11.866 8.13401 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M8.21 13.89L7 23L12 20L17 23L15.79 13.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                          <circle cx="16" cy="12" r="1" fill="currentColor"/>
+                          <path d="M8 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M5 9L2 12L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                         </div>
+
+
                         <select
-                          v-model="role"
+                          v-model="fromCurrency"
                           class="form-control modern-select"
-                          :class="{ 'is-invalid': errors.role }"
+                          :class="{ 'is-invalid': errors.fromCurrency }"
+                          @change ="filterCurrencyOptions"
                         >
-                          <option value="">Select a role</option>
-                          <option v-for="roleItem in roles" :key="roleItem.roleId" :value="roleItem.roleId">
-                            {{ roleItem.roleName }}
+                          <option value="">Select From Currency</option>
+                          <option v-for="currencyOption in currencyOptions" :key="currencyOption.id" :value="currencyOption.id">
+                            {{ currencyOption.id }} - {{ currencyOption.name }}
                           </option>
                         </select>
                       </div>
-                      <small v-if="errors.role" class="error-message">
+                      <small v-if="errors.fromCurrency" class="error-message">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                           <path d="M12 8V12M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        {{ errors.role }}
+                        {{ errors.fromCurrency }}
                       </small>
                     </div>
                   </div>
@@ -335,48 +401,31 @@ export default {
                       </label>
                       <div class="input-wrapper">
                         <div class="input-icon">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 15C15.866 15 19 11.866 19 8C19 4.13401 15.866 1 12 1C8.13401 1 5 4.13401 5 8C5 11.866 8.13401 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M8.21 13.89L7 23L12 20L17 23L15.79 13.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path d="M10 5L3 12L10 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
                         </div>
                         <select
-                          v-model="role"
+                          v-model="toCurrency"
                           class="form-control modern-select"
-                          :class="{ 'is-invalid': errors.role }"
+                          :class="{ 'is-invalid': errors.toCurrency }"
+                          @change ="checkBankDirection"
                         >
-                          <option value="">Select a role</option>
-                          <option v-for="roleItem in roles" :key="roleItem.roleId" :value="roleItem.roleId">
-                            {{ roleItem.roleName }}
+                          <option value="">Select To Currency</option>
+                          <option v-for="currencyOption in filteredCurrencyOptions" :key="currencyOption.id" :value="currencyOption.id">
+                            {{ currencyOption.id }} - {{ currencyOption.name }}
                           </option>
                         </select>
                       </div>
-                      <small v-if="errors.role" class="error-message">
+                      <small v-if="errors.toCurrency" class="error-message">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                           <path d="M12 8V12M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        {{ errors.role }}
+                        {{ errors.toCurrency }}
                       </small>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Form Section: Contact & Role -->
-              <div class="form-section">
-                <div class="section-header">
-                  <div class="section-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1469 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.18999 12.85C3.49997 10.2412 2.44824 7.27099 2.11999 4.18C2.095 3.90347 2.12787 3.62476 2.21649 3.36162C2.30512 3.09849 2.44756 2.85669 2.63476 2.65162C2.82196 2.44655 3.0498 2.28271 3.30379 2.17052C3.55777 2.05833 3.83233 2.00026 4.10999 2H7.10999C7.5953 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04207 3.23945 9.10999 3.72C9.23662 4.68007 9.47144 5.62273 9.80999 6.53C9.94454 6.88792 9.97366 7.27691 9.8939 7.65088C9.81415 8.02485 9.62886 8.36811 9.35999 8.64L8.08999 9.91C9.51355 12.4135 11.5864 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9751 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0555 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </div>
-                  <h5 class="section-title">Conversion Results</h5>
-                </div>
-
-                <div class="row g-4">
-                  <div class="col-lg-6">
-
                   </div>
                 </div>
               </div>
@@ -389,15 +438,55 @@ export default {
                   </svg>
                   <span>Cancel</span>
                 </button>
-                <button v-if="canCreateUsers" type="submit" class="btn btn-primary">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M20 8V14M17 11H23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <button  type="submit" class="btn btn-primary">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="2"/>
+                    <path d="M5 6V12C5 13.657 8.134 15 12 15C15.866 15 19 13.657 19 12V6"
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M5 12V18C5 19.657 8.134 21 12 21C15.866 21 19 19.657 19 18V12"
+                          stroke="currentColor" stroke-width="2"/>
                   </svg>
-                  <span>Create User</span>
+
+                  <span>Convert Currency</span>
                 </button>
               </div>
+
+              <!-- Form Section: Conversion results -->
+              <div v-if="rateValue && convertedAmount" class="form-section">
+                <div class="section-header">
+                  <div class="section-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 7H21V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V7Z"
+                            stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                      <path d="M3 7V5C3 3.89543 3.89543 3 5 3H17C18.1046 3 19 3.89543 19 5V7"
+                            stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                      <path d="M16 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <circle cx="16" cy="12" r="1" fill="currentColor"/>
+                    </svg>
+
+
+
+                  </div>
+                  <h5 class="section-title">Conversion Results</h5>
+                </div>
+
+                <div class="row g-4">
+                  <div class="col-lg-6">
+                    <div class="detail-item">
+                      <label>RATE:</label>
+
+                      <p v-if="bankDirection === 'Buy'"><b class="uppercase">{{ bankDirection }}</b> 1 {{ fromCurrency }} = <b> {{ rateValue }} {{ toCurrency }}</b></p>
+                      <p v-if="bankDirection === 'Sell'"><b class="uppercase">{{ bankDirection }}</b> 1 {{ toCurrency }}  = <b> {{ rateValue }} {{ fromCurrency }}  </b></p>
+                      <br>
+                      <label>RESULTS:</label>
+                      <p>{{ amount }} {{ fromCurrency }} = <b> {{ convertedAmount }} {{ toCurrency }} </b></p>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
             </form>
           </div>
         </div>
@@ -704,7 +793,7 @@ export default {
   gap: 12px;
   margin-top: 32px;
   padding-top: 24px;
-  border-top: 2px solid #f0fdf4;
+  padding-bottom: 24px;
 }
 
 .btn {
@@ -749,6 +838,24 @@ export default {
 .btn-primary:active {
   transform: translateY(0);
 }
+
+.detail-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.detail-item p {
+  font-size: 15px;
+  font-weight: 600;
+  color: #064e3b;
+  margin: 0;
+}
+
 
 /* Responsive Design */
 @media (max-width: 768px) {
