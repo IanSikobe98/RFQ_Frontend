@@ -45,9 +45,10 @@ export default {
     fetchRoles() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.roles.getRoles
-
+      var statuses = [];
+      statuses.push(1)
       axios
-        .post(url, { page: 0, size: 10 })
+        .post(url, { page: 0, size: 10 ,statuses:statuses})
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {

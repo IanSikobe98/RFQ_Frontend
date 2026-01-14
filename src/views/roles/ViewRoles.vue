@@ -15,6 +15,10 @@ export default {
       return updateUser
     },
 
+    canCreateRoles () {
+      return this.hasPerm("CREATE_ROLES");
+    },
+
     columns() {
       const canUpdateRole = this.canUpdateRoles
       return [
@@ -94,6 +98,9 @@ export default {
     this.fetchRoles()
   },
   methods: {
+    createRoles(){
+      this.$router.push('/createRoles');
+    },
     hasPerm(permission) {
       return this.loggedInPermissions && this.loggedInPermissions.includes(permission)
     },
@@ -279,19 +286,13 @@ export default {
                 <p class="table-subtitle">Manage roles and their permissions</p>
               </div>
             </div>
-            <div class="table-actions">
-              <button class="filter-btn">
+            <div class="header-actions">
+              <button v-if="canCreateRoles" class="create-roles-btn" @click="createRoles">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 15C15.866 15 19 11.866 19 8C19 4.13401 15.866 1 12 1C8.13401 1 5 4.13401 5 8C5 11.866 8.13401 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8.21 13.89L7 23L12 20L17 23L15.79 13.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                Filter
-              </button>
-              <button class="export-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Export
+                <span>Create Role</span>
               </button>
             </div>
           </div>
@@ -551,6 +552,29 @@ export default {
   cursor: pointer;
   transition: all 0.3s ease;
 }
+
+.create-roles-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.create-roles-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
 
 .filter-btn:hover,
 .export-btn:hover {

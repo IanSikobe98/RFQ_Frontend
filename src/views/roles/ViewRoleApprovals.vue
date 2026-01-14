@@ -274,21 +274,21 @@ export default {
                 <p class="table-subtitle">Review and approve pending role requests</p>
               </div>
             </div>
-            <div class="table-actions">
-              <button class="filter-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Filter
-              </button>
-              <button class="export-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Export
-              </button>
-            </div>
+<!--            <div class="table-actions">-->
+<!--              <button class="filter-btn">-->
+<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+<!--                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                Filter-->
+<!--              </button>-->
+<!--              <button class="export-btn">-->
+<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+<!--                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                Export-->
+<!--              </button>-->
+<!--            </div>-->
           </div>
 
           <!-- Table Body -->

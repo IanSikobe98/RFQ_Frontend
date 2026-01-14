@@ -10,6 +10,9 @@ import store from '@/store'
 
 export default {
   computed: {
+    canCreateUsers () {
+      return this.hasPerm("CREATE_USERS");
+    },
     updateUser() {
       return updateUser
     },
@@ -104,6 +107,9 @@ export default {
     },
     disableRecord(row) {
       this.changeStatus(row, '0')
+    },
+    createUser(){
+      this.$router.push('/createUser');
     },
     changeStatus(row,status) {
       this.loading = true
@@ -242,21 +248,31 @@ export default {
                 <p class="table-subtitle">Manage user accounts and permissions</p>
               </div>
             </div>
-            <div class="table-actions">
-              <button class="filter-btn">
+            <div class="header-actions">
+              <button v-if="canCreateUsers" class="create-users-btn" @click="createUser">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M20 8V14M17 11H23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                Filter
-              </button>
-              <button class="export-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Export
+                <span>Create User</span>
               </button>
             </div>
+<!--            <div class="table-actions">-->
+<!--              <button class="filter-btn">-->
+<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+<!--                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                Filter-->
+<!--              </button>-->
+<!--              <button class="export-btn">-->
+<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+<!--                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                Export-->
+<!--              </button>-->
+<!--            </div>-->
           </div>
 
           <!-- Table Body -->
@@ -621,6 +637,29 @@ export default {
   display: flex;
   gap: 12px;
 }
+
+.create-users-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.create-users-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
 
 /* Buttons */
 .btn {

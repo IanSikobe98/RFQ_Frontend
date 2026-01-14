@@ -303,7 +303,7 @@ export default {
           purpose: this.purpose,
           comments:this.rfqComment,
           branchCode: this.selectedAccount?.branchCode,
-          treasuryRate: this.rateValue
+          treasuryRate: this.rateValue,
         })
         .then((response) => {
           var data = response.data
