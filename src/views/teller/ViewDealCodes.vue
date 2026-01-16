@@ -93,9 +93,18 @@ export default {
       const cols = [
         { title: 'Customer Name', data: 'customerName' },
         { title: 'Account Number', data: 'accountNumber' },
-        { title: 'Amount', data: 'counterNominalAmount' },
+        { title: 'Amount',
+          data: null,
+        render : function(data,type,row){
+          return `${row.fromCurrency} ${row.counterNominalAmount}`
+        }
+        },
         { title: 'Currency Pair', data: 'currencyPair' },
-        { title: 'Buy/Sell', data: 'buySell' },
+        { title: 'Bank direction', data: null ,
+        render: function(row){
+          return `${row.buySell}  ${row.fromCurrency}`
+        }
+        },
         {
           title: 'Request Date', data: 'requestDate',
           render: function(data) {
@@ -118,7 +127,8 @@ export default {
           }
         },
         { title: 'Deal Code', data: 'dealerCode' },
-        { title: 'Order Number', data: 'orderId' }
+        { title: 'Order Number', data: 'orderId' },
+        { title: 'Initiator', data: 'tellerId' },
       ]
 
       if (canApprove) {
@@ -285,6 +295,8 @@ export default {
       var counterCurrency = this.currency.id
       var accountCurrency = this.selectedAccount.currency
 
+
+
       var url = env.apiUrl.baseUrl + env.apiUrl.rfq.createRFQ
       console.log('status', url)
       console.log('iscCustomerr ', this.isCustomer)
@@ -304,6 +316,7 @@ export default {
           comments:this.rfqComment,
           branchCode: this.selectedAccount?.branchCode,
           treasuryRate: this.rateValue,
+          bankDirection:this.bankDirection
         })
         .then((response) => {
           var data = response.data

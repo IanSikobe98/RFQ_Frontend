@@ -55,7 +55,7 @@
             </div>
           </div>
           <button class="action-btn" @click="convertCurrency">
-            <span>Create Request</span>
+            <span>Request Currency Conversion</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
