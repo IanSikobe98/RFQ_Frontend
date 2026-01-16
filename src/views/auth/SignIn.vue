@@ -51,6 +51,7 @@ export default{
           console.log("Authentication Successful for " ,this.username)
           this.$store.commit('setUsername', encryptedUsername);
           this.$store.commit('setPassword' , encryptedPassword);
+          localStorage.setItem('otpExpiry', data.otpExpiry);
           this.$router.push('/validateOtp');
         })
         .catch(error => {
@@ -122,7 +123,7 @@ export default{
                 <!-- Welcome Section -->
                 <div class="welcome-section">
                   <h2 class="welcome-title">Welcome Back</h2>
-                  <p class="welcome-subtitle">Sign in to access your forex trading account</p>
+                  <p class="welcome-subtitle">Sign in to access your forex Quote account</p>
                 </div>
 
                 <!-- Error Alert -->
@@ -203,11 +204,11 @@ export default{
                   </div>
 
                   <!-- Forgot Password Link -->
-                  <div class="form-footer">
-                    <a href="#" @click.prevent="forgotPassword" class="forgot-link">
-                      Forgot password?
-                    </a>
-                  </div>
+<!--                  <div class="form-footer">-->
+<!--                    <a href="#" @click.prevent="forgotPassword" class="forgot-link">-->
+<!--                      Forgot password?-->
+<!--                    </a>-->
+<!--                  </div>-->
 
                   <!-- Submit Button -->
                   <div class="form-actions">
@@ -259,9 +260,9 @@ export default{
             loading="lazy"
           />
           <div class="brand-info">
-            <h3 class="brand-title">Forex Trading Excellence</h3>
+            <h3 class="brand-title">Forex Quote</h3>
             <p class="brand-description">
-              Access real-time market data, execute trades instantly, and manage your portfolio with confidence.
+              Access accurate FX Deals at branches within a matter of seconds.
             </p>
             <div class="brand-features">
               <div class="feature-item">
@@ -275,7 +276,7 @@ export default{
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span>Real-time Trading</span>
+                <span>Deal Code Generation </span>
               </div>
               <div class="feature-item">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -313,7 +314,7 @@ export default{
 
 .login-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 1000px;
 }
 
 /* Enhanced Auth Card */
