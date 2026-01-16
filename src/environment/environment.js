@@ -37,7 +37,9 @@ export default {
         getDealRequests:'/rfq/getDealRequests',
         fetchCustomerInfo: '/rfq/fetchAccountDetails/',
         getAllExchangeRates:'/rfq/getAllExchangeRates',
+      },
+      dashboard:{
+       fetchDashStats: '/dashboard/fetchDashStats'
       }
-
     }
 }

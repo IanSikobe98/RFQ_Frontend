@@ -52,27 +52,32 @@
 
 <script>
 import store from '@/store'
+import env from '@/environment/environment'
+import axios from 'axios'
+import config from '@/config/config'
+import Swal from 'sweetalert2'
 
 export default {
   data() {
     return {
       user: {},
       username: '',
+      dashStats: {},
       role: '',
       stats: [
         {
           icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-          value: '24',
+          value: '0',
           label: 'Active Deals'
         },
         {
           icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-          value: '98%',
+          value: '0%',
           label: 'Success Rate'
         },
         {
           icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 12H18L15 21L9 3L6 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-          value: '+12.5%',
+          value: '+0%',
           label: 'This Week'
         }
       ]
@@ -82,6 +87,52 @@ export default {
     this.user = JSON.parse(store.state.user)
     this.username = this.user?.user?.username || 'User'
     this.role = this.user?.role
+    this.fetchDashboardStatistics();
+  },
+  methods:{
+    fetchDashboardStatistics() {
+      this.loading = true
+      const url = env.apiUrl.baseUrl + env.apiUrl.dashboard.fetchDashStats
+
+      axios
+        .post(url, { page: 0, size: 10 })
+        .then((response) => {
+          const data = response.data
+          if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: data.responseMessage,
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
+              }
+            })
+            return
+          }
+          console.log("dash data",data)
+          this.dashStats = data.entity
+          this.stats[0].value = this.dashStats.activeDeals;
+          this.stats[1].value = this.dashStats.successRate +"%";
+          this.stats[2].value = "+"+this.dashStats.weekRate+"%";
+
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Error occurred fetching Dashboard Statistics',
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2',
+              cancelButton: 'btn btn-secondary px-4'
+            }
+          })
+          console.error(error)
+        })
+        .finally(() => {
+          this.loading = false
+        })
+    },
   }
 }
 </script>

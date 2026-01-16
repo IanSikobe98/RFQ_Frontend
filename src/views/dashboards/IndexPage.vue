@@ -181,7 +181,7 @@ export default {
   },
   computed: {
     columns() {
-      const canApprove = this.canApproveDealCodeRequests
+      // const canApprove = this.canApproveDealCodeRequests
       const cols = [
         { title: 'Customer Name', data: 'customerName' },
         { title: 'Account Number', data: 'accountNumber' },
@@ -213,21 +213,7 @@ export default {
         { title: 'Order Number', data: 'orderId' }
       ]
 
-      if (canApprove) {
-        cols.push({
-          title: 'Actions',
-          data: null,
-          orderable: false,
-          searchable: false,
-          render: function (data, type, row) {
-            const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
-            return `
-              <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}">View Details</button>
-              <button class="btn btn-sm btn-success me-1 dt-approve" data-id="${row.id}" ${approveDisabled}>Approve</button>
-              <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
-          }
-        })
-      }
+
       return cols
     },
     canCreateDealCodeRequests() {
