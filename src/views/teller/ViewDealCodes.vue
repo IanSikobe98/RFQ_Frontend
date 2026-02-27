@@ -999,12 +999,16 @@ export default {
           </div>
 
           <div class="customer-details">
+                     <!-- labels-->
             <div class="detail-item">
-              <label>ID Number</label>
-              <p>{{ customerInfo?.idNumber }}</p>
-            </div>
-            <div class="detail-item">
+              <label>Customer ID</label>
+              <label></label>
               <label>Phone Number</label>
+            </div>
+              <!-- Data-->
+            <div class="detail-item">
+              <p>{{ customerInfo?.customerCif }}</p>
+              <p></p>
               <p>{{ customerInfo?.phoneNumber }}</p>
             </div>
           </div>
@@ -1048,16 +1052,16 @@ export default {
           <div class="teller-details">
             <div class="detail-item">
               <label>Account Name</label>
-              <p>{{ accounts[0]?.accountName }}</p>
-            </div>
-            <div class="detail-item">
               <label>Account Number</label>
-              <p>{{ accounts[0]?.accountNumber }}</p>
+              <label>Branch Code</label>
+
             </div>
             <div class="detail-item">
-              <label>Branch Code</label>
+              <p>{{ accounts[0]?.accountName }}</p>
+              <p>{{ accounts[0]?.accountNumber }}</p>
               <p>{{ accounts[0]?.branchCode }}</p>
             </div>
+
           </div>
         </div>
       </div>
