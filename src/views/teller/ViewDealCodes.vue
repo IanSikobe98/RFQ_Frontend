@@ -127,6 +127,7 @@ export default {
           }
         },
         { title: 'Deal Code', data: 'dealerCode' },
+        { title: 'Dealer', data: 'dealerId' },
         { title: 'Order Number', data: 'orderId' },
         { title: 'Initiator', data: 'tellerId' },
       ]

@@ -7,6 +7,8 @@ import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
 import updateUser from '@/views/user/UpdateUser.vue'
 import store from '@/store'
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default {
   computed: {
@@ -83,6 +85,40 @@ export default {
     this.fetchUsers()
   },
   methods: {
+    exportToExcel() {
+
+      const users = this.users; // your response.data
+
+      // Flatten the data
+      const formattedData = users.map(user => ({
+        Name: user.username,
+        Phone: user.phone,
+        Email: user.email,
+        Role: user.role?.roleName,
+        Status: user.status?.statusName,
+        CreatedBy: user.createdBy,
+        DateAdded: new Date(user.dateAdded).toLocaleString()
+      }));
+
+      // Convert JSON to worksheet
+      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+
+      // Create workbook
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+
+      // Generate Excel file
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array"
+      });
+
+      const fileData = new Blob([excelBuffer], {
+        type: "application/octet-stream"
+      });
+
+      saveAs(fileData, "users.xlsx");
+    },
     hasPerm (permission) {
       return this.permissions && this.permissions.includes(permission)
     },
@@ -256,6 +292,16 @@ export default {
                   <path d="M20 8V14M17 11H23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>Create User</span>
+              </button>
+            </div>
+            <div class="header-actions">
+              <button  class="create-users-btn" @click="exportToExcel">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M5 21H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Download</span>
               </button>
             </div>
 <!--            <div class="table-actions">-->

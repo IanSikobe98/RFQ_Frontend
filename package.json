@@ -31,6 +31,7 @@
     "core-js": "^3.6.5",
     "crypto-js": "^4.2.0",
     "datatables.net-bs5": "^1.11.2",
+    "file-saver": "^2.0.5",
     "fontawesome-free": "^1.0.4",
     "jquery": "^3.6.4",
     "js-circle-progress": "^0.2.4",
@@ -50,7 +51,8 @@
     "vue3-autocounter": "^1.0.6",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.0.0-0",
-    "waypoints": "^4.0.1"
+    "waypoints": "^4.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",
