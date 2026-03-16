@@ -69,19 +69,7 @@ export default {
         { id: 'EUR', name: 'Euro' },
         { id: 'GBP', name: 'British Pound Sterling' },
         { id: 'ZAR', name: 'South African Rand' },
-        { id: 'CAD', name: 'Canadian Dollar' },
-        { id: 'CHF', name: 'Swiss Franc' },
-        { id: 'JPY', name: 'Japanese Yen' },
-        { id: 'AUD', name: 'Australian Dollar' },
-        { id: 'DKK', name: 'Danish Krone' },
-        { id: 'SEK', name: 'Swedish Krona' },
-        { id: 'NOK', name: 'Norwegian Krone' },
-        { id: 'INR', name: 'Indian Rupee' },
-        { id: 'AED', name: 'United Arab Emirates Dirham' },
-        { id: 'CNY', name: 'Chinese Yuan' },
-        { id: 'TZS', name: 'Tanzanian Shilling' },
         { id: 'RWF', name: 'Rwandan Franc' },
-        { id: 'UGX', name: 'Ugandan Shilling' }
       ],
       row: {}
     }
@@ -207,6 +195,8 @@ export default {
       this.showCreateDealModal = false
       this.showCustomerModal = true
       this.isCustomer = true;
+      this.idType = '';
+      this.idNumber = '';
     },
     showTellerModalDialog() {
       this.showCreateDealModal = false
@@ -234,6 +224,14 @@ export default {
       this.showCreateRFQModal = true
       this.showTellerDetailsModal = false
       this.showCustomerDetailsModal = false
+      this.selectedAccount = '';
+      this.action = '';
+      this.currency = '';
+      this.amount = '';
+      this.negotiatedRate = '';
+      this.valueDate = '';
+      this.purpose = '';
+      this.rfqComment = '';
 
     },
 
@@ -259,14 +257,14 @@ export default {
       if (!this.amount) {
         this.errors.amount = "*Amount is required.";
       }
-      else if(!config.NUMBER_ONLY_REGEX.test(this.amount)){
+      else if(!config.CURRENCY_REGEX.test(this.amount)){
         this.errors.amount = "*Amount is invalid";
       }
 
       if (!this.negotiatedRate) {
         this.errors.negotiatedRate = "*Negotiated rate is required.";
       }
-      else if(!config.NUMBER_ONLY_REGEX.test(this.negotiatedRate)){
+      else if(!config.CURRENCY_REGEX.test(this.negotiatedRate)){
         this.errors.negotiatedRate = "*Negotiated rate is invalid";
       }
 

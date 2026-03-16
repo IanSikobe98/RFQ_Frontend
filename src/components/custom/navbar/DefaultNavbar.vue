@@ -121,12 +121,12 @@ export default {
     <!-- <nav :class="`nav navbar navbar-expand-xl navbar-light iq-navbar ${headerNavbar} ${navbarHide.join('')}`"> -->
     <div class="container-fluid navbar-inner">
       <slot></slot>
-      <div class="input-group search-input" v-if="isSearch">
-        <span class="input-group-text" id="search-input">
-          <icon-component type="outlined" :size="18" icon-name="search"></icon-component>
-        </span>
-        <input type="search" class="form-control" placeholder="Search..." />
-      </div>
+<!--      <div class="input-group search-input" v-if="isSearch">-->
+<!--        <span class="input-group-text" id="search-input">-->
+<!--          <icon-component type="outlined" :size="18" icon-name="search"></icon-component>-->
+<!--        </span>-->
+<!--        <input type="search" class="form-control" placeholder="Search..." />-->
+<!--      </div>-->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon">
           <span class="mt-2 navbar-toggler-bar bar1"></span>
