@@ -10,7 +10,7 @@ import 'datatables.net-bs5'
 import $ from 'jquery'
 
 import { defineEmits } from "vue"
-const emit = defineEmits(["view","edit","enable","disable","approve","reject"])
+const emit = defineEmits(["view","edit","enable","disable","approve","reject","retry"])
 
 const props = defineProps({
   data: Array,
@@ -75,6 +75,7 @@ const initTable = () => {
       $(tableRef.value).off("click", ".dt-disable")
       $(tableRef.value).off("click", ".dt-approve")
       $(tableRef.value).off("click", ".dt-reject")
+      $(tableRef.value).off("click", ".dt-retry")
 
 
 
@@ -88,6 +89,12 @@ const initTable = () => {
         const table = $(tableRef.value).DataTable();
         const rowData = table.row($(this).closest('tr')).data(); // full row object
         emit("enable", rowData)
+      })
+
+      $(tableRef.value).on("click", ".dt-retry", function () {
+        const table = $(tableRef.value).DataTable();
+        const rowData = table.row($(this).closest('tr')).data(); // full row object
+        emit("retry", rowData)
       })
 
       $(tableRef.value).on("click", ".dt-disable", function () {

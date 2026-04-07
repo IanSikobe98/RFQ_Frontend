@@ -7,20 +7,29 @@ import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
 import updateUser from '@/views/user/UpdateUser.vue'
 import store from '@/store'
+import { prettyDate } from '@/util/filters'
 
 export default {
-
   components: { AppLoader, DataTable },
   data() {
     return {
       tableReady: false,
       permissions: [],
       user: {},
+      isUserTeller: false,
+      isUserDealer: false,
+      tabs: ['Active', 'Pending'],
+      activeTab: 'Active',
       accounts: [],
-      accountInfo:{},
+      accountInfo: {},
       customerInfo: {},
       users: [],
-      dealRequests:[],
+      dealRequests: [],
+      pendingDealRequests: [],
+      pendingDealerRequests: [],
+      // newPendingDealerRequests: [],
+      pendingTellerRequests: [],
+      pendingNegotiationRequests: [],
       showEnableModal: false,
       showDisableModal: false,
       showCreateDealModal: false,
@@ -31,71 +40,89 @@ export default {
       showCreateRFQModal: false,
       showApproveModal: false,
       showRejectModal: false,
+      showRetryModal: false,
       loading: false,
       comment: '',
       rfqComment: '',
       currency: '',
       selectedAccount: '',
       purpose: '',
-      valueDate: '',
       bankDirection: '',
+      updateRateBankDirection:'',
+      updateExpectedValue:'',
       amount: '',
       action: '',
-      negotiatedRate:'',
+      negotiatedRate: '',
       errors: {},
       idType: '',
       idNumber: '',
       idNumberValue: '',
       idTypeValue: '',
       rateFrom: '',
-      multiplyDivide:'',
+      multiplyDivide: '',
       rateTo: '',
       rateValue: '',
       expectedValue: '',
       sourceAccCurrency: '',
-      useCurrentRate:true,
-      isCustomer:false,
-      useNegotiatedRate:false,
-      showDealDetailsModal:false,
+      useCurrentRate: true,
+      isCustomer: false,
+      useNegotiatedRate: false,
+      useUpdateNegotiatedRate: false,
+      useUpdateCurrentRate: false,
+      showDealDetailsModal: false,
+      showAmmendRateModal: false,
+      showTreasuryProposalModal: false,
+      showDealAcceptedModal:false,
+      showNegotiationModal:false,
+      offerRate:'',
+      proposedRate:'',
+      dealerComment:'',
+      negotiatiationComment:'',
+      dealCode:'',
+      valueDate: new Date().toISOString().split('T')[0],
       options: [
         { id: 'COR', name: 'Certificate of Registration' },
         { id: 'NATID', name: 'National id' },
         { id: 'ACCNO', name: 'Account Number' }
       ],
-      filteredCurrencyOptions:[],
+      filteredCurrencyOptions: [],
       currencyOptions: [
         { id: 'USD', name: 'United States Dollar' },
         { id: 'KES', name: 'Kenyan Shilling' },
         { id: 'EUR', name: 'Euro' },
         { id: 'GBP', name: 'British Pound Sterling' },
         { id: 'ZAR', name: 'South African Rand' },
-        { id: 'RWF', name: 'Rwandan Franc' },
+        { id: 'RWF', name: 'Rwandan Franc' }
       ],
       row: {}
     }
   },
   computed: {
     columns() {
-      const canApprove = this.canApproveDealCodeRequests;
+      // const canApprove = this.canApproveDealCodeRequests
 
       const cols = [
         { title: 'Customer Name', data: 'customerName' },
         { title: 'Account Number', data: 'accountNumber' },
-        { title: 'Amount',
+        {
+          title: 'Amount',
           data: null,
-        render : function(data,type,row){
-          return `${row.fromCurrency} ${row.counterNominalAmount}`
-        }
+          render: function (data, type, row) {
+            return `${row.fromCurrency} ${row.counterNominalAmount}`
+          }
         },
         { title: 'Currency Pair', data: 'currencyPair' },
-        { title: 'Bank direction', data: null ,
-        render: function(row){
-          return `${row.buySell}  ${row.fromCurrency}`
-        }
+        {
+          title: 'Bank direction',
+          data: null,
+          render: function (row) {
+            return `${row.buySell}  ${row.fromCurrency}`
+          }
         },
         {
-          title: 'Request Date', data: 'requestDate',
-          render: function(data) {
+          title: 'Request Date',
+          data: 'requestDate',
+          render: function (data) {
             var a = new Date(data)
             return a.toISOString().split('T')[0]
           }
@@ -105,7 +132,7 @@ export default {
         {
           title: 'Deal Status',
           data: 'status',
-          render: function(data) {
+          render: function (data) {
             const id = Number(data.statusId)
             if (id === 1) return `<span class="badge bg-success">Active</span>`
             if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
@@ -117,59 +144,165 @@ export default {
         { title: 'Deal Code', data: 'dealerCode' },
         { title: 'Dealer', data: 'dealerId' },
         { title: 'Order Number', data: 'orderId' },
-        { title: 'Initiator', data: 'tellerId' },
+        { title: 'Initiator', data: 'tellerId' }
+      ]
+
+      // if (canApprove) {
+        cols.push({
+          title: 'Actions',
+          data: null,
+          orderable: false,
+          searchable: false,
+          render: function (data, type, row) {
+            // if (canApprove) {
+            if(row.status.statusId === 8  ){
+              return `
+                    <button class="btn btn-sm btn-warning dt-view" data-id="${row.id}" ><i class="fas fa-eye me-2"></i>View Rate</button>`
+            }
+            else if(row.status.statusId === 1  ){
+              return `
+                    <button class="btn btn-sm btn-success dt-approve" data-id="${row.id}" >View</button>`
+            }
+            else if(row.status.statusId === 7  ){
+              return `
+                    <button class="btn btn-sm btn-dark " data-id="${row.id}" >No Action</button>`
+            }
+            else if(row.status.statusId ===  3){
+              return `
+                    <button class="btn btn-sm btn-dark dt-retry " data-id="${row.id}" >Retry </button>`
+            }
+            else{
+              return `
+                    <button class="btn btn-sm btn-secondary " data-id="${row.id}" >Awaiting...</button>`
+            }
+
+            // } else return ''
+          }
+        })
+      // }
+      return cols
+    },
+
+    dealerColumns() {
+      const canApprove = this.canApproveDealCodeRequests
+
+      const cols = [
+        { title: 'Order Number', data: 'orderId' },
+        { title: 'Customer Name', data: 'customerName' },
+        { title: 'Account Number', data: 'accountNumber' },
+        { title: 'Currency Pair', data: 'currencyPair' },
+        {
+          title: 'Amount',
+          data: null,
+          render: function (data, type, row) {
+            return `${row.fromCurrency} ${row.counterNominalAmount}`
+          }
+        },
+
+        {
+          title: 'Bank direction',
+          data: null,
+          render: function (row) {
+            return `${row.buySell}  ${row.fromCurrency}`
+          }
+        },
+        {
+          title: 'Request Date',
+          data: 'requestDate',
+          render: function (data) {
+            var a = new Date(data)
+            return a.toISOString().split('T')[0]
+          }
+        },
+        {
+          title: 'Deal Status',
+          data: 'status',
+          render: function (data) {
+            const id = Number(data.statusId)
+            if (id === 1) return `<span class="badge bg-success">Active</span>`
+            if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
+            if (id === 6) return `<span class="badge bg-warning">Pending</span>`
+            if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
+            if (id === 9) return `<span class="badge bg-warning">Pending</span>`
+            else return `<span class="badge bg-primary">${data.statusName}</span>`
+          }
+        }
       ]
 
       if (canApprove) {
         cols.push({
-            title: 'Actions',
-            data: null,
-            orderable: false,
-            searchable: false,
-            render: function(data, type, row) {
-              if (canApprove) {
-                const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
-                return `
+          title: 'Actions',
+          data: null,
+          orderable: false,
+          searchable: false,
+          render: function (data, type, row) {
+            if (row.status.statusId === 9 ) {
+              return `
                     <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}" >View Details</button>
-                    <button class="btn btn-sm btn-success me-1 dt-approve" data-id="${row.id}"  ${approveDisabled}>Approve</button>
-                   <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
-              } else return ''
+                    <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}"  >Pick Deal</button>`
+            } else if(row.status.statusId === 10 ){
+              return `
+              <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}" >View Details</button>
+              <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}" >Ammend Deal</button>`
+            }
+            else if(row.status.statusId === 8 ){
+
+              return `
+              <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}" >View Details</button>`
+            }
+            else{
+              return ''
             }
           }
-        )
+        })
       }
-      return cols;
+      return cols
     },
 
     updateUser() {
       return updateUser
     },
     canCreateDealCodeRequests() {
-      return this.hasPerm("CREATE_DEAL_REQUESTS");
+      return this.hasPerm('CREATE_DEAL_REQUESTS')
     },
     canApproveDealCodeRequests() {
-      return this.hasPerm("APPROVE_DEAL_REQUESTS");
-    },
-
+      return this.hasPerm('APPROVE_DEAL_REQUESTS')
+    }
   },
   mounted() {
-    this.user = JSON.parse(store.state.user);
-    this.permissions = this.user?.usersPerm;
-    this.tableReady = true;
-    this.fetchDealRequests()
+    this.user = JSON.parse(store.state.user)
+    this.permissions = this.user?.usersPerm
+    this.role = this.user?.role
+    console.log("user u in",this.user)
+    console.log("role in",this.role)
+    this.isUserTeller = this.isTeller()
+    this.isUserDealer = this.isDealer()
+    console.log("isuser teller",this.isUserTeller)
+    this.tableReady = true
+    if(this.isUserTeller) {
+      this.fetchDealRequests()
+    }
+    if(this.isUserDealer) {
+      this.fetchPendingDealRequests()
+    }
   },
   methods: {
-    hasPerm (permission) {
+    prettyDate,
+    hasPerm(permission) {
       return this.permissions && this.permissions.includes(permission)
+    },
+    isTeller(){
+      return this.role === config.TELLER_ROLE_NAME
+    },
+    isDealer(){
+      return this.role === config.DEALER_ROLE_NAME
     },
     filterCurrencyOptions() {
       if (this.selectedAccount) {
-        console.log("test " ,this.selectedAccount)
+        console.log('test ', this.selectedAccount)
         this.sourceAccCurrency = this.selectedAccount?.currency
-        this.filteredCurrencyOptions = this.currencyOptions.filter(
-          currency => currency.id !== this.sourceAccCurrency
-        );
-        this.checkBankDirection();
+        this.filteredCurrencyOptions = this.currencyOptions.filter((currency) => currency.id !== this.sourceAccCurrency)
+        this.checkBankDirection()
       }
     },
     editUsers(item) {
@@ -194,15 +327,15 @@ export default {
     showCustomerModalDialog() {
       this.showCreateDealModal = false
       this.showCustomerModal = true
-      this.isCustomer = true;
-      this.idType = '';
-      this.idNumber = '';
+      this.isCustomer = true
+      this.idType = ''
+      this.idNumber = ''
     },
     showTellerModalDialog() {
       this.showCreateDealModal = false
       this.showTellerModal = true
       this.idType = 'ACCNO'
-      this.isCustomer = false;
+      this.isCustomer = false
     },
     showCustomerDetailsModalDialog() {
       console.log('test1')
@@ -224,15 +357,14 @@ export default {
       this.showCreateRFQModal = true
       this.showTellerDetailsModal = false
       this.showCustomerDetailsModal = false
-      this.selectedAccount = '';
-      this.action = '';
-      this.currency = '';
-      this.amount = '';
-      this.negotiatedRate = '';
-      this.valueDate = '';
-      this.purpose = '';
-      this.rfqComment = '';
-
+      this.selectedAccount = ''
+      this.action = ''
+      this.currency = ''
+      this.amount = ''
+      this.negotiatedRate = ''
+      this.valueDate = new Date().toISOString().split('T')[0]
+      this.purpose = ''
+      this.rfqComment = ''
     },
 
     enableRecord(row) {
@@ -255,29 +387,64 @@ export default {
       }
 
       if (!this.amount) {
-        this.errors.amount = "*Amount is required.";
-      }
-      else if(!config.CURRENCY_REGEX.test(this.amount)){
-        this.errors.amount = "*Amount is invalid";
+        this.errors.amount = '*Amount is required.'
+      } else if (!config.CURRENCY_REGEX.test(this.amount)) {
+        this.errors.amount = '*Amount is invalid'
       }
 
-      if (!this.negotiatedRate) {
-        this.errors.negotiatedRate = "*Negotiated rate is required.";
-      }
-      else if(!config.CURRENCY_REGEX.test(this.negotiatedRate)){
-        this.errors.negotiatedRate = "*Negotiated rate is invalid";
-      }
+      // if (!this.negotiatedRate) {
+      //   this.errors.negotiatedRate = "*Negotiated rate is required.";
+      // }
+      // else if(!config.CURRENCY_REGEX.test(this.negotiatedRate)){
+      //   this.errors.negotiatedRate = "*Negotiated rate is invalid";
+      // }
 
       if (!this.valueDate) {
-        this.errors.purpose = "*Purpose is required.";
+        this.errors.purpose = '*Purpose is required.'
       }
       if (!this.purpose) {
-        this.errors.purpose = "Purpose is required.";
+        this.errors.purpose = 'Purpose is required.'
       }
 
       if (!this.rfqComment) {
-        this.errors.rfqComment = "Comments is required.";
+        this.errors.rfqComment = 'Comments is required.'
       }
+
+      if (Object.keys(this.errors).length > 0) {
+        return false
+      }
+      return true
+    },
+    validateEnterRateForm() {
+      this.errors = {}
+
+
+
+      if (!this.proposedRate) {
+        this.errors.proposedRate = "*proposed rate is required.";
+      }
+      else if(!config.CURRENCY_REGEX.test(this.proposedRate)){
+        this.errors.proposedRate = "*Proposed rate is invalid";
+      }
+
+      if (!this.dealerComment) {
+        this.errors.dealerComment = 'Comments is required.'
+      }
+
+      if (Object.keys(this.errors).length > 0) {
+        return false
+      }
+      return true
+    },
+    validateNegotiationForm() {
+      this.errors = {}
+
+
+
+      if (!this.negotiatiationComment) {
+        this.errors.proposedRate = "*Negotiation Comment is required.";
+      }
+
 
       if (Object.keys(this.errors).length > 0) {
         return false
@@ -294,8 +461,6 @@ export default {
       var counterCurrency = this.currency.id
       var accountCurrency = this.selectedAccount.currency
 
-
-
       var url = env.apiUrl.baseUrl + env.apiUrl.rfq.createRFQ
       console.log('status', url)
       console.log('iscCustomerr ', this.isCustomer)
@@ -309,13 +474,12 @@ export default {
           toCurrency: accountCurrency,
           accountNumber: this.selectedAccount?.accountNumber,
           valueDate: this.valueDate,
-          negotiatedRate: this.negotiatedRate,
-          tellerAccountName: !this.isCustomer? this.selectedAccount?.accountName : "",
+          tellerAccountName: !this.isCustomer ? this.selectedAccount?.accountName : '',
           purpose: this.purpose,
-          comments:this.rfqComment,
+          comments: this.rfqComment,
           branchCode: this.selectedAccount?.branchCode,
           treasuryRate: this.rateValue,
-          bankDirection:this.bankDirection
+          bankDirection: this.bankDirection
         })
         .then((response) => {
           var data = response.data
@@ -370,6 +534,80 @@ export default {
           this.showCreateRFQModal = false
         })
     },
+
+
+    ammendRateRequest() {
+      if (!this.validateEnterRateForm()) {
+        console.log('Validation failed', this.errors)
+        return
+      }
+      this.loading = true
+      this.message = ''
+
+
+      var url = env.apiUrl.baseUrl + env.apiUrl.rfq.ammendRate
+
+      console.log('id',this.row?.id)
+      axios
+        .post(url, {
+          orderId: this.row?.id,
+          rate: this.proposedRate,
+          comment : this.dealerComment,
+        })
+        .then((response) => {
+          var data = response.data
+          var responseCode = data.responseCode
+          var responseMessage = data.responseMessage
+          if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
+            this.responseMessage = responseMessage
+            this.errorMessage = responseMessage
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: this.responseMessage,
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
+              }
+            })
+            console.log(this.responseMessage)
+            return
+          }
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: responseMessage,
+            timer: 3000,
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2',
+              cancelButton: 'btn btn-secondary px-4'
+            }
+          })
+          console.log('Rate ammended successfully  ', this.userName)
+          this.fetchPendingDealRequests()
+        })
+        .catch((error) => {
+          console.log('Error is ', error)
+          this.errorMessage = 'Rate update error'
+          console.log(this.errorMessage)
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'An error occurred during the update of rate for the order selected',
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2',
+              cancelButton: 'btn btn-secondary px-4'
+            }
+          })
+        })
+        .finally(() => {
+          this.loading = false
+          this.showEnableModal = false
+          this.showDisableModal = false
+          this.showCreateRFQModal = false
+          this.showAmmendRateModal = false
+        })
+    },
     fetchDealRequests() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getDealRequests
@@ -414,11 +652,71 @@ export default {
         })
     },
 
+    fetchPendingDealRequests() {
+      this.loading = true
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getDealRequests
+      const token = localStorage.getItem('token')
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      var statuses = [8,9,10];
+      axios
+        .post(url, {
+          page: 0,
+          size: 10,
+          statuses: statuses,
+        })
+        .then((response) => {
+          const data = response.data
+          if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: data.responseMessage,
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
+              }
+            })
+            return
+          }
+          this.pendingDealRequests = data.data
+          this.pendingDealerRequests = this.pendingDealRequests.filter(dealRequest =>
+            dealRequest.status.statusId === 9);
+
+          this.pendingTellerRequests = this.pendingDealRequests.filter(dealRequest =>
+            dealRequest.status.statusId === 8);
+
+          this.pendingNegotiationRequests = this.pendingDealRequests.filter(dealRequest =>
+            dealRequest.status.statusId === 10
+          );
+
+          console.log("pending dealer",this.pendingDealerRequests)
+          console.log("teller",this.pendingTellerRequests)
+          console.log("negotiating",this.pendingNegotiationRequests)
+
+
+          })
+        .catch((error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Error occurred fetching Deal Requests',
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2',
+              cancelButton: 'btn btn-secondary px-4'
+            }
+          })
+          console.error(error)
+        })
+        .finally(() => {
+          this.loading = false
+        })
+    },
+
     validateAccountsForm() {
       this.errors = {}
 
       if (!this.idNumber) {
-        this.errors.idNumber= '*Id Number is required.'
+        this.errors.idNumber = '*Id Number is required.'
       }
       if (this.isCustomer && !this.idType) {
         this.errors.idType = '*Id Type is required. .'
@@ -608,40 +906,37 @@ export default {
             this.rateTo = accountCurrency
             if (this.bankDirection === 'Sell') {
               this.rateValue = data.entity?.sellingRate
-              if(this.action === 'CREDIT'){
+              if (this.action === 'CREDIT') {
                 this.rateFrom = accountCurrency
                 this.rateTo = counterCurrency
-                this.multiplyDivide ="D"
-              }
-              else if(this.action === 'DEBIT'){
+                this.multiplyDivide = 'D'
+              } else if (this.action === 'DEBIT') {
                 this.rateFrom = counterCurrency
                 this.rateTo = accountCurrency
-                this.multiplyDivide ="M"
+                this.multiplyDivide = 'M'
               }
             } else if (this.bankDirection === 'Buy') {
               this.rateValue = data.entity?.buyingRate
-              if(this.action === 'CREDIT'){
+              if (this.action === 'CREDIT') {
                 this.rateFrom = counterCurrency
                 this.rateTo = accountCurrency
-                this.multiplyDivide ="M"
-              }
-              else if(this.action === 'DEBIT'){
+                this.multiplyDivide = 'M'
+              } else if (this.action === 'DEBIT') {
                 this.rateFrom = accountCurrency
                 this.rateTo = counterCurrency
-                this.multiplyDivide ="D"
+                this.multiplyDivide = 'D'
               }
             }
-            if(this.multiplyDivide === "M"){
+            if (this.multiplyDivide === 'M') {
               this.expectedValue = this.amount * this.rateValue
-            }
-            else if(this.multiplyDivide === "D"){
+            } else if (this.multiplyDivide === 'D') {
               this.expectedValue = this.amount / this.rateValue
             }
 
             this.expectedValue = Number(this.expectedValue).toFixed(2)
-            this.useCurrentRate = true;
-            this.useNegotiatedRate = false;
-            this.displayNegotiatedRate()
+            this.useCurrentRate = true
+            this.useNegotiatedRate = false
+            // this.displayNegotiatedRate()
           })
           .catch((error) => {
             Swal.fire({
@@ -661,22 +956,118 @@ export default {
       }
     },
     displayNegotiatedRate(){
-      if(this.currency && this.selectedAccount && this.action && this.amount && this.negotiatedRate){
-        if(this.multiplyDivide === "M") {
-          this.expectedValue = this.amount * this.negotiatedRate
-        }
-        else if(this.multiplyDivide === "D") {
-          this.expectedValue = this.amount / this.negotiatedRate
-        }
-        this.expectedValue = Number(this.expectedValue).toFixed(2)
-        this.useCurrentRate = false;
-        this.useNegotiatedRate = true;
+      if (this.updateRateBankDirection === 'Sell') {
+        this.updateExpectedValue = this.row?.counterNominalAmount / this.proposedRate
+      } else if (this.updateRateBankDirection === 'Buy') {
+        this.updateExpectedValue = this.row?.counterNominalAmount  * this.proposedRate
       }
+
+      this.updateExpectedValue= Number(this.updateExpectedValue).toFixed(2)
+      this.useUpdateCurrentRate = false;
+      this.useUpdateNegotiatedRate = true;
+    },
+
+
+    updateBankDirection() {
+        this.loading = true
+        const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getCurrencyDirection
+
+        axios
+          .post(url, {
+            fromCurrency: this.row?.fromCurrency,
+            toCurrency: this.row?.toCurrency
+          })
+          .then((response) => {
+            const data = response.data
+            // var responseMessage = data.responseMessage
+            if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: data.responseMessage,
+                customClass: {
+                  confirmButton: 'btn btn-success px-4 me-2',
+                  cancelButton: 'btn btn-secondary px-4'
+                }
+              })
+              return
+            }
+            // Swal.fire({
+            //   icon: 'success',
+            //   title: 'Success!',
+            //   text: responseMessage,
+            //   timer: 3000,
+            //   customClass: {
+            //     confirmButton: 'btn btn-success px-4 me-2',
+            //     cancelButton: 'btn btn-secondary px-4'
+            //   }
+            // })
+            console.log('data', data)
+            this.updateRateBankDirection = data?.entity
+
+            if (this.updateRateBankDirection === 'Sell') {
+              this.updateExpectedValue = this.row?.counterNominalAmount / this.row?.treasuryRate
+            } else if (this.updateRateBankDirection === 'Buy') {
+              this.updateExpectedValue = this.row?.counterNominalAmount  * this.row?.treasuryRate
+            }
+
+            this.updateExpectedValue= Number(this.updateExpectedValue).toFixed(2)
+            this.useUpdateCurrentRate = true
+            this.useUpdateNegotiatedRate = false
+          })
+          .catch((error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'Error occurred fetching Direction',
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
+              }
+            })
+            console.error(error)
+          })
+          .finally(() => {
+            this.loading = false
+          })
     },
     showApproveDialog(row) {
       this.comment = ''
       this.row = row
       this.showApproveModal = true
+    },
+
+    showRetryDialog(row) {
+      this.row = row
+      this.showRetryModal = true
+    },
+
+
+    showNegotiationDialog(row) {
+      this.comment = ''
+      this.negotiatiationComment = ''
+      this.row = row
+      this.showTreasuryProposalModal = false
+      this.showNegotiationModal = true
+
+    },
+    showAmmendRateDialog(row) {
+      this.comment = ''
+      this.dealerComment = ''
+      this.proposedRate = ''
+      this.row = row
+      this.showAmmendRateModal = true
+      this.offerRate = this.row?.treasuryRate
+      this.updateBankDirection()
+    },
+
+    showDealAcceptedDialog(row){
+      this.showDealAcceptedModal = true
+      this.row = row
+      console.log("dealcode",this.row?.dealCode)
+      if(!this.dealCode ){
+        this.dealCode = this.row?.dealerCode
+      }
     },
     showRejectionDialog(row) {
       this.comment = ''
@@ -688,8 +1079,13 @@ export default {
       this.row = row
       this.fetchCustomerInformation()
       this.comment = ''
-      this.showDealDetailsModal= true
+      this.showDealDetailsModal = true
+    },
 
+    showTreasuryProposalDialog(row) {
+      this.row = row
+      this.comment = ''
+      this.showTreasuryProposalModal = true
     },
 
     approveRecord(row) {
@@ -698,19 +1094,29 @@ export default {
     rejectRecord(row) {
       this.approveOrReject(row, 'REJECT')
     },
+    negotiateRecord(row) {
+      if(this.validateNegotiationForm()) {
+        this.approveOrReject(row, 'NEGOTIATE')
+      }
+    },
 
     approveOrReject(row, action) {
-      console.log(action, row,"x")
+      console.log(action, row, 'x')
       this.loading = true
       var url = env.apiUrl.baseUrl + env.apiUrl.approvals.approveEntity
       var ids = []
       ids.push(this.row?.id)
+      var comment = this.comment;
+
+      if(action === 'NEGOTIATE'){
+        comment = this.negotiatiationComment
+      }
 
       axios
         .post(url, {
           ids: ids,
           action: action,
-          description: this.comment,
+          description: comment,
           approvalType: 'APPROVED_DEALS'
         })
         .then((response) => {
@@ -743,6 +1149,10 @@ export default {
             }
           })
           console.log('Deal Request approved successfully  ')
+          if(action === "APPROVE"){
+            this.dealCode = data.entity?.dealCode;
+            this.showDealAcceptedDialog(this.row);
+          }
           this.fetchDealRequests()
         })
         .catch((error) => {
@@ -761,6 +1171,8 @@ export default {
         })
         .finally(() => {
           this.loading = false
+          this.showTreasuryProposalModal = false;
+          this.showNegotiationModal = false;
           if (action === 'APPROVE') {
             this.showApproveModal = false
           } else {
@@ -768,9 +1180,70 @@ export default {
           }
         })
     },
+    retryPostDealCode() {
+      this.loading = true
+      var url = env.apiUrl.baseUrl + env.apiUrl.rfq.retryPostDealCode
+
+      axios
+        .post(url, {
+          id: this.row?.id,
+        })
+        .then((response) => {
+          var data = response.data
+          var responseCode = data.responseCode
+          var responseMessage = data.responseMessage
+          if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
+            this.responseMessage = responseMessage
+            this.errorMessage = responseMessage
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: this.responseMessage,
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
+              }
+            })
+            console.log(this.responseMessage)
+            return
+          }
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: responseMessage,
+            timer: 3000,
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2',
+              cancelButton: 'btn btn-secondary px-4'
+            }
+          })
+          console.log('Deal Request successfully completed ')
+          this.dealCode = data.entity?.dealCode;
+          this.showDealAcceptedDialog(this.row);
+          this.fetchDealRequests()
+        })
+        .catch((error) => {
+          console.log('Error is ', error)
+          this.errorMessage = 'Deal Request Retry error'
+          console.log(this.errorMessage)
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'An error occurred during Deal Request Retry',
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2',
+              cancelButton: 'btn btn-secondary px-4'
+            }
+          })
+        })
+        .finally(() => {
+          this.loading = false
+          this.showRetryModal = false;
+        })
+    },
     fetchCustomerInformation() {
       this.loading = true
-      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.fetchCustomerInfo+ this.row?.accountNumber
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.fetchCustomerInfo + this.row?.accountNumber
 
       axios
         .post(url)
@@ -806,7 +1279,7 @@ export default {
         .finally(() => {
           this.loading = false
         })
-    },
+    }
   }
 }
 </script>
@@ -819,7 +1292,7 @@ export default {
 
   <!-- Main Content - Added wrapper to prevent overlap -->
   <div class="main-content-wrapper">
-    <div class="row">
+    <div v-if="isUserTeller" class="row">
       <div class="col-sm-12">
         <div class="table-card">
           <div class="table-header">
@@ -830,7 +1303,7 @@ export default {
             <div class="table-actions">
               <button v-if="canCreateDealCodeRequests" class="create-deal-btn" @click="showCreateDealDialog">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
                 <span>Create Deal Code</span>
               </button>
@@ -838,16 +1311,94 @@ export default {
           </div>
           <div class="table-body">
             <div class="table-responsive">
-              <data-table
-                v-if="tableReady"
-                :data="dealRequests"
-                :columns="columns"
-                :isFooter="true"
-                :striped="false"
-                @approve="showApproveDialog"
-                @reject="showRejectionDialog"
-                @view="showDetailsDialog"
-              />
+              <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" @approve="showDealAcceptedDialog"  @view="showTreasuryProposalDialog" @retry="showRetryDialog"  />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br />
+    <div v-if= "isUserDealer" class="row">
+      <div class="col-sm-12">
+        <div class="table-card">
+          <div class="table-header">
+            <div>
+              <h4 class="table-title">New Deal Requests ({{pendingDealerRequests.length}})</h4>
+              <p class="table-subtitle">Manage and track all forex deal requests</p>
+            </div>
+            <div class="table-actions">
+              <button v-if="canCreateDealCodeRequests" class="create-deal-btn" @click="showCreateDealDialog">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <span>Create Deal Code</span>
+              </button>
+            </div>
+          </div>
+          <div class="table-body">
+            <div class="table-responsive">
+              <data-table v-if="tableReady" :data="pendingDealerRequests" :columns="dealerColumns" :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div v-if= "isUserDealer" class="row">
+      <div class="col-sm-12">
+        <div class="table-card">
+          <div class="table-header">
+            <div>
+              <h4 class="table-title">Deal Requests </h4>
+<!--              <p class="table-subtitle">Manage and track all forex deal requests</p>-->
+            </div>
+            <div class="table-actions">
+              <button v-if="canCreateDealCodeRequests" class="create-deal-btn" @click="showCreateDealDialog">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <span>Create Deal Code</span>
+              </button>
+            </div>
+          </div>
+          <div class="table-body">
+            <div class="tab-bar">
+              <button
+                v-for="tab in tabs"
+                :key="tab"
+                type="button"
+                :class="['tab-btn', { 'tab-btn--active': activeTab === tab }]"
+                @click="activeTab = tab"
+              >
+                <!-- Active icon -->
+                <svg v-if="tab === 'Active'" width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <!-- Pending icon -->
+                <svg v-if="tab === 'Pending'" width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+                  <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                {{ tab }}
+                <span
+                  v-if="tab === 'Active' && pendingNegotiationRequests.length"
+                  :class="['tab-count', { 'tab-count--active': activeTab === tab }]"
+                >{{ pendingNegotiationRequests.length }}</span>
+                <span
+                  v-if="tab === 'Pending' && pendingTellerRequests.length"
+                  :class="['tab-count', { 'tab-count--active': activeTab === tab }]"
+                >{{ pendingTellerRequests.length }}</span>
+              </button>
+            </div>
+            <div v-show="activeTab === 'Active'" class="table-responsive">
+              <data-table v-if="tableReady" :data="pendingNegotiationRequests" :columns="dealerColumns" :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
+            </div>
+            <div v-show="activeTab === 'Pending'" class="table-responsive">
+              <data-table v-if="tableReady" :data="pendingTellerRequests" :columns="dealerColumns" :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
             </div>
           </div>
         </div>
@@ -867,9 +1418,9 @@ export default {
       <div class="modal-body">
         <div class="modal-icon">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 17L12 22L22 17" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 12L12 17L22 12" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M2 17L12 22L22 17" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M2 12L12 17L22 12" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
         <p class="modal-question">Is this person a Customer?</p>
@@ -878,8 +1429,8 @@ export default {
           <button class="choice-card" @click="showCustomerModalDialog()">
             <div class="choice-icon customer">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </div>
             <div class="choice-label">Yes</div>
@@ -889,10 +1440,10 @@ export default {
           <button class="choice-card" @click="showTellerModalDialog()">
             <div class="choice-icon teller">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </div>
             <div class="choice-label">No</div>
@@ -936,9 +1487,7 @@ export default {
       </div>
       <div class="modal-footer justify-content-end">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showCustomerModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="fetchAccounts(true)">
-          <i class="fas fa-search me-2"></i>Search
-        </button>
+        <button class="btn btn-success px-4" @click="fetchAccounts(true)"><i class="fas fa-search me-2"></i>Search</button>
       </div>
     </div>
   </div>
@@ -965,9 +1514,7 @@ export default {
       </div>
       <div class="modal-footer justify-content-end">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showTellerModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="fetchAccounts(false)">
-          <i class="fas fa-search me-2"></i>Search
-        </button>
+        <button class="btn btn-success px-4" @click="fetchAccounts(false)"><i class="fas fa-search me-2"></i>Search</button>
       </div>
     </div>
   </div>
@@ -987,8 +1534,8 @@ export default {
           <div class="customer-header">
             <div class="customer-avatar">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </div>
             <div>
@@ -998,13 +1545,13 @@ export default {
           </div>
 
           <div class="customer-details">
-                     <!-- labels-->
+            <!-- labels-->
             <div class="detail-item">
               <label>Customer ID</label>
               <label></label>
               <label>Phone Number</label>
             </div>
-              <!-- Data-->
+            <!-- Data-->
             <div class="detail-item">
               <p>{{ customerInfo?.customerCif }}</p>
               <p></p>
@@ -1017,8 +1564,8 @@ export default {
             <div class="accounts-grid">
               <div class="account-badge" v-for="(acc, index) in accounts" :key="index">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-                  <path d="M9 3V21" stroke="currentColor" stroke-width="2"/>
+                  <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" />
+                  <path d="M9 3V21" stroke="currentColor" stroke-width="2" />
                 </svg>
                 <span>{{ acc.accountNumber }} ({{ acc.currency }})</span>
               </div>
@@ -1029,9 +1576,7 @@ export default {
 
       <div class="modal-footer justify-content-end">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showCustomerDetailsModal = false">Back</button>
-        <button class="btn btn-success px-4" @click="showCreateRFQModalDialog">
-          Continue <i class="fas fa-arrow-right ms-2"></i>
-        </button>
+        <button class="btn btn-success px-4" @click="showCreateRFQModalDialog">Continue <i class="fas fa-arrow-right ms-2"></i></button>
       </div>
     </div>
   </div>
@@ -1053,23 +1598,19 @@ export default {
               <label>Account Name</label>
               <label>Account Number</label>
               <label>Branch Code</label>
-
             </div>
             <div class="detail-item">
               <p>{{ accounts[0]?.accountName }}</p>
               <p>{{ accounts[0]?.accountNumber }}</p>
               <p>{{ accounts[0]?.branchCode }}</p>
             </div>
-
           </div>
         </div>
       </div>
 
       <div class="modal-footer justify-content-end">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showTellerDetailsModal = false">Back</button>
-        <button class="btn btn-success px-4" @click="showCreateRFQModalDialog">
-          Continue <i class="fas fa-arrow-right ms-2"></i>
-        </button>
+        <button class="btn btn-success px-4" @click="showCreateRFQModalDialog">Continue <i class="fas fa-arrow-right ms-2"></i></button>
       </div>
     </div>
   </div>
@@ -1092,9 +1633,7 @@ export default {
               <label class="form-label">Select Account <span class="text-danger">*</span></label>
               <select class="form-select modern-select" v-model="selectedAccount" @change="filterCurrencyOptions">
                 <option value="">Choose an account</option>
-                <option v-for="acc in accounts" :key="acc" :value="acc">
-                  {{ acc.accountNumber }} - {{ acc.currency }}
-                </option>
+                <option v-for="acc in accounts" :key="acc" :value="acc">{{ acc.accountNumber }} - {{ acc.currency }}</option>
               </select>
               <small v-if="errors.selectedAccount" class="text-danger">{{ errors.selectedAccount }}</small>
             </div>
@@ -1115,9 +1654,7 @@ export default {
               <label class="form-label">Counter Currency <span class="text-danger">*</span></label>
               <select class="form-select modern-select" v-model="currency" @change="checkBankDirection">
                 <option value="">Select currency</option>
-                <option v-for="option in filteredCurrencyOptions" :key="option" :value="option">
-                  {{ option.id }} - {{ option.name }}
-                </option>
+                <option v-for="option in filteredCurrencyOptions" :key="option" :value="option">{{ option.id }} - {{ option.name }}</option>
               </select>
               <small v-if="errors.currency" class="text-danger">{{ errors.currency }}</small>
             </div>
@@ -1136,42 +1673,33 @@ export default {
             </div>
 
             <!-- Negotiated Rate -->
-            <div class="col-md-6">
-              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>
-              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>
-              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>
-            </div>
-
-            <!-- Value Date -->
-            <div class="col-md-6">
-              <label class="form-label">Value Date <span class="text-danger">*</span></label>
-              <input type="date" class="form-control modern-input" v-model="valueDate" />
-              <small v-if="errors.valueDate" class="text-danger">{{ errors.valueDate }}</small>
-            </div>
+            <!--            <div class="col-md-6">-->
+            <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
+            <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
+            <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
+            <!--            </div>-->
 
             <!-- Current Rate Box -->
             <div class="col-md-6">
               <div class="info-box rate-box">
                 <div class="info-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M22 12H18L15 21L9 3L6 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M22 12H18L15 21L9 3L6 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                   </svg>
                 </div>
                 <div>
                   <p class="info-label">Current Rate</p>
-                  <p class="info-value" v-if="rateFrom && rateValue && rateTo">
-                    1 {{ rateFrom }} = {{ rateValue }} {{ rateTo }}
-                  </p>
+                  <p class="info-value" v-if="rateFrom && rateValue && rateTo">1 {{ rateFrom }} = {{ rateValue }} {{ rateTo }}</p>
                   <p class="info-value" v-else>---</p>
                 </div>
               </div>
             </div>
 
-            <!-- Purpose -->
+            <!-- Value Date -->
             <div class="col-md-6">
-              <label class="form-label">Purpose <span class="text-danger">*</span></label>
-              <textarea class="form-control modern-input" rows="2" v-model="purpose" placeholder="Enter transaction purpose"></textarea>
-              <small v-if="errors.purpose" class="text-danger">{{ errors.purpose }}</small>
+              <label class="form-label">Value Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control modern-input" v-model="valueDate" disabled />
+              <small v-if="errors.valueDate" class="text-danger">{{ errors.valueDate }}</small>
             </div>
 
             <!-- Expected Total Box -->
@@ -1179,7 +1707,7 @@ export default {
               <div class="info-box total-box">
                 <div class="info-icon success">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
                   </svg>
                 </div>
                 <div>
@@ -1188,6 +1716,12 @@ export default {
                   <p class="info-value success">{{ expectedValue }} {{ selectedAccount.currency }}</p>
                 </div>
               </div>
+            </div>
+            <!-- Purpose -->
+            <div class="col-md-6">
+              <label class="form-label">Purpose <span class="text-danger">*</span></label>
+              <textarea class="form-control modern-input" rows="2" v-model="purpose" placeholder="Enter transaction purpose"></textarea>
+              <small v-if="errors.purpose" class="text-danger">{{ errors.purpose }}</small>
             </div>
 
             <!-- Comment -->
@@ -1202,10 +1736,491 @@ export default {
 
       <div class="modal-footer">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showCreateRFQModal = false">Cancel</button>
-        <button class="btn btn-success px-5" @click="submitDealRateRequest">
-          <i class="fas fa-paper-plane me-2"></i>Submit Request
+        <button class="btn btn-success px-5" @click="submitDealRateRequest"><i class="fas fa-paper-plane me-2"></i>Submit Request</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showAmmendRateModal" class="modal-backdrop">
+    <div class="custom-modal modal-md">
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-white">Enter Rate - {{ row?.orderId }}</h5>
+        <button class="modal-close-btn" @click="showAmmendRateModal = false">
+          <i class="fas fa-times"></i>
         </button>
       </div>
+
+      <div class="modal-body">
+        <div class="row">
+          <div class="rfq-form">
+            <div class="row g-4">
+              <div class="col-md-12">
+                <div class="rate-card">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Customer:</p>
+                      <p>
+                        <b>{{ row?.customerName }}</b>
+                      </p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>Branch:</p>
+                      <p>
+                        <b>{{ row?.branchId }}</b>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Amount:</p>
+                      <p><b>{{row?.fromCurrency}} {{row?.counterNominalAmount}}</b></p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>Currency Pair:</p>
+                      <p><b>{{row?.currencyPair}}</b></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Offer Rate -->
+              <div class="col-md-6">
+                <label class="form-label">Offer Rate <span class="text-danger"></span></label>
+                <input @change="fetchExchangeRates" type="number" class="form-control modern-input" v-model="offerRate" placeholder="0.00" disabled />
+                <small v-if="errors.offerRate" class="text-danger">{{ errors.offerRate }}</small>
+              </div>
+
+              <!-- Expected Total Box -->
+              <div class="col-md-6">
+                <div class="info-box total-box">
+                  <div class="info-icon success">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="info-label" v-if="useUpdateCurrentRate">Expected Total (Current Rate)</p>
+                    <p class="info-label" v-if="useUpdateNegotiatedRate">Expected Total (Proposed Rate)</p>
+                    <p class="info-value success">{{ updateExpectedValue }} {{ row?.toCurrency }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Proposed Rate-->
+              <div class="col-md-6">
+                <label class="form-label">Proposed Rate <span class="text-danger">*</span></label>
+                <input @change="displayNegotiatedRate" type="number" class="form-control modern-input" v-model="proposedRate" placeholder="0.00" />
+                <small v-if="errors.proposedRate" class="text-danger">{{ errors.proposedRate }}</small>
+              </div>
+
+              <!-- Negotiated Rate -->
+              <!--            <div class="col-md-6">-->
+              <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
+              <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
+              <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
+              <!--            </div>-->
+
+              <div class="col-md-12">
+                <div class="rate-card">
+                  <p class="form-label"><b>Teller Notes:</b></p>
+                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[row.commentsDtoList.length-1].comment:''}}</p>
+                </div>
+              </div>
+            </div>
+            <br />
+
+            <!-- Comment -->
+            <div class="col-md-12">
+              <label class="form-label">Treasury Comments <span class="text-danger">*</span></label>
+              <textarea class="form-control modern-input" rows="3" v-model="dealerComment" placeholder="Add any additional comments or notes"></textarea>
+              <small v-if="errors.dealerComment" class="text-danger">{{ errors.dealerComment }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary px-4 me-2" @click="showAmmendRateModal = false">Cancel</button>
+        <button class="btn btn-success px-5" @click="ammendRateRequest"><i class="fas fa-paper-plane me-2"></i>Submit Request</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showTreasuryProposalModal"  class="modal-backdrop">
+    <div class="custom-modal modal-md">
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-white">Treasury Rate Proposal - {{ row?.orderId }}</h5>
+        <button class="modal-close-btn" @click="showTreasuryProposalModal = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row">
+          <div class="rfq-form">
+            <div class="row g-4">
+              <div class="col-md-12">
+                <div class="rate-card">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Customer:</p>
+                      <p>
+                        <b>{{ row?.customerName }}</b>
+                      </p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>Branch:</p>
+                      <p>
+                        <b>{{ row?.branchId }}</b>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Amount:</p>
+                      <p><b>{{row?.fromCurrency}} {{row?.counterNominalAmount}}</b></p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>Currency Pair:</p>
+                      <p><b>{{row?.currencyPair}}</b></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Offer Rate -->
+              <div class="col-md-6">
+                <div class="info-box offer-box">
+                  <!--                  <div class="info-icon success">-->
+                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
+                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
+                  <!--                    </svg>-->
+                  <!--                  </div>-->
+                  <div>
+                    <p class="info-teller-info">Offer Rate</p>
+                    <p class="info-value success">{{ row?.treasuryRate }} </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Expected Total Box -->
+              <div class="col-md-6">
+                <div class="info-box total-box">
+<!--                  <div class="info-icon success">-->
+<!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
+<!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
+<!--                    </svg>-->
+<!--                  </div>-->
+                  <div>
+                    <p class="info-teller-info" >Proposed Rate</p>
+                    <p class="info-value success">{{ row?.negotiatedRate }}</p>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <!-- Expected Total Box -->
+              <div class="col-md-12">
+                <div class="info-box total-box">
+                  <!--                  <div class="info-icon success">-->
+                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
+                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
+                  <!--                    </svg>-->
+                  <!--                  </div>-->
+                  <div>
+                    <p class="info-teller-info" >Expected Total</p>
+
+                    <p class="info-value success">{{ row?.expectedAmount}} {{ row?.toCurrency }} </p>
+                    <!--                    <p class="info-value success">{{ updateExpectedValue }} {{ row?.toCurrency }}</p>-->
+                    <p class="info-teller-info" >{{ row?.counterNominalAmount }} {{ row?.fromCurrency }} * {{ row?.negotiatedRate }}</p>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <!-- Negotiated Rate -->
+              <!--            <div class="col-md-6">-->
+              <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
+              <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
+              <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
+              <!--            </div>-->
+
+              <div class="col-md-12">
+                <div class="rate-card">
+                  <p class="form-label"><b>Treasury Notes:</b></p>
+                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[row.commentsDtoList.length-1].comment:''}}</p>
+                </div>
+              </div>
+            </div>
+            <br />
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-danger px-3" @click="showRejectionDialog(row)"><b><i class="far fa-times-circle me-2"></i>Reject Deal</b></button>
+        <button class="btn btn-outline-warning px-3" @click="showNegotiationDialog(row)"><b><i class="far fa-message me-2"></i>Negotiate</b></button>
+        <button class="btn btn-success px-3" @click="showApproveDialog(row)"><b><i class="fas fa-check-circle me-2"></i>Accept Deal</b></button>
+      </div>
+    </div>
+  </div>
+
+
+  <div v-if="showDealAcceptedModal" class="modal-backdrop">
+    <div class="custom-modal modal-md">
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-white">Deal Accepted - {{ row?.orderId }}</h5>
+        <button class="modal-close-btn" @click="showDealAcceptedModal = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row">
+          <div class="rfq-form">
+            <div class="row g-4">
+              <div class="col-md-12">
+                <div class="rate-card">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Customer:</p>
+                      <p>
+                        <b>{{ row?.customerName }}</b>
+                      </p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>Branch:</p>
+                      <p>
+                        <b>{{ row?.branchId }}</b>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Amount:</p>
+                      <p><b>{{row?.fromCurrency}} {{row?.counterNominalAmount}}</b></p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>Currency Pair:</p>
+                      <p><b>{{row?.currencyPair}}</b></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Offer Rate -->
+              <div class="col-md-6">
+                <div class="info-box offer-box">
+                  <!--                  <div class="info-icon success">-->
+                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
+                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
+                  <!--                    </svg>-->
+                  <!--                  </div>-->
+                  <div>
+                    <p class="info-teller-info">Offer Rate</p>
+                    <p class="info-value success">{{ row?.treasuryRate }} </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Expected Total Box -->
+              <div class="col-md-6">
+                <div class="info-box total-box">
+                  <!--                  <div class="info-icon success">-->
+                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
+                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
+                  <!--                    </svg>-->
+                  <!--                  </div>-->
+                  <div>
+                    <p class="info-teller-info" >Proposed Rate</p>
+                    <p class="info-value success">N/A</p>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <!-- Expected Total Box -->
+              <div class="col-md-12">
+                <div class="info-box total-box">
+                  <!--                  <div class="info-icon success">-->
+                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
+                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
+                  <!--                    </svg>-->
+                  <!--                  </div>-->
+                  <div>
+                    <p class="info-teller-info" >Deal Code</p>
+
+                    <p class="info-value success">{{ dealCode}}  </p>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <!-- Negotiated Rate -->
+              <!--            <div class="col-md-6">-->
+              <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
+              <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
+              <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
+              <!--            </div>-->
+
+<!--              <div class="col-md-12">-->
+<!--                <div class="rate-card">-->
+<!--                  <p class="form-label"><b>Treasury Notes:</b></p>-->
+<!--                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[0].comment:''}}</p>-->
+<!--                </div>-->
+<!--              </div>-->
+
+
+            </div>
+            <br />
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-success px-3" @click="showDealAcceptedModal = false"><b>Close</b></button>
+      </div>
+    </div>
+  </div>
+
+
+  <div v-if="showNegotiationModal"  class="modal-backdrop">
+    <div class="custom-modal modal-md">
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-white">Treasury Rate Proposal - {{ row?.orderId }}</h5>
+        <button class="modal-close-btn" @click="showNegotiationModal = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row">
+          <div class="rfq-form">
+            <div class="row g-4">
+              <div class="col-md-12">
+                <div class="rate-card">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Customer:</p>
+                      <p>
+                        <b>{{ row?.customerName }}</b>
+                      </p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>Branch:</p>
+                      <p>
+                        <b>{{ row?.branchId }}</b>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Amount:</p>
+                      <p><b>{{row?.fromCurrency}} {{row?.counterNominalAmount}}</b></p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>Currency Pair:</p>
+                      <p><b>{{row?.currencyPair}}</b></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Offer Rate -->
+              <div class="col-md-6">
+                <div class="info-box offer-box">
+                  <!--                  <div class="info-icon success">-->
+                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
+                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
+                  <!--                    </svg>-->
+                  <!--                  </div>-->
+                  <div>
+                    <p class="info-teller-info">Offer Rate</p>
+                    <p class="info-value success">{{ row?.treasuryRate }} </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Expected Total Box -->
+              <div class="col-md-6">
+                <div class="info-box total-box">
+                  <!--                  <div class="info-icon success">-->
+                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
+                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
+                  <!--                    </svg>-->
+                  <!--                  </div>-->
+                  <div>
+                    <p class="info-teller-info" >Proposed Rate</p>
+                    <p class="info-value success">{{ row?.negotiatedRate }}</p>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <!-- Expected Total Box -->
+              <div class="col-md-12">
+                <div class="info-box total-box">
+                  <!--                  <div class="info-icon success">-->
+                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
+                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
+                  <!--                    </svg>-->
+                  <!--                  </div>-->
+                  <div>
+                    <p class="info-teller-info" >Expected Total</p>
+
+                    <p class="info-value success">{{ row?.expectedAmount}} {{ row?.toCurrency }} </p>
+                    <!--                    <p class="info-value success">{{ updateExpectedValue }} {{ row?.toCurrency }}</p>-->
+                    <p class="info-teller-info" >{{ row?.counterNominalAmount }} {{ row?.fromCurrency }} * {{ row?.negotiatedRate }}</p>
+                  </div>
+                </div>
+              </div>
+
+
+
+
+
+              <!-- Negotiated Rate -->
+              <!--            <div class="col-md-6">-->
+              <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
+              <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
+              <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
+              <!--            </div>-->
+
+              <div class="col-md-12">
+                <div class="rate-card">
+                  <p class="form-label"><b>Treasury Notes:</b></p>
+                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[row.commentsDtoList.length-1].comment:''}}</p>
+                </div>
+              </div>
+
+              <!-- Comment -->
+              <div class="col-md-12">
+                <label class="form-label">Negotiation Comments <span class="text-danger">*</span></label>
+                <textarea class="form-control modern-input" rows="3" v-model="negotiatiationComment" placeholder="Add any additional comments or notes"></textarea>
+                <small v-if="errors.negotiatiationComment" class="text-danger">{{ errors.negotiatiationComment }}</small>
+              </div>
+
+            </div>
+            <br />
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary px-4 me-2" @click="showNegotiationModal = false">Cancel</button>
+        <button class="btn btn-warning px-3" @click="negotiateRecord(row)"><b>Submit Negotiation</b></button>
+          </div>
     </div>
   </div>
 
@@ -1221,20 +2236,19 @@ export default {
       <div class="modal-body">
         <div class="modal-icon success">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-            <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.7088 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.76489 14.1003 1.98232 16.07 2.86" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M22 4L12 14.01L9 11.01" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.7088 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.76489 14.1003 1.98232 16.07 2.86" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M22 4L12 14.01L9 11.01" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
         <p class="modal-question">Approve this deal request?</p>
         <p class="modal-description">
-          You are about to approve order <strong>{{ row?.orderId }}</strong>. This action cannot be undone.
+          You are about to approve order <strong>{{ row?.orderId }}</strong
+          >. This action cannot be undone.
         </p>
       </div>
       <div class="modal-footer justify-content-center">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showApproveModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="approveRecord(row)">
-          <i class="fas fa-check me-2"></i>Approve
-        </button>
+        <button class="btn btn-success px-4" @click="approveRecord(row)"><i class="fas fa-check me-2"></i>Approve</button>
       </div>
     </div>
   </div>
@@ -1251,13 +2265,14 @@ export default {
       <div class="modal-body">
         <div class="modal-icon danger">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="#dc3545" stroke-width="2"/>
-            <path d="M15 9L9 15M9 9L15 15" stroke="#dc3545" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="10" stroke="#dc3545" stroke-width="2" />
+            <path d="M15 9L9 15M9 9L15 15" stroke="#dc3545" stroke-width="2" stroke-linecap="round" />
           </svg>
         </div>
         <p class="modal-question">Reject this deal request?</p>
         <p class="modal-description">
-          You are about to reject order <strong>{{ row?.orderId }}</strong>. Please provide a reason.
+          You are about to reject order <strong>{{ row?.orderId }}</strong
+          >. Please provide a reason.
         </p>
         <div class="mt-3">
           <label for="rejectComment" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
@@ -1266,9 +2281,7 @@ export default {
       </div>
       <div class="modal-footer justify-content-center">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showRejectModal = false">Cancel</button>
-        <button class="btn btn-danger px-4" @click="rejectRecord(row)">
-          <i class="fas fa-times me-2"></i>Reject
-        </button>
+        <button class="btn btn-danger px-4" @click="rejectRecord(row)"><i class="fas fa-times me-2"></i>Reject</button>
       </div>
     </div>
   </div>
@@ -1290,8 +2303,8 @@ export default {
             <div class="detail-card-header">
               <div class="detail-card-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                  <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
               </div>
               <h6>Deal Information</h6>
@@ -1303,12 +2316,16 @@ export default {
               </div>
               <div class="detail-row">
                 <span class="detail-label">Status</span>
-                <span class="badge" :class="{
-                  'bg-success': row?.status?.statusId === 1,
-                  'bg-warning': row?.status?.statusId === 6,
-                  'bg-danger': row?.status?.statusId === 0,
-                  'bg-dark': row?.status?.statusId === 7
-                }">{{ row?.status?.statusName }}</span>
+                <span
+                  class="badge"
+                  :class="{
+                    'bg-success': row?.status?.statusId === 1,
+                    'bg-warning': row?.status?.statusId === 6,
+                    'bg-danger': row?.status?.statusId === 0,
+                    'bg-dark': row?.status?.statusId === 7
+                  }"
+                  >{{ row?.status?.statusName }}</span
+                >
               </div>
               <div class="detail-row">
                 <span class="detail-label">Currency Pair</span>
@@ -1330,7 +2347,7 @@ export default {
               </div>
               <div class="detail-row">
                 <span class="detail-label">Request Date</span>
-                <span class="detail-value">{{ row?.requestDate }}</span>
+                <span class="detail-value">{{ prettyDate(row?.requestDate) }}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Value Date</span>
@@ -1344,8 +2361,8 @@ export default {
             <div class="detail-card-header">
               <div class="detail-card-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </div>
               <h6>Customer Information</h6>
@@ -1371,7 +2388,7 @@ export default {
             <div class="detail-card-header">
               <div class="detail-card-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M22 12H18L15 21L9 3L6 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M22 12H18L15 21L9 3L6 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </div>
               <h6>Rate Information</h6>
@@ -1397,9 +2414,37 @@ export default {
       </div>
 
       <div class="modal-footer justify-content-end">
-        <button class="btn btn-outline-secondary px-4" @click="showDealDetailsModal = false">
-          <i class="fas fa-times me-2"></i>Close
+        <button class="btn btn-outline-secondary px-4" @click="showDealDetailsModal = false"><i class="fas fa-times me-2"></i>Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Retry Modal -->
+  <div v-if="showRetryModal" class="modal-backdrop">
+    <div class="custom-modal">
+      <div class="modal-header modal-header-approve">
+        <h5 class="modal-title text-white">Retry Deal Request</h5>
+        <button class="modal-close-btn" @click="showRetryModal = false">
+          <i class="fas fa-times"></i>
         </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-icon success">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+            <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.7088 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.76489 14.1003 1.98232 16.07 2.86" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M22 4L12 14.01L9 11.01" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <p class="modal-question">Retry this deal request?</p>
+        <p class="modal-description">
+          You are about to retry order <strong>{{ row?.orderId }}</strong
+        >. This action cannot be undone.
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-outline-secondary px-4 me-2" @click="showRetryModal = false">Cancel</button>
+        <button class="btn btn-success px-4" @click="retryPostDealCode()"><i class="fas fa-check me-2"></i>Retry</button>
       </div>
     </div>
   </div>
@@ -1510,7 +2555,7 @@ export default {
   max-width: 95%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: modalSlideIn 0.3s ease-out;
-  max-height: 90vh;
+  max-height: 100vh;
   overflow-y: auto;
 }
 
@@ -1520,6 +2565,10 @@ export default {
 
 .modal-xl {
   width: 1200px;
+}
+
+.modal-MD {
+  width: 700px;
 }
 
 @keyframes modalSlideIn {
@@ -1681,6 +2730,14 @@ export default {
   padding: 24px;
 }
 
+/* Rate Cards */
+.rate-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+}
+
 .customer-header {
   display: flex;
   align-items: center;
@@ -1828,6 +2885,11 @@ export default {
   border-color: #10b981;
 }
 
+.info-box.offer-box {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #3b82f6;
+}
+
 .info-icon {
   width: 40px;
   height: 40px;
@@ -1852,6 +2914,7 @@ export default {
   margin-bottom: 4px;
 }
 
+
 .info-value {
   font-size: 16px;
   font-weight: 700;
@@ -1862,6 +2925,13 @@ export default {
 .info-value.success {
   font-size: 20px;
   color: #059669;
+}
+
+.info-teller-info {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
+  margin-bottom: 4px;
 }
 
 /* Deal Details Grid */
@@ -2013,6 +3083,7 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .tab-bar       { width: 100%; }
   .main-content-wrapper {
     padding-top: 16px;
     padding-bottom: 40px;
@@ -2061,4 +3132,40 @@ export default {
     width: 100%;
   }
 }
+.bg-purple {
+  background-color: #6f42c1 !important; /* Bootstrap-like purple */
+  color: #fff !important;
+}
+
+.btn-purple {
+  background-color: #7c3aed;   /* main purple */
+  border-color: #7c3aed;
+  color: #fff;
+}
+
+.btn-purple:hover {
+  background-color: #6d28d9;   /* darker on hover */
+  border-color: #6d28d9;
+  color: #fff;
+}
+
+.btn-purple:focus,
+.btn-purple:active {
+  background-color: #5b21b6;
+  border-color: #5b21b6;
+  color: #fff;
+}
+
+
+/* ─── Tab bar ──────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  background: #f0f4f9;
+  border-radius: 12px;
+  width: fit-content;
+  margin-bottom: 24px;
+}
+
 </style>

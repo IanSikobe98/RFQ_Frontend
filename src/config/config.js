@@ -8,5 +8,7 @@ export default {
     DECIMAL_WHOLE_NUMBERS_REGEX : /^\d+(\.\d+)?$/,
     CURRENCY_REGEX:/^\d+(\.\d{1,2})?$/,
     SECRET_KEY: 'MyRSY1hAOGVXcDlUcTNMcw==',
+    TELLER_ROLE_NAME :'TELLER',
+    DEALER_ROLE_NAME :'TREASURY DEALER',
 
 }
