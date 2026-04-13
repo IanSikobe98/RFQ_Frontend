@@ -13,6 +13,7 @@ import config from '../../config/config.js'
 import Swal from 'sweetalert2'
 import store from "@/store";
 import decryptText from "../../util/decryptor.js";
+import WebsocketService from '@/util/websocketService'
 
 export default{
   data () {
@@ -119,6 +120,9 @@ export default{
           this.$store.commit('setUser', JSON.stringify(user));
           this.$store.commit('clearOtpState');
           localStorage.removeItem('otpExpiry');
+
+          WebsocketService.connect(data.user)
+
           Swal.fire({
             icon: 'success',
             title: 'Success!',

@@ -41,6 +41,7 @@
     "moment": "^2.29.3",
     "register-service-worker": "^1.7.1",
     "smooth-scrollbar": "^8.7.4",
+    "sockjs-client": "^1.6.1",
     "sweetalert2": "^11.26.3",
     "swiper": "^8.1.4",
     "vue": "^3.0.0",

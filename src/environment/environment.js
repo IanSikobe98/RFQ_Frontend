@@ -46,4 +46,7 @@ export default {
        fetchDashStats: '/dashboard/fetchDashStats'
       }
     }
+    ,websocketUrl:{
+      baseUrl: 'http://localhost:9072/rfqService/ws/notifications',
+    }
 }

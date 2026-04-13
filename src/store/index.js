@@ -1,5 +1,6 @@
 import { createStore, createLogger } from 'vuex'
 import setting from './setting'
+import notifications from '@/util/notifications'
 const debug = process.env.NODE_ENV !== 'production'
 export default createStore({
   state: {
@@ -51,7 +52,8 @@ export default createStore({
     }
   },
   modules: {
-    setting: setting
+    setting: setting,
+    notifications: notifications // ✅ HERE
   },
   strict: debug,
   plugins: debug ? [createLogger()] : []

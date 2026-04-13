@@ -59,6 +59,9 @@ export default {
     canConvertCurrency() {
       return this.hasPerm('CONVERT_CURRENCY')
     },
+    notifications() {
+      return this.$store.getters['notifications/all']
+    }
   },
   methods: {
     hasPerm (permission) {
@@ -74,6 +77,9 @@ export default {
 
 <template>
   <!-- Sidebar Component Start Here-->
+<!--  iss<span v-if="notifications.length > 0">-->
+<!--  🔔 {{ notifications.length }}-->
+<!--</span>-->
   <default-sidebar>
     <ul class="navbar-nav iq-main-menu" id="sidebar-menu">
       <!-- Home Section -->

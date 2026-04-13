@@ -1823,7 +1823,7 @@ export default {
               <div class="col-md-12">
                 <div class="rate-card">
                   <p class="form-label"><b>Teller Notes:</b></p>
-                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[row.commentsDtoList.length-1].comment:''}}</p>
+                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[0].comment:''}}</p>
                 </div>
               </div>
             </div>
@@ -1950,7 +1950,7 @@ export default {
               <div class="col-md-12">
                 <div class="rate-card">
                   <p class="form-label"><b>Treasury Notes:</b></p>
-                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[row.commentsDtoList.length-1].comment:''}}</p>
+                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[0].comment:''}}</p>
                 </div>
               </div>
             </div>
@@ -2198,7 +2198,7 @@ export default {
               <div class="col-md-12">
                 <div class="rate-card">
                   <p class="form-label"><b>Treasury Notes:</b></p>
-                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[row.commentsDtoList.length-1].comment:''}}</p>
+                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[0].comment:''}}</p>
                 </div>
               </div>
 
