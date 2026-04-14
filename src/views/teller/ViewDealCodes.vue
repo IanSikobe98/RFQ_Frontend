@@ -8,9 +8,10 @@ import AppLoader from '@/components/loader/AppLoader.vue'
 import updateUser from '@/views/user/UpdateUser.vue'
 import store from '@/store'
 import { prettyDate } from '@/util/filters'
+import DealChatModal from '@/components/DealChatModal.vue'   // ← NEW
 
 export default {
-  components: { AppLoader, DataTable },
+  components: { AppLoader, DataTable, DealChatModal },       // ← DealChatModal registered
   data() {
     return {
       tableReady: false,
@@ -27,7 +28,6 @@ export default {
       dealRequests: [],
       pendingDealRequests: [],
       pendingDealerRequests: [],
-      // newPendingDealerRequests: [],
       pendingTellerRequests: [],
       pendingNegotiationRequests: [],
       showEnableModal: false,
@@ -48,8 +48,8 @@ export default {
       selectedAccount: '',
       purpose: '',
       bankDirection: '',
-      updateRateBankDirection:'',
-      updateExpectedValue:'',
+      updateRateBankDirection: '',
+      updateExpectedValue: '',
       amount: '',
       action: '',
       negotiatedRate: '',
@@ -72,16 +72,17 @@ export default {
       showDealDetailsModal: false,
       showAmmendRateModal: false,
       showTreasuryProposalModal: false,
-      showDealAcceptedModal:false,
-      showNegotiationModal:false,
-      offerRate:'',
-      proposedRate:'',
-      dealerComment:'',
-      negotiatiationComment:'',
-      dealCode:'',
+      showDealAcceptedModal: false,
+      showNegotiationModal: false,
+      showDealChatModal: false,
+      offerRate: '',
+      proposedRate: '',
+      dealerComment: '',
+      negotiatiationComment: '',
+      dealCode: '',
       valueDate: new Date().toISOString().split('T')[0],
       options: [
-        { id: 'COR', name: 'Certificate of Registration' },
+        { id: 'COR',   name: 'Certificate of Registration' },
         { id: 'NATID', name: 'National id' },
         { id: 'ACCNO', name: 'Account Number' }
       ],
@@ -99,158 +100,118 @@ export default {
   },
   computed: {
     columns() {
-      // const canApprove = this.canApproveDealCodeRequests
-
       const cols = [
-        { title: 'Customer Name', data: 'customerName' },
+        { title: 'Customer Name',  data: 'customerName' },
         { title: 'Account Number', data: 'accountNumber' },
         {
-          title: 'Amount',
-          data: null,
+          title: 'Amount', data: null,
           render: function (data, type, row) {
             return `${row.fromCurrency} ${row.counterNominalAmount}`
           }
         },
         { title: 'Currency Pair', data: 'currencyPair' },
         {
-          title: 'Bank direction',
-          data: null,
-          render: function (row) {
-            return `${row.buySell}  ${row.fromCurrency}`
-          }
+          title: 'Bank direction', data: null,
+          render: function (row) { return `${row.buySell}  ${row.fromCurrency}` }
         },
         {
-          title: 'Request Date',
-          data: 'requestDate',
+          title: 'Request Date', data: 'requestDate',
           render: function (data) {
             var a = new Date(data)
             return a.toISOString().split('T')[0]
           }
         },
-        { title: 'Value Date', data: 'valueDate' },
+        { title: 'Value Date',      data: 'valueDate' },
         { title: 'Negotiated Rate', data: 'negotiatedRate' },
         {
-          title: 'Deal Status',
-          data: 'status',
+          title: 'Deal Status', data: 'status',
           render: function (data) {
             const id = Number(data.statusId)
             if (id === 1) return `<span class="badge bg-success">Active</span>`
-            if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
+            if (id === 0) return `<span class="badge bg-danger">Inactive</span>`
             if (id === 6) return `<span class="badge bg-warning">Pending</span>`
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            else return `<span class="badge bg-primary">${data.statusName}</span>`
+            return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         },
-        { title: 'Deal Code', data: 'dealerCode' },
-        { title: 'Dealer', data: 'dealerId' },
+        { title: 'Deal Code',    data: 'dealerCode' },
+        { title: 'Dealer',       data: 'dealerId' },
         { title: 'Order Number', data: 'orderId' },
-        { title: 'Initiator', data: 'tellerId' }
+        { title: 'Initiator',    data: 'tellerId' }
       ]
 
-      // if (canApprove) {
-        cols.push({
-          title: 'Actions',
-          data: null,
-          orderable: false,
-          searchable: false,
-          render: function (data, type, row) {
-            // if (canApprove) {
-            if(row.status.statusId === 8  ){
-              return `
-                    <button class="btn btn-sm btn-warning dt-view" data-id="${row.id}" ><i class="fas fa-eye me-2"></i>View Rate</button>`
-            }
-            else if(row.status.statusId === 1  ){
-              return `
-                    <button class="btn btn-sm btn-success dt-approve" data-id="${row.id}" >View</button>`
-            }
-            else if(row.status.statusId === 7  ){
-              return `
-                    <button class="btn btn-sm btn-dark " data-id="${row.id}" >No Action</button>`
-            }
-            else if(row.status.statusId ===  3){
-              return `
-                    <button class="btn btn-sm btn-dark dt-retry " data-id="${row.id}" >Retry </button>`
-            }
-            else{
-              return `
-                    <button class="btn btn-sm btn-secondary " data-id="${row.id}" >Awaiting...</button>`
-            }
-
-            // } else return ''
+      cols.push({
+        title: 'Actions', data: null, orderable: false, searchable: false,
+        render: function (data, type, row) {
+          if (row.status.statusId === 8) {
+            return `<button class="btn btn-sm btn-warning dt-view" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View Rate</button>`
+          } else if (row.status.statusId === 1) {
+            return `<button class="btn btn-sm btn-success dt-approve" data-id="${row.id}">View</button>`
+          } else if (row.status.statusId === 7) {
+            return `<button class="btn btn-sm btn-dark" data-id="${row.id}">No Action</button>`
+          } else if (row.status.statusId === 3) {
+            return `<button class="btn btn-sm btn-dark dt-retry" data-id="${row.id}">Retry</button>`
+          } else {
+            return `<button class="btn btn-sm btn-secondary" data-id="${row.id}">Awaiting...</button>`
           }
-        })
-      // }
+        }
+      })
       return cols
     },
 
     dealerColumns() {
       const canApprove = this.canApproveDealCodeRequests
-
       const cols = [
-        { title: 'Order Number', data: 'orderId' },
-        { title: 'Customer Name', data: 'customerName' },
+        { title: 'Order Number',   data: 'orderId' },
+        { title: 'Customer Name',  data: 'customerName' },
         { title: 'Account Number', data: 'accountNumber' },
-        { title: 'Currency Pair', data: 'currencyPair' },
+        { title: 'Currency Pair',  data: 'currencyPair' },
         {
-          title: 'Amount',
-          data: null,
+          title: 'Amount', data: null,
           render: function (data, type, row) {
             return `${row.fromCurrency} ${row.counterNominalAmount}`
           }
         },
-
         {
-          title: 'Bank direction',
-          data: null,
-          render: function (row) {
-            return `${row.buySell}  ${row.fromCurrency}`
-          }
+          title: 'Bank direction', data: null,
+          render: function (row) { return `${row.buySell}  ${row.fromCurrency}` }
         },
         {
-          title: 'Request Date',
-          data: 'requestDate',
+          title: 'Request Date', data: 'requestDate',
           render: function (data) {
             var a = new Date(data)
             return a.toISOString().split('T')[0]
           }
         },
         {
-          title: 'Deal Status',
-          data: 'status',
+          title: 'Deal Status', data: 'status',
           render: function (data) {
             const id = Number(data.statusId)
             if (id === 1) return `<span class="badge bg-success">Active</span>`
-            if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
+            if (id === 0) return `<span class="badge bg-danger">Inactive</span>`
             if (id === 6) return `<span class="badge bg-warning">Pending</span>`
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
             if (id === 9) return `<span class="badge bg-warning">Pending</span>`
-            else return `<span class="badge bg-primary">${data.statusName}</span>`
+            return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         }
       ]
 
       if (canApprove) {
         cols.push({
-          title: 'Actions',
-          data: null,
-          orderable: false,
-          searchable: false,
+          title: 'Actions', data: null, orderable: false, searchable: false,
           render: function (data, type, row) {
-            if (row.status.statusId === 9 ) {
+            if (row.status.statusId === 9) {
               return `
-                    <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}" >View Details</button>
-                    <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}"  >Pick Deal</button>`
-            } else if(row.status.statusId === 10 ){
+                <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}">View Details</button>
+                <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}">Pick Deal</button>`
+            } else if (row.status.statusId === 10) {
               return `
-              <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}" >View Details</button>
-              <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}" >Ammend Deal</button>`
-            }
-            else if(row.status.statusId === 8 ){
-
-              return `
-              <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}" >View Details</button>`
-            }
-            else{
+                <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}">View Details</button>
+                <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}">Ammend Deal</button>`
+            } else if (row.status.statusId === 8) {
+              return `<button class="btn btn-sm btn-dark dt-view" data-id="${row.id}">View Details</button>`
+            } else {
               return ''
             }
           }
@@ -259,71 +220,60 @@ export default {
       return cols
     },
 
-    updateUser() {
-      return updateUser
-    },
-    canCreateDealCodeRequests() {
-      return this.hasPerm('CREATE_DEAL_REQUESTS')
-    },
-    canApproveDealCodeRequests() {
-      return this.hasPerm('APPROVE_DEAL_REQUESTS')
-    }
+    updateUser() { return updateUser },
+    canCreateDealCodeRequests() { return this.hasPerm('CREATE_DEAL_REQUESTS') },
+    canApproveDealCodeRequests() { return this.hasPerm('APPROVE_DEAL_REQUESTS') }
   },
+
   mounted() {
     this.user = JSON.parse(store.state.user)
     this.permissions = this.user?.usersPerm
     this.role = this.user?.role
-    console.log("user u in",this.user)
-    console.log("role in",this.role)
     this.isUserTeller = this.isTeller()
     this.isUserDealer = this.isDealer()
-    console.log("isuser teller",this.isUserTeller)
     this.tableReady = true
-    if(this.isUserTeller) {
-      this.fetchDealRequests()
-    }
-    if(this.isUserDealer) {
-      this.fetchPendingDealRequests()
-    }
+    if (this.isUserTeller) this.fetchDealRequests()
+    if (this.isUserDealer) this.fetchPendingDealRequests()
   },
+
   methods: {
     prettyDate,
-    hasPerm(permission) {
-      return this.permissions && this.permissions.includes(permission)
+    hasPerm(permission) { return this.permissions && this.permissions.includes(permission) },
+    isTeller() { return this.role === config.TELLER_ROLE_NAME },
+    isDealer() { return this.role === config.DEALER_ROLE_NAME },
+
+    openDealChat(row) {
+      this.row = row
+      // this.showNegotiationModal = false   // close the negotiation modal first
+      this.showDealChatModal = true
     },
-    isTeller(){
-      return this.role === config.TELLER_ROLE_NAME
+    closeDealChat() {
+      this.showDealChatModal = false
     },
-    isDealer(){
-      return this.role === config.DEALER_ROLE_NAME
+    handleChatAction({ action }) {
+      this.showDealChatModal = false
+      if (action === 'accept' || action === 'reject') {
+        this.fetchDealRequests()
+        if (this.isUserDealer) this.fetchPendingDealRequests()
+      }
     },
+
     filterCurrencyOptions() {
       if (this.selectedAccount) {
-        console.log('test ', this.selectedAccount)
         this.sourceAccCurrency = this.selectedAccount?.currency
-        this.filteredCurrencyOptions = this.currencyOptions.filter((currency) => currency.id !== this.sourceAccCurrency)
+        this.filteredCurrencyOptions = this.currencyOptions.filter(
+          (currency) => currency.id !== this.sourceAccCurrency
+        )
         this.checkBankDirection()
       }
     },
     editUsers(item) {
-      console.log('user ', JSON.stringify(item))
       localStorage.setItem('selectedUser', JSON.stringify(item))
       this.$router.push('/updateUser')
     },
-    showEnableDialog(row) {
-      this.comment = ''
-      this.row = row
-      this.showEnableModal = true
-    },
-    showDisableDialog(row) {
-      this.comment = ''
-      this.row = row
-      this.showDisableModal = true
-    },
-
-    showCreateDealDialog() {
-      this.showCreateDealModal = true
-    },
+    showEnableDialog(row)  { this.comment = ''; this.row = row; this.showEnableModal = true },
+    showDisableDialog(row) { this.comment = ''; this.row = row; this.showDisableModal = true },
+    showCreateDealDialog() { this.showCreateDealModal = true },
     showCustomerModalDialog() {
       this.showCreateDealModal = false
       this.showCustomerModal = true
@@ -338,21 +288,17 @@ export default {
       this.isCustomer = false
     },
     showCustomerDetailsModalDialog() {
-      console.log('test1')
       this.showCustomerModal = false
       this.showCustomerDetailsModal = true
       this.idNumberValue = this.idNumber
       this.idTypeValue = this.idType?.name
     },
-
     showTellerDetailsModalDialog() {
-      console.log('test1')
       this.showTellerModal = false
       this.showTellerDetailsModal = true
       this.idNumberValue = this.idNumber
       this.idTypeValue = this.idType?.name
     },
-
     showCreateRFQModalDialog() {
       this.showCreateRFQModal = true
       this.showTellerDetailsModal = false
@@ -366,499 +312,206 @@ export default {
       this.purpose = ''
       this.rfqComment = ''
     },
+    enableRecord(row)  { this.changeStatus(row, '1') },
+    disableRecord(row) { this.changeStatus(row, '0') },
 
-    enableRecord(row) {
-      this.changeStatus(row, '1')
-    },
-    disableRecord(row) {
-      this.changeStatus(row, '0')
-    },
     validateForm() {
       this.errors = {}
-
-      if (!this.selectedAccount) {
-        this.errors.selectedAccount = '*Account is required.'
-      }
-      if (!this.action) {
-        this.errors.action = '*Kindly state if it is credit or a Debit .'
-      }
-      if (!this.currency) {
-        this.errors.currency = '*Kindly Input Currency .'
-      }
-
+      if (!this.selectedAccount) this.errors.selectedAccount = '*Account is required.'
+      if (!this.action)          this.errors.action = '*Kindly state if it is credit or a Debit.'
+      if (!this.currency)        this.errors.currency = '*Kindly Input Currency.'
       if (!this.amount) {
         this.errors.amount = '*Amount is required.'
       } else if (!config.CURRENCY_REGEX.test(this.amount)) {
         this.errors.amount = '*Amount is invalid'
       }
-
-      // if (!this.negotiatedRate) {
-      //   this.errors.negotiatedRate = "*Negotiated rate is required.";
-      // }
-      // else if(!config.CURRENCY_REGEX.test(this.negotiatedRate)){
-      //   this.errors.negotiatedRate = "*Negotiated rate is invalid";
-      // }
-
-      if (!this.valueDate) {
-        this.errors.purpose = '*Purpose is required.'
-      }
-      if (!this.purpose) {
-        this.errors.purpose = 'Purpose is required.'
-      }
-
-      if (!this.rfqComment) {
-        this.errors.rfqComment = 'Comments is required.'
-      }
-
-      if (Object.keys(this.errors).length > 0) {
-        return false
-      }
-      return true
+      if (!this.valueDate) this.errors.purpose = '*Purpose is required.'
+      if (!this.purpose)   this.errors.purpose = 'Purpose is required.'
+      if (!this.rfqComment) this.errors.rfqComment = 'Comments is required.'
+      return Object.keys(this.errors).length === 0
     },
     validateEnterRateForm() {
       this.errors = {}
-
-
-
       if (!this.proposedRate) {
-        this.errors.proposedRate = "*proposed rate is required.";
+        this.errors.proposedRate = '*proposed rate is required.'
+      } else if (!config.CURRENCY_REGEX.test(this.proposedRate)) {
+        this.errors.proposedRate = '*Proposed rate is invalid'
       }
-      else if(!config.CURRENCY_REGEX.test(this.proposedRate)){
-        this.errors.proposedRate = "*Proposed rate is invalid";
-      }
-
-      if (!this.dealerComment) {
-        this.errors.dealerComment = 'Comments is required.'
-      }
-
-      if (Object.keys(this.errors).length > 0) {
-        return false
-      }
-      return true
+      if (!this.dealerComment) this.errors.dealerComment = 'Comments is required.'
+      return Object.keys(this.errors).length === 0
     },
     validateNegotiationForm() {
       this.errors = {}
-
-
-
-      if (!this.negotiatiationComment) {
-        this.errors.proposedRate = "*Negotiation Comment is required.";
-      }
-
-
-      if (Object.keys(this.errors).length > 0) {
-        return false
-      }
-      return true
+      if (!this.negotiatiationComment) this.errors.proposedRate = '*Negotiation Comment is required.'
+      return Object.keys(this.errors).length === 0
     },
+
     submitDealRateRequest() {
-      if (!this.validateForm()) {
-        console.log('Validation failed', this.errors)
-        return
-      }
+      if (!this.validateForm()) return
       this.loading = true
-      this.message = ''
-      var counterCurrency = this.currency.id
-      var accountCurrency = this.selectedAccount.currency
-
-      var url = env.apiUrl.baseUrl + env.apiUrl.rfq.createRFQ
-      console.log('status', url)
-      console.log('iscCustomerr ', this.isCustomer)
-      axios
-        .post(url, {
-          customerNo: this.selectedAccount?.customerCif,
-          customerName: this.selectedAccount?.accountName,
-          idNumber: this.customerInfo?.idNumber,
-          amount: this.amount,
-          fromCurrency: counterCurrency,
-          toCurrency: accountCurrency,
-          accountNumber: this.selectedAccount?.accountNumber,
-          valueDate: this.valueDate,
-          tellerAccountName: !this.isCustomer ? this.selectedAccount?.accountName : '',
-          purpose: this.purpose,
-          comments: this.rfqComment,
-          branchCode: this.selectedAccount?.branchCode,
-          treasuryRate: this.rateValue,
-          bankDirection: this.bankDirection
-        })
-        .then((response) => {
-          var data = response.data
-          var responseCode = data.responseCode
-          var responseMessage = data.responseMessage
-          if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            this.responseMessage = responseMessage
-            this.errorMessage = responseMessage
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: this.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.log(this.responseMessage)
-            return
-          }
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: responseMessage,
-            timer: 3000,
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.log('Deal Code  Request created successfully  ', this.userName)
-          this.fetchDealRequests()
-        })
-        .catch((error) => {
-          console.log('Error is ', error)
-          this.errorMessage = 'Deal Code  Request  Creation error'
-          console.log(this.errorMessage)
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'An error occurred during Deal Code  Request  Creation',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-        })
-        .finally(() => {
-          this.loading = false
-          this.showEnableModal = false
-          this.showDisableModal = false
-          this.showCreateRFQModal = false
-        })
+      const counterCurrency = this.currency.id
+      const accountCurrency = this.selectedAccount.currency
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.createRFQ
+      axios.post(url, {
+        customerNo: this.selectedAccount?.customerCif,
+        customerName: this.selectedAccount?.accountName,
+        idNumber: this.customerInfo?.idNumber,
+        amount: this.amount,
+        fromCurrency: counterCurrency,
+        toCurrency: accountCurrency,
+        accountNumber: this.selectedAccount?.accountNumber,
+        valueDate: this.valueDate,
+        tellerAccountName: !this.isCustomer ? this.selectedAccount?.accountName : '',
+        purpose: this.purpose,
+        comments: this.rfqComment,
+        branchCode: this.selectedAccount?.branchCode,
+        treasuryRate: this.rateValue,
+        bankDirection: this.bankDirection
+      }).then((response) => {
+        const { responseCode, responseMessage } = response.data
+        if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
+          Swal.fire({ icon: 'error', title: 'Error!', text: responseMessage,
+            customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+          return
+        }
+        Swal.fire({ icon: 'success', title: 'Success!', text: responseMessage, timer: 3000,
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+        this.fetchDealRequests()
+      }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'An error occurred during Deal Code Request Creation',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      }).finally(() => {
+        this.loading = false
+        this.showEnableModal = false
+        this.showDisableModal = false
+        this.showCreateRFQModal = false
+      })
     },
-
 
     ammendRateRequest() {
-      if (!this.validateEnterRateForm()) {
-        console.log('Validation failed', this.errors)
-        return
-      }
+      if (!this.validateEnterRateForm()) return
       this.loading = true
-      this.message = ''
-
-
-      var url = env.apiUrl.baseUrl + env.apiUrl.rfq.ammendRate
-
-      console.log('id',this.row?.id)
-      axios
-        .post(url, {
-          orderId: this.row?.id,
-          rate: this.proposedRate,
-          comment : this.dealerComment,
-        })
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.ammendRate
+      axios.post(url, { orderId: this.row?.id, rate: this.proposedRate, comment: this.dealerComment })
         .then((response) => {
-          var data = response.data
-          var responseCode = data.responseCode
-          var responseMessage = data.responseMessage
+          const { responseCode, responseMessage } = response.data
           if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            this.responseMessage = responseMessage
-            this.errorMessage = responseMessage
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: this.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.log(this.responseMessage)
+            Swal.fire({ icon: 'error', title: 'Error!', text: responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
             return
           }
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: responseMessage,
-            timer: 3000,
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.log('Rate ammended successfully  ', this.userName)
+          Swal.fire({ icon: 'success', title: 'Success!', text: responseMessage, timer: 3000,
+            customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
           this.fetchPendingDealRequests()
-        })
-        .catch((error) => {
-          console.log('Error is ', error)
-          this.errorMessage = 'Rate update error'
-          console.log(this.errorMessage)
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'An error occurred during the update of rate for the order selected',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-        })
-        .finally(() => {
-          this.loading = false
-          this.showEnableModal = false
-          this.showDisableModal = false
-          this.showCreateRFQModal = false
-          this.showAmmendRateModal = false
-        })
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'An error occurred during the update of rate for the order selected',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      }).finally(() => {
+        this.loading = false
+        this.showEnableModal = false
+        this.showDisableModal = false
+        this.showCreateRFQModal = false
+        this.showAmmendRateModal = false
+      })
     },
+
     fetchDealRequests() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getDealRequests
-      const token = localStorage.getItem('token')
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
-      axios
-        .post(url, {
-          page: 0,
-          size: 10
-        })
+      axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`
+      axios.post(url, { page: 0, size: 10 })
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: data.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
             return
           }
           this.dealRequests = data.data
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Error occurred fetching Deal Requests',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.error(error)
-        })
-        .finally(() => {
-          this.loading = false
-        })
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Deal Requests',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      }).finally(() => { this.loading = false })
     },
 
     fetchPendingDealRequests() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getDealRequests
-      const token = localStorage.getItem('token')
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      var statuses = [8,9,10];
-      axios
-        .post(url, {
-          page: 0,
-          size: 10,
-          statuses: statuses,
-        })
+      axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`
+      axios.post(url, { page: 0, size: 10, statuses: [8, 9, 10] })
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: data.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
             return
           }
           this.pendingDealRequests = data.data
-          this.pendingDealerRequests = this.pendingDealRequests.filter(dealRequest =>
-            dealRequest.status.statusId === 9);
-
-          this.pendingTellerRequests = this.pendingDealRequests.filter(dealRequest =>
-            dealRequest.status.statusId === 8);
-
-          this.pendingNegotiationRequests = this.pendingDealRequests.filter(dealRequest =>
-            dealRequest.status.statusId === 10
-          );
-
-          console.log("pending dealer",this.pendingDealerRequests)
-          console.log("teller",this.pendingTellerRequests)
-          console.log("negotiating",this.pendingNegotiationRequests)
-
-
-          })
-        .catch((error) => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Error occurred fetching Deal Requests',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.error(error)
-        })
-        .finally(() => {
-          this.loading = false
-        })
+          this.pendingDealerRequests = this.pendingDealRequests.filter(d => d.status.statusId === 9)
+          this.pendingTellerRequests = this.pendingDealRequests.filter(d => d.status.statusId === 8)
+          this.pendingNegotiationRequests = this.pendingDealRequests.filter(d => d.status.statusId === 10)
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Deal Requests',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      }).finally(() => { this.loading = false })
     },
 
     validateAccountsForm() {
       this.errors = {}
-
-      if (!this.idNumber) {
-        this.errors.idNumber = '*Id Number is required.'
-      }
-      if (this.isCustomer && !this.idType) {
-        this.errors.idType = '*Id Type is required. .'
-      }
-
-      if (Object.keys(this.errors).length > 0) {
-        return false
-      }
-      return true
+      if (!this.idNumber) this.errors.idNumber = '*Id Number is required.'
+      if (this.isCustomer && !this.idType) this.errors.idType = '*Id Type is required.'
+      return Object.keys(this.errors).length === 0
     },
 
     fetchAccounts(isCustomer) {
-      console.log('iscustomer', isCustomer)
-      if (!this.validateAccountsForm()) {
-        console.log('Validation failed', this.errors)
-        return
-      }
+      if (!this.validateAccountsForm()) return
       this.isCustomer = isCustomer
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.fetchAccounts
-
-      axios
-        .post(url, {
-          option: this.idType?.id,
-          customer: isCustomer,
-          identificationNumber: this.idNumber
-        })
+      axios.post(url, { option: this.idType?.id, customer: isCustomer, identificationNumber: this.idNumber })
         .then((response) => {
           const data = response.data
-          var responseMessage = data.responseMessage
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: data.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
             return
           }
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: responseMessage,
-            timer: 3000,
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
+          Swal.fire({ icon: 'success', title: 'Success!', text: data.responseMessage, timer: 3000,
+            customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
           this.accounts = data?.entity?.accounts
           this.customerInfo = data?.entity
-          console.log('Accounts', this.accounts)
-          if (isCustomer) {
-            this.showCustomerDetailsModalDialog()
-          } else {
-            this.showTellerDetailsModalDialog()
-          }
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Error occurred fetching Accounts',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.error(error)
-        })
-        .finally(() => {
-          this.loading = false
-        })
+          if (isCustomer) this.showCustomerDetailsModalDialog()
+          else this.showTellerDetailsModalDialog()
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Accounts',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      }).finally(() => { this.loading = false })
     },
 
     checkBankDirection() {
       if (this.currency && this.selectedAccount && this.action) {
         this.loading = true
         const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getCurrencyDirection
-        var counterCurrency = this.currency.id
-        var accountCurrency = this.selectedAccount.currency
-
-        var fromCurrency = accountCurrency
-        var toCurrency = counterCurrency
-
-        if (this.action === 'CREDIT') {
-          fromCurrency = counterCurrency
-          toCurrency = accountCurrency
-        }
-
-        axios
-          .post(url, {
-            fromCurrency: fromCurrency,
-            toCurrency: toCurrency
-          })
+        const counterCurrency = this.currency.id
+        const accountCurrency = this.selectedAccount.currency
+        let fromCurrency = accountCurrency, toCurrency = counterCurrency
+        if (this.action === 'CREDIT') { fromCurrency = counterCurrency; toCurrency = accountCurrency }
+        axios.post(url, { fromCurrency, toCurrency })
           .then((response) => {
             const data = response.data
-            var responseMessage = data.responseMessage
             if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-              Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: data.responseMessage,
-                customClass: {
-                  confirmButton: 'btn btn-success px-4 me-2',
-                  cancelButton: 'btn btn-secondary px-4'
-                }
-              })
+              Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+                customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
               return
             }
-            Swal.fire({
-              icon: 'success',
-              title: 'Success!',
-              text: responseMessage,
-              timer: 3000,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.log('data', data)
+            Swal.fire({ icon: 'success', title: 'Success!', text: data.responseMessage, timer: 3000,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
             this.bankDirection = data?.entity
             this.fetchExchangeRates()
-          })
-          .catch((error) => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: 'Error occurred fetching Accounts',
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.error(error)
-          })
-          .finally(() => {
-            this.loading = false
-          })
+          }).catch(() => {
+          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Accounts',
+            customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+        }).finally(() => { this.loading = false })
       }
     },
 
@@ -866,182 +519,82 @@ export default {
       if (this.currency && this.selectedAccount && this.action && this.amount) {
         this.loading = true
         const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getSinglePairExchangeRate
-        var counterCurrency = this.currency.id
-        var accountCurrency = this.selectedAccount.currency
-
-        axios
-          .post(url, {
-            fromCurrency: counterCurrency,
-            toCurrency: accountCurrency,
-            account: this.selectedAccount.accountNumber,
-            transactionAmount: this.amount
-          })
-          .then((response) => {
-            const data = response.data
-            var responseMessage = data.responseMessage
-            if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-              Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: data.responseMessage,
-                customClass: {
-                  confirmButton: 'btn btn-success px-4 me-2',
-                  cancelButton: 'btn btn-secondary px-4'
-                }
-              })
-              return
-            }
-            Swal.fire({
-              icon: 'success',
-              title: 'Success!',
-              text: responseMessage,
-              timer: 3000,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.log('data', data)
-            this.rateFrom = counterCurrency
-            this.rateTo = accountCurrency
-            if (this.bankDirection === 'Sell') {
-              this.rateValue = data.entity?.sellingRate
-              if (this.action === 'CREDIT') {
-                this.rateFrom = accountCurrency
-                this.rateTo = counterCurrency
-                this.multiplyDivide = 'D'
-              } else if (this.action === 'DEBIT') {
-                this.rateFrom = counterCurrency
-                this.rateTo = accountCurrency
-                this.multiplyDivide = 'M'
-              }
-            } else if (this.bankDirection === 'Buy') {
-              this.rateValue = data.entity?.buyingRate
-              if (this.action === 'CREDIT') {
-                this.rateFrom = counterCurrency
-                this.rateTo = accountCurrency
-                this.multiplyDivide = 'M'
-              } else if (this.action === 'DEBIT') {
-                this.rateFrom = accountCurrency
-                this.rateTo = counterCurrency
-                this.multiplyDivide = 'D'
-              }
-            }
-            if (this.multiplyDivide === 'M') {
-              this.expectedValue = this.amount * this.rateValue
-            } else if (this.multiplyDivide === 'D') {
-              this.expectedValue = this.amount / this.rateValue
-            }
-
-            this.expectedValue = Number(this.expectedValue).toFixed(2)
-            this.useCurrentRate = true
-            this.useNegotiatedRate = false
-            // this.displayNegotiatedRate()
-          })
-          .catch((error) => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: 'Error occurred fetching Accounts',
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.error(error)
-          })
-          .finally(() => {
-            this.loading = false
-          })
+        const counterCurrency = this.currency.id
+        const accountCurrency = this.selectedAccount.currency
+        axios.post(url, {
+          fromCurrency: counterCurrency, toCurrency: accountCurrency,
+          account: this.selectedAccount.accountNumber, transactionAmount: this.amount
+        }).then((response) => {
+          const data = response.data
+          if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+            return
+          }
+          Swal.fire({ icon: 'success', title: 'Success!', text: data.responseMessage, timer: 3000,
+            customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+          this.rateFrom = counterCurrency
+          this.rateTo = accountCurrency
+          if (this.bankDirection === 'Sell') {
+            this.rateValue = data.entity?.sellingRate
+            if (this.action === 'CREDIT') { this.rateFrom = accountCurrency; this.rateTo = counterCurrency; this.multiplyDivide = 'D' }
+            else if (this.action === 'DEBIT') { this.rateFrom = counterCurrency; this.rateTo = accountCurrency; this.multiplyDivide = 'M' }
+          } else if (this.bankDirection === 'Buy') {
+            this.rateValue = data.entity?.buyingRate
+            if (this.action === 'CREDIT') { this.rateFrom = counterCurrency; this.rateTo = accountCurrency; this.multiplyDivide = 'M' }
+            else if (this.action === 'DEBIT') { this.rateFrom = accountCurrency; this.rateTo = counterCurrency; this.multiplyDivide = 'D' }
+          }
+          this.expectedValue = this.multiplyDivide === 'M'
+            ? Number(this.amount * this.rateValue).toFixed(2)
+            : Number(this.amount / this.rateValue).toFixed(2)
+          this.useCurrentRate = true
+          this.useNegotiatedRate = false
+        }).catch(() => {
+          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Accounts',
+            customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+        }).finally(() => { this.loading = false })
       }
     },
-    displayNegotiatedRate(){
+
+    displayNegotiatedRate() {
       if (this.updateRateBankDirection === 'Sell') {
         this.updateExpectedValue = this.row?.counterNominalAmount / this.proposedRate
       } else if (this.updateRateBankDirection === 'Buy') {
-        this.updateExpectedValue = this.row?.counterNominalAmount  * this.proposedRate
+        this.updateExpectedValue = this.row?.counterNominalAmount * this.proposedRate
       }
-
-      this.updateExpectedValue= Number(this.updateExpectedValue).toFixed(2)
-      this.useUpdateCurrentRate = false;
-      this.useUpdateNegotiatedRate = true;
+      this.updateExpectedValue = Number(this.updateExpectedValue).toFixed(2)
+      this.useUpdateCurrentRate = false
+      this.useUpdateNegotiatedRate = true
     },
-
 
     updateBankDirection() {
-        this.loading = true
-        const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getCurrencyDirection
-
-        axios
-          .post(url, {
-            fromCurrency: this.row?.fromCurrency,
-            toCurrency: this.row?.toCurrency
-          })
-          .then((response) => {
-            const data = response.data
-            // var responseMessage = data.responseMessage
-            if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-              Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: data.responseMessage,
-                customClass: {
-                  confirmButton: 'btn btn-success px-4 me-2',
-                  cancelButton: 'btn btn-secondary px-4'
-                }
-              })
-              return
-            }
-            // Swal.fire({
-            //   icon: 'success',
-            //   title: 'Success!',
-            //   text: responseMessage,
-            //   timer: 3000,
-            //   customClass: {
-            //     confirmButton: 'btn btn-success px-4 me-2',
-            //     cancelButton: 'btn btn-secondary px-4'
-            //   }
-            // })
-            console.log('data', data)
-            this.updateRateBankDirection = data?.entity
-
-            if (this.updateRateBankDirection === 'Sell') {
-              this.updateExpectedValue = this.row?.counterNominalAmount / this.row?.treasuryRate
-            } else if (this.updateRateBankDirection === 'Buy') {
-              this.updateExpectedValue = this.row?.counterNominalAmount  * this.row?.treasuryRate
-            }
-
-            this.updateExpectedValue= Number(this.updateExpectedValue).toFixed(2)
-            this.useUpdateCurrentRate = true
-            this.useUpdateNegotiatedRate = false
-          })
-          .catch((error) => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: 'Error occurred fetching Direction',
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.error(error)
-          })
-          .finally(() => {
-            this.loading = false
-          })
-    },
-    showApproveDialog(row) {
-      this.comment = ''
-      this.row = row
-      this.showApproveModal = true
+      this.loading = true
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getCurrencyDirection
+      axios.post(url, { fromCurrency: this.row?.fromCurrency, toCurrency: this.row?.toCurrency })
+        .then((response) => {
+          const data = response.data
+          if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+            return
+          }
+          this.updateRateBankDirection = data?.entity
+          if (this.updateRateBankDirection === 'Sell') {
+            this.updateExpectedValue = Number(this.row?.counterNominalAmount / this.row?.treasuryRate).toFixed(2)
+          } else if (this.updateRateBankDirection === 'Buy') {
+            this.updateExpectedValue = Number(this.row?.counterNominalAmount * this.row?.treasuryRate).toFixed(2)
+          }
+          this.useUpdateCurrentRate = true
+          this.useUpdateNegotiatedRate = false
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Direction',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      }).finally(() => { this.loading = false })
     },
 
-    showRetryDialog(row) {
-      this.row = row
-      this.showRetryModal = true
-    },
-
+    showApproveDialog(row)  { this.comment = ''; this.row = row; this.showApproveModal = true },
+    showRetryDialog(row)    { this.row = row; this.showRetryModal = true },
+    showRejectionDialog(row){ this.comment = ''; this.row = row; this.showRejectModal = true },
 
     showNegotiationDialog(row) {
       this.comment = ''
@@ -1049,7 +602,6 @@ export default {
       this.row = row
       this.showTreasuryProposalModal = false
       this.showNegotiationModal = true
-
     },
     showAmmendRateDialog(row) {
       this.comment = ''
@@ -1060,225 +612,89 @@ export default {
       this.offerRate = this.row?.treasuryRate
       this.updateBankDirection()
     },
-
-    showDealAcceptedDialog(row){
+    showDealAcceptedDialog(row) {
       this.showDealAcceptedModal = true
       this.row = row
-      console.log("dealcode",this.row?.dealCode)
-      if(!this.dealCode ){
-        this.dealCode = this.row?.dealerCode
-      }
+      if (!this.dealCode) this.dealCode = this.row?.dealerCode
     },
-    showRejectionDialog(row) {
-      this.comment = ''
-      this.row = row
-      this.showRejectModal = true
-    },
-
     showDetailsDialog(row) {
       this.row = row
       this.fetchCustomerInformation()
       this.comment = ''
       this.showDealDetailsModal = true
     },
+    showTreasuryProposalDialog(row) { this.row = row; this.comment = ''; this.showTreasuryProposalModal = true },
 
-    showTreasuryProposalDialog(row) {
-      this.row = row
-      this.comment = ''
-      this.showTreasuryProposalModal = true
-    },
-
-    approveRecord(row) {
-      this.approveOrReject(row, 'APPROVE')
-    },
-    rejectRecord(row) {
-      this.approveOrReject(row, 'REJECT')
-    },
-    negotiateRecord(row) {
-      if(this.validateNegotiationForm()) {
-        this.approveOrReject(row, 'NEGOTIATE')
-      }
-    },
+    approveRecord(row)   { this.approveOrReject(row, 'APPROVE') },
+    rejectRecord(row)    { this.approveOrReject(row, 'REJECT') },
+    negotiateRecord(row) { if (this.validateNegotiationForm()) this.approveOrReject(row, 'NEGOTIATE') },
 
     approveOrReject(row, action) {
-      console.log(action, row, 'x')
       this.loading = true
-      var url = env.apiUrl.baseUrl + env.apiUrl.approvals.approveEntity
-      var ids = []
-      ids.push(this.row?.id)
-      var comment = this.comment;
-
-      if(action === 'NEGOTIATE'){
-        comment = this.negotiatiationComment
-      }
-
-      axios
-        .post(url, {
-          ids: ids,
-          action: action,
-          description: comment,
-          approvalType: 'APPROVED_DEALS'
-        })
+      const url = env.apiUrl.baseUrl + env.apiUrl.approvals.approveEntity
+      const comment = action === 'NEGOTIATE' ? this.negotiatiationComment : this.comment
+      axios.post(url, { ids: [this.row?.id], action, description: comment, approvalType: 'APPROVED_DEALS' })
         .then((response) => {
-          var data = response.data
-          var responseCode = data.responseCode
-          var responseMessage = data.responseMessage
+          const { responseCode, responseMessage, entity } = response.data
           if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            this.responseMessage = responseMessage
-            this.errorMessage = responseMessage
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: this.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.log(this.responseMessage)
+            Swal.fire({ icon: 'error', title: 'Error!', text: responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
             return
           }
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: responseMessage,
-            timer: 3000,
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.log('Deal Request approved successfully  ')
-          if(action === "APPROVE"){
-            this.dealCode = data.entity?.dealCode;
-            this.showDealAcceptedDialog(this.row);
-          }
+          Swal.fire({ icon: 'success', title: 'Success!', text: responseMessage, timer: 3000,
+            customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+          if (action === 'APPROVE') { this.dealCode = entity?.dealCode; this.showDealAcceptedDialog(this.row) }
           this.fetchDealRequests()
-        })
-        .catch((error) => {
-          console.log('Error is ', error)
-          this.errorMessage = 'Deal Request Approval error'
-          console.log(this.errorMessage)
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'An error occurred during Deal Request Approval',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-        })
-        .finally(() => {
-          this.loading = false
-          this.showTreasuryProposalModal = false;
-          this.showNegotiationModal = false;
-          if (action === 'APPROVE') {
-            this.showApproveModal = false
-          } else {
-            this.showRejectModal = false
-          }
-        })
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'An error occurred during Deal Request Approval',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      }).finally(() => {
+        this.loading = false
+        this.showTreasuryProposalModal = false
+        this.showNegotiationModal = false
+        if (action === 'APPROVE') this.showApproveModal = false
+        else this.showRejectModal = false
+      })
     },
+
     retryPostDealCode() {
       this.loading = true
-      var url = env.apiUrl.baseUrl + env.apiUrl.rfq.retryPostDealCode
-
-      axios
-        .post(url, {
-          id: this.row?.id,
-        })
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.retryPostDealCode
+      axios.post(url, { id: this.row?.id })
         .then((response) => {
-          var data = response.data
-          var responseCode = data.responseCode
-          var responseMessage = data.responseMessage
+          const { responseCode, responseMessage, entity } = response.data
           if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            this.responseMessage = responseMessage
-            this.errorMessage = responseMessage
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: this.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.log(this.responseMessage)
+            Swal.fire({ icon: 'error', title: 'Error!', text: responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
             return
           }
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: responseMessage,
-            timer: 3000,
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.log('Deal Request successfully completed ')
-          this.dealCode = data.entity?.dealCode;
-          this.showDealAcceptedDialog(this.row);
+          Swal.fire({ icon: 'success', title: 'Success!', text: responseMessage, timer: 3000,
+            customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+          this.dealCode = entity?.dealCode
+          this.showDealAcceptedDialog(this.row)
           this.fetchDealRequests()
-        })
-        .catch((error) => {
-          console.log('Error is ', error)
-          this.errorMessage = 'Deal Request Retry error'
-          console.log(this.errorMessage)
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'An error occurred during Deal Request Retry',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-        })
-        .finally(() => {
-          this.loading = false
-          this.showRetryModal = false;
-        })
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'An error occurred during Deal Request Retry',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      }).finally(() => { this.loading = false; this.showRetryModal = false })
     },
+
     fetchCustomerInformation() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.fetchCustomerInfo + this.row?.accountNumber
-
-      axios
-        .post(url)
+      axios.post(url)
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: data.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
             return
           }
           this.accountInfo = data?.entity
-          console.log('Account', this.accountInfo)
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Error occurred fetching Accounts',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.error(error)
-        })
-        .finally(() => {
-          this.loading = false
-        })
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Accounts',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      }).finally(() => { this.loading = false })
     }
   }
 }
@@ -1290,8 +706,8 @@ export default {
     <AppLoader v-if="loading" />
   </div>
 
-  <!-- Main Content - Added wrapper to prevent overlap -->
   <div class="main-content-wrapper">
+    <!-- Teller table -->
     <div v-if="isUserTeller" class="row">
       <div class="col-sm-12">
         <div class="table-card">
@@ -1311,19 +727,23 @@ export default {
           </div>
           <div class="table-body">
             <div class="table-responsive">
-              <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" @approve="showDealAcceptedDialog"  @view="showTreasuryProposalDialog" @retry="showRetryDialog"  />
+              <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false"
+                          @approve="showDealAcceptedDialog" @view="showTreasuryProposalDialog" @retry="showRetryDialog" />
             </div>
           </div>
         </div>
       </div>
     </div>
+
     <br />
-    <div v-if= "isUserDealer" class="row">
+
+    <!-- Dealer: New Deal Requests -->
+    <div v-if="isUserDealer" class="row">
       <div class="col-sm-12">
         <div class="table-card">
           <div class="table-header">
             <div>
-              <h4 class="table-title">New Deal Requests ({{pendingDealerRequests.length}})</h4>
+              <h4 class="table-title">New Deal Requests ({{ pendingDealerRequests.length }})</h4>
               <p class="table-subtitle">Manage and track all forex deal requests</p>
             </div>
             <div class="table-actions">
@@ -1337,20 +757,23 @@ export default {
           </div>
           <div class="table-body">
             <div class="table-responsive">
-              <data-table v-if="tableReady" :data="pendingDealerRequests" :columns="dealerColumns" :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
+              <data-table v-if="tableReady" :data="pendingDealerRequests" :columns="dealerColumns" :isFooter="true"
+                          :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
             </div>
           </div>
         </div>
       </div>
     </div>
-    <br>
-    <div v-if= "isUserDealer" class="row">
+
+    <br />
+
+    <!-- Dealer: All Deal Requests (tabbed) -->
+    <div v-if="isUserDealer" class="row">
       <div class="col-sm-12">
         <div class="table-card">
           <div class="table-header">
             <div>
-              <h4 class="table-title">Deal Requests </h4>
-<!--              <p class="table-subtitle">Manage and track all forex deal requests</p>-->
+              <h4 class="table-title">Deal Requests</h4>
             </div>
             <div class="table-actions">
               <button v-if="canCreateDealCodeRequests" class="create-deal-btn" @click="showCreateDealDialog">
@@ -1363,42 +786,34 @@ export default {
           </div>
           <div class="table-body">
             <div class="tab-bar">
-              <button
-                v-for="tab in tabs"
-                :key="tab"
-                type="button"
-                :class="['tab-btn', { 'tab-btn--active': activeTab === tab }]"
-                @click="activeTab = tab"
-              >
-                <!-- Active icon -->
+              <button v-for="tab in tabs" :key="tab" type="button"
+                      :class="['tab-btn', { 'tab-btn--active': activeTab === tab }]" @click="activeTab = tab">
                 <svg v-if="tab === 'Active'" width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
-                <!-- Pending icon -->
                 <svg v-if="tab === 'Pending'" width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
-                  <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 {{ tab }}
-                <span
-                  v-if="tab === 'Active' && pendingNegotiationRequests.length"
-                  :class="['tab-count', { 'tab-count--active': activeTab === tab }]"
-                >{{ pendingNegotiationRequests.length }}</span>
-                <span
-                  v-if="tab === 'Pending' && pendingTellerRequests.length"
-                  :class="['tab-count', { 'tab-count--active': activeTab === tab }]"
-                >{{ pendingTellerRequests.length }}</span>
+                <span v-if="tab === 'Active' && pendingNegotiationRequests.length"
+                      :class="['tab-count', { 'tab-count--active': activeTab === tab }]">
+                  {{ pendingNegotiationRequests.length }}
+                </span>
+                <span v-if="tab === 'Pending' && pendingTellerRequests.length"
+                      :class="['tab-count', { 'tab-count--active': activeTab === tab }]">
+                  {{ pendingTellerRequests.length }}
+                </span>
               </button>
             </div>
             <div v-show="activeTab === 'Active'" class="table-responsive">
-              <data-table v-if="tableReady" :data="pendingNegotiationRequests" :columns="dealerColumns" :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
+              <data-table v-if="tableReady" :data="pendingNegotiationRequests" :columns="dealerColumns"
+                          :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
             </div>
             <div v-show="activeTab === 'Pending'" class="table-responsive">
-              <data-table v-if="tableReady" :data="pendingTellerRequests" :columns="dealerColumns" :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
+              <data-table v-if="tableReady" :data="pendingTellerRequests" :columns="dealerColumns"
+                          :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
             </div>
           </div>
         </div>
@@ -1406,14 +821,14 @@ export default {
     </div>
   </div>
 
-  <!-- Create Deal Modal -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- Create Deal Modal                                            -->
+  <!-- ════════════════════════════════════════════════════════════ -->
   <div v-if="showCreateDealModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Request New Deal</h5>
-        <button class="modal-close-btn" @click="showCreateDealModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showCreateDealModal = false"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
         <div class="modal-icon">
@@ -1436,7 +851,6 @@ export default {
             <div class="choice-label">Yes</div>
             <div class="choice-sublabel">Existing Customer</div>
           </button>
-
           <button class="choice-card" @click="showTellerModalDialog()">
             <div class="choice-icon teller">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -1459,9 +873,7 @@ export default {
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Customer Account Lookup</h5>
-        <button class="modal-close-btn" @click="showCustomerModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showCustomerModal = false"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
         <p class="modal-description">Search for customer by their identification details</p>
@@ -1469,14 +881,11 @@ export default {
           <b-col lg="6">
             <b-form-group label="Search By" label-for="search value" label-class="fw-semibold">
               <select v-model="idType" class="form-control modern-select">
-                <option v-for="option in options" :key="option" :value="option">
-                  {{ option.name }}
-                </option>
+                <option v-for="option in options" :key="option" :value="option">{{ option.name }}</option>
               </select>
               <small v-if="errors.idType" class="text-danger">{{ errors.idType }}</small>
             </b-form-group>
           </b-col>
-
           <b-col lg="6">
             <b-form-group label="Search Value" label-for="search by value" label-class="fw-semibold">
               <b-form-input v-model="idNumber" type="text" class="modern-input" placeholder="Enter Value"></b-form-input>
@@ -1497,9 +906,7 @@ export default {
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Teller Account Lookup</h5>
-        <button class="modal-close-btn" @click="showTellerModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showTellerModal = false"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
         <p class="modal-description">Enter the teller account number to proceed</p>
@@ -1524,11 +931,8 @@ export default {
     <div class="custom-modal modal-lg">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Customer Details</h5>
-        <button class="modal-close-btn" @click="showCustomerDetailsModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showCustomerDetailsModal = false"><i class="fas fa-times"></i></button>
       </div>
-
       <div class="modal-body">
         <div class="customer-card">
           <div class="customer-header">
@@ -1543,22 +947,14 @@ export default {
               <p class="customer-since">Customer since {{ customerInfo?.joiningYear }}</p>
             </div>
           </div>
-
           <div class="customer-details">
-            <!-- labels-->
             <div class="detail-item">
-              <label>Customer ID</label>
-              <label></label>
-              <label>Phone Number</label>
+              <label>Customer ID</label><label></label><label>Phone Number</label>
             </div>
-            <!-- Data-->
             <div class="detail-item">
-              <p>{{ customerInfo?.customerCif }}</p>
-              <p></p>
-              <p>{{ customerInfo?.phoneNumber }}</p>
+              <p>{{ customerInfo?.customerCif }}</p><p></p><p>{{ customerInfo?.phoneNumber }}</p>
             </div>
           </div>
-
           <div class="accounts-section">
             <label class="section-label">Available Accounts</label>
             <div class="accounts-grid">
@@ -1573,7 +969,6 @@ export default {
           </div>
         </div>
       </div>
-
       <div class="modal-footer justify-content-end">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showCustomerDetailsModal = false">Back</button>
         <button class="btn btn-success px-4" @click="showCreateRFQModalDialog">Continue <i class="fas fa-arrow-right ms-2"></i></button>
@@ -1586,18 +981,13 @@ export default {
     <div class="custom-modal modal-lg">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Teller Account Details</h5>
-        <button class="modal-close-btn" @click="showTellerDetailsModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showTellerDetailsModal = false"><i class="fas fa-times"></i></button>
       </div>
-
       <div class="modal-body">
         <div class="teller-card">
           <div class="teller-details">
             <div class="detail-item">
-              <label>Account Name</label>
-              <label>Account Number</label>
-              <label>Branch Code</label>
+              <label>Account Name</label><label>Account Number</label><label>Branch Code</label>
             </div>
             <div class="detail-item">
               <p>{{ accounts[0]?.accountName }}</p>
@@ -1607,7 +997,6 @@ export default {
           </div>
         </div>
       </div>
-
       <div class="modal-footer justify-content-end">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showTellerDetailsModal = false">Back</button>
         <button class="btn btn-success px-4" @click="showCreateRFQModalDialog">Continue <i class="fas fa-arrow-right ms-2"></i></button>
@@ -1620,15 +1009,11 @@ export default {
     <div class="custom-modal modal-xl">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Create Deal Request</h5>
-        <button class="modal-close-btn" @click="showCreateRFQModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showCreateRFQModal = false"><i class="fas fa-times"></i></button>
       </div>
-
       <div class="modal-body">
         <div class="rfq-form">
           <div class="row g-4">
-            <!-- Select Account -->
             <div class="col-md-6">
               <label class="form-label">Select Account <span class="text-danger">*</span></label>
               <select class="form-select modern-select" v-model="selectedAccount" @change="filterCurrencyOptions">
@@ -1637,8 +1022,6 @@ export default {
               </select>
               <small v-if="errors.selectedAccount" class="text-danger">{{ errors.selectedAccount }}</small>
             </div>
-
-            <!-- Account Action -->
             <div class="col-md-6">
               <label class="form-label">Account Action <span class="text-danger">*</span></label>
               <select class="form-select modern-select" v-model="action" @change="checkBankDirection">
@@ -1648,8 +1031,6 @@ export default {
               </select>
               <small v-if="errors.action" class="text-danger">{{ errors.action }}</small>
             </div>
-
-            <!-- Counter Currency -->
             <div class="col-md-6">
               <label class="form-label">Counter Currency <span class="text-danger">*</span></label>
               <select class="form-select modern-select" v-model="currency" @change="checkBankDirection">
@@ -1658,28 +1039,15 @@ export default {
               </select>
               <small v-if="errors.currency" class="text-danger">{{ errors.currency }}</small>
             </div>
-
-            <!-- Amount -->
             <div class="col-md-6">
               <label class="form-label">Counter Currency Amount <span class="text-danger">*</span></label>
               <input @change="fetchExchangeRates" type="number" class="form-control modern-input" v-model="amount" placeholder="0.00" />
               <small v-if="errors.amount" class="text-danger">{{ errors.amount }}</small>
             </div>
-
-            <!-- Bank Direction -->
             <div class="col-md-6">
               <label class="form-label">Bank's Direction</label>
               <input class="form-control modern-input" disabled placeholder="Auto-calculated" v-model="bankDirection" />
             </div>
-
-            <!-- Negotiated Rate -->
-            <!--            <div class="col-md-6">-->
-            <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
-            <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
-            <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
-            <!--            </div>-->
-
-            <!-- Current Rate Box -->
             <div class="col-md-6">
               <div class="info-box rate-box">
                 <div class="info-icon">
@@ -1694,15 +1062,11 @@ export default {
                 </div>
               </div>
             </div>
-
-            <!-- Value Date -->
             <div class="col-md-6">
               <label class="form-label">Value Date <span class="text-danger">*</span></label>
               <input type="date" class="form-control modern-input" v-model="valueDate" disabled />
               <small v-if="errors.valueDate" class="text-danger">{{ errors.valueDate }}</small>
             </div>
-
-            <!-- Expected Total Box -->
             <div class="col-md-6">
               <div class="info-box total-box">
                 <div class="info-icon success">
@@ -1717,14 +1081,11 @@ export default {
                 </div>
               </div>
             </div>
-            <!-- Purpose -->
             <div class="col-md-6">
               <label class="form-label">Purpose <span class="text-danger">*</span></label>
               <textarea class="form-control modern-input" rows="2" v-model="purpose" placeholder="Enter transaction purpose"></textarea>
               <small v-if="errors.purpose" class="text-danger">{{ errors.purpose }}</small>
             </div>
-
-            <!-- Comment -->
             <div class="col-md-12">
               <label class="form-label">Comment <span class="text-danger">*</span></label>
               <textarea class="form-control modern-input" rows="3" v-model="rfqComment" placeholder="Add any additional comments or notes"></textarea>
@@ -1733,7 +1094,6 @@ export default {
           </div>
         </div>
       </div>
-
       <div class="modal-footer">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showCreateRFQModal = false">Cancel</button>
         <button class="btn btn-success px-5" @click="submitDealRateRequest"><i class="fas fa-paper-plane me-2"></i>Submit Request</button>
@@ -1741,95 +1101,57 @@ export default {
     </div>
   </div>
 
+  <!-- Amend Rate Modal -->
   <div v-if="showAmmendRateModal" class="modal-backdrop">
     <div class="custom-modal modal-md">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Enter Rate - {{ row?.orderId }}</h5>
-        <button class="modal-close-btn" @click="showAmmendRateModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showAmmendRateModal = false"><i class="fas fa-times"></i></button>
       </div>
-
       <div class="modal-body">
-        <div class="row">
-          <div class="rfq-form">
-            <div class="row g-4">
-              <div class="col-md-12">
-                <div class="rate-card">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p>Customer:</p>
-                      <p>
-                        <b>{{ row?.customerName }}</b>
-                      </p>
-                    </div>
-                    <div class="col-md-6">
-                      <p>Branch:</p>
-                      <p>
-                        <b>{{ row?.branchId }}</b>
-                      </p>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p>Amount:</p>
-                      <p><b>{{row?.fromCurrency}} {{row?.counterNominalAmount}}</b></p>
-                    </div>
-                    <div class="col-md-6">
-                      <p>Currency Pair:</p>
-                      <p><b>{{row?.currencyPair}}</b></p>
-                    </div>
-                  </div>
+        <div class="rfq-form">
+          <div class="row g-4">
+            <div class="col-md-12">
+              <div class="rate-card">
+                <div class="row">
+                  <div class="col-md-6"><p>Customer:</p><p><b>{{ row?.customerName }}</b></p></div>
+                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId }}</b></p></div>
                 </div>
-              </div>
-
-              <!-- Offer Rate -->
-              <div class="col-md-6">
-                <label class="form-label">Offer Rate <span class="text-danger"></span></label>
-                <input @change="fetchExchangeRates" type="number" class="form-control modern-input" v-model="offerRate" placeholder="0.00" disabled />
-                <small v-if="errors.offerRate" class="text-danger">{{ errors.offerRate }}</small>
-              </div>
-
-              <!-- Expected Total Box -->
-              <div class="col-md-6">
-                <div class="info-box total-box">
-                  <div class="info-icon success">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p class="info-label" v-if="useUpdateCurrentRate">Expected Total (Current Rate)</p>
-                    <p class="info-label" v-if="useUpdateNegotiatedRate">Expected Total (Proposed Rate)</p>
-                    <p class="info-value success">{{ updateExpectedValue }} {{ row?.toCurrency }}</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Proposed Rate-->
-              <div class="col-md-6">
-                <label class="form-label">Proposed Rate <span class="text-danger">*</span></label>
-                <input @change="displayNegotiatedRate" type="number" class="form-control modern-input" v-model="proposedRate" placeholder="0.00" />
-                <small v-if="errors.proposedRate" class="text-danger">{{ errors.proposedRate }}</small>
-              </div>
-
-              <!-- Negotiated Rate -->
-              <!--            <div class="col-md-6">-->
-              <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
-              <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
-              <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
-              <!--            </div>-->
-
-              <div class="col-md-12">
-                <div class="rate-card">
-                  <p class="form-label"><b>Teller Notes:</b></p>
-                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[0].comment:''}}</p>
+                <div class="row">
+                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
+                  <div class="col-md-6"><p>Currency Pair:</p><p><b>{{ row?.currencyPair }}</b></p></div>
                 </div>
               </div>
             </div>
-            <br />
-
-            <!-- Comment -->
+            <div class="col-md-6">
+              <label class="form-label">Offer Rate</label>
+              <input type="number" class="form-control modern-input" v-model="offerRate" placeholder="0.00" disabled />
+            </div>
+            <div class="col-md-6">
+              <div class="info-box total-box">
+                <div class="info-icon success">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="info-label" v-if="useUpdateCurrentRate">Expected Total (Current Rate)</p>
+                  <p class="info-label" v-if="useUpdateNegotiatedRate">Expected Total (Proposed Rate)</p>
+                  <p class="info-value success">{{ updateExpectedValue }} {{ row?.toCurrency }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Proposed Rate <span class="text-danger">*</span></label>
+              <input @change="displayNegotiatedRate" type="number" class="form-control modern-input" v-model="proposedRate" placeholder="0.00" />
+              <small v-if="errors.proposedRate" class="text-danger">{{ errors.proposedRate }}</small>
+            </div>
+            <div class="col-md-12">
+              <div class="rate-card">
+                <p class="form-label"><b>Teller Notes:</b></p>
+                <p>{{ row && row.commentsDtoList && row.commentsDtoList.length > 0 ? row.commentsDtoList[row.commentsDtoList.length-1].comment : '' }}</p>
+              </div>
+            </div>
             <div class="col-md-12">
               <label class="form-label">Treasury Comments <span class="text-danger">*</span></label>
               <textarea class="form-control modern-input" rows="3" v-model="dealerComment" placeholder="Add any additional comments or notes"></textarea>
@@ -1838,129 +1160,66 @@ export default {
           </div>
         </div>
       </div>
-
       <div class="modal-footer">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showAmmendRateModal = false">Cancel</button>
-        <button class="btn btn-success px-5" @click="ammendRateRequest"><i class="fas fa-paper-plane me-2"></i>Submit Request</button>
+        <button class="btn btn-chat px-3 me-2" @click="openDealChat(row)">
+          <i class="fas fa-comments me-2"></i><b>Open Chat</b>
+        </button>
+        <button class="btn btn-success px-3" @click="ammendRateRequest"><i class="fas fa-paper-plane me-2"></i>Submit Request</button>
       </div>
     </div>
   </div>
 
-  <div v-if="showTreasuryProposalModal"  class="modal-backdrop">
+  <!-- Treasury Proposal Modal -->
+  <div v-if="showTreasuryProposalModal" class="modal-backdrop">
     <div class="custom-modal modal-md">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Treasury Rate Proposal - {{ row?.orderId }}</h5>
-        <button class="modal-close-btn" @click="showTreasuryProposalModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showTreasuryProposalModal = false"><i class="fas fa-times"></i></button>
       </div>
-
       <div class="modal-body">
-        <div class="row">
-          <div class="rfq-form">
-            <div class="row g-4">
-              <div class="col-md-12">
-                <div class="rate-card">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p>Customer:</p>
-                      <p>
-                        <b>{{ row?.customerName }}</b>
-                      </p>
-                    </div>
-                    <div class="col-md-6">
-                      <p>Branch:</p>
-                      <p>
-                        <b>{{ row?.branchId }}</b>
-                      </p>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p>Amount:</p>
-                      <p><b>{{row?.fromCurrency}} {{row?.counterNominalAmount}}</b></p>
-                    </div>
-                    <div class="col-md-6">
-                      <p>Currency Pair:</p>
-                      <p><b>{{row?.currencyPair}}</b></p>
-                    </div>
-                  </div>
+        <div class="rfq-form">
+          <div class="row g-4">
+            <div class="col-md-12">
+              <div class="rate-card">
+                <div class="row">
+                  <div class="col-md-6"><p>Customer:</p><p><b>{{ row?.customerName }}</b></p></div>
+                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId }}</b></p></div>
                 </div>
-              </div>
-
-              <!-- Offer Rate -->
-              <div class="col-md-6">
-                <div class="info-box offer-box">
-                  <!--                  <div class="info-icon success">-->
-                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
-                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
-                  <!--                    </svg>-->
-                  <!--                  </div>-->
-                  <div>
-                    <p class="info-teller-info">Offer Rate</p>
-                    <p class="info-value success">{{ row?.treasuryRate }} </p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Expected Total Box -->
-              <div class="col-md-6">
-                <div class="info-box total-box">
-<!--                  <div class="info-icon success">-->
-<!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
-<!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
-<!--                    </svg>-->
-<!--                  </div>-->
-                  <div>
-                    <p class="info-teller-info" >Proposed Rate</p>
-                    <p class="info-value success">{{ row?.negotiatedRate }}</p>
-                  </div>
-                </div>
-              </div>
-
-
-
-              <!-- Expected Total Box -->
-              <div class="col-md-12">
-                <div class="info-box total-box">
-                  <!--                  <div class="info-icon success">-->
-                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
-                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
-                  <!--                    </svg>-->
-                  <!--                  </div>-->
-                  <div>
-                    <p class="info-teller-info" >Expected Total</p>
-
-                    <p class="info-value success">{{ row?.expectedAmount}} {{ row?.toCurrency }} </p>
-                    <!--                    <p class="info-value success">{{ updateExpectedValue }} {{ row?.toCurrency }}</p>-->
-                    <p class="info-teller-info" >{{ row?.counterNominalAmount }} {{ row?.fromCurrency }} * {{ row?.negotiatedRate }}</p>
-                  </div>
-                </div>
-              </div>
-
-
-
-              <!-- Negotiated Rate -->
-              <!--            <div class="col-md-6">-->
-              <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
-              <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
-              <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
-              <!--            </div>-->
-
-              <div class="col-md-12">
-                <div class="rate-card">
-                  <p class="form-label"><b>Treasury Notes:</b></p>
-                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[0].comment:''}}</p>
+                <div class="row">
+                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
+                  <div class="col-md-6"><p>Currency Pair:</p><p><b>{{ row?.currencyPair }}</b></p></div>
                 </div>
               </div>
             </div>
-            <br />
-
-
+            <div class="col-md-6">
+              <div class="info-box offer-box">
+                <div><p class="info-teller-info">Offer Rate</p><p class="info-value success">{{ row?.treasuryRate }}</p></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-box total-box">
+                <div><p class="info-teller-info">Proposed Rate</p><p class="info-value success">{{ row?.negotiatedRate }}</p></div>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="info-box total-box">
+                <div>
+                  <p class="info-teller-info">Expected Total</p>
+                  <p class="info-value success">{{ row?.expectedAmount }} {{ row?.toCurrency }}</p>
+                  <p class="info-teller-info">{{ row?.counterNominalAmount }} {{ row?.fromCurrency }} * {{ row?.negotiatedRate }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="rate-card">
+                <p class="form-label"><b>Treasury Notes:</b></p>
+                <p>{{ row && row.commentsDtoList && row.commentsDtoList.length > 0 ? row.commentsDtoList[row.commentsDtoList.length-1].comment : '' }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
       <div class="modal-footer">
         <button class="btn btn-outline-danger px-3" @click="showRejectionDialog(row)"><b><i class="far fa-times-circle me-2"></i>Reject Deal</b></button>
         <button class="btn btn-outline-warning px-3" @click="showNegotiationDialog(row)"><b><i class="far fa-message me-2"></i>Negotiate</b></button>
@@ -1969,258 +1228,122 @@ export default {
     </div>
   </div>
 
-
+  <!-- Deal Accepted Modal -->
   <div v-if="showDealAcceptedModal" class="modal-backdrop">
     <div class="custom-modal modal-md">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Deal Accepted - {{ row?.orderId }}</h5>
-        <button class="modal-close-btn" @click="showDealAcceptedModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showDealAcceptedModal = false"><i class="fas fa-times"></i></button>
       </div>
-
       <div class="modal-body">
-        <div class="row">
-          <div class="rfq-form">
-            <div class="row g-4">
-              <div class="col-md-12">
-                <div class="rate-card">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p>Customer:</p>
-                      <p>
-                        <b>{{ row?.customerName }}</b>
-                      </p>
-                    </div>
-                    <div class="col-md-6">
-                      <p>Branch:</p>
-                      <p>
-                        <b>{{ row?.branchId }}</b>
-                      </p>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p>Amount:</p>
-                      <p><b>{{row?.fromCurrency}} {{row?.counterNominalAmount}}</b></p>
-                    </div>
-                    <div class="col-md-6">
-                      <p>Currency Pair:</p>
-                      <p><b>{{row?.currencyPair}}</b></p>
-                    </div>
-                  </div>
+        <div class="rfq-form">
+          <div class="row g-4">
+            <div class="col-md-12">
+              <div class="rate-card">
+                <div class="row">
+                  <div class="col-md-6"><p>Customer:</p><p><b>{{ row?.customerName }}</b></p></div>
+                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId }}</b></p></div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
+                  <div class="col-md-6"><p>Currency Pair:</p><p><b>{{ row?.currencyPair }}</b></p></div>
                 </div>
               </div>
-
-              <!-- Offer Rate -->
-              <div class="col-md-6">
-                <div class="info-box offer-box">
-                  <!--                  <div class="info-icon success">-->
-                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
-                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
-                  <!--                    </svg>-->
-                  <!--                  </div>-->
-                  <div>
-                    <p class="info-teller-info">Offer Rate</p>
-                    <p class="info-value success">{{ row?.treasuryRate }} </p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Expected Total Box -->
-              <div class="col-md-6">
-                <div class="info-box total-box">
-                  <!--                  <div class="info-icon success">-->
-                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
-                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
-                  <!--                    </svg>-->
-                  <!--                  </div>-->
-                  <div>
-                    <p class="info-teller-info" >Proposed Rate</p>
-                    <p class="info-value success">N/A</p>
-                  </div>
-                </div>
-              </div>
-
-
-
-              <!-- Expected Total Box -->
-              <div class="col-md-12">
-                <div class="info-box total-box">
-                  <!--                  <div class="info-icon success">-->
-                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
-                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
-                  <!--                    </svg>-->
-                  <!--                  </div>-->
-                  <div>
-                    <p class="info-teller-info" >Deal Code</p>
-
-                    <p class="info-value success">{{ dealCode}}  </p>
-                  </div>
-                </div>
-              </div>
-
-
-
-              <!-- Negotiated Rate -->
-              <!--            <div class="col-md-6">-->
-              <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
-              <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
-              <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
-              <!--            </div>-->
-
-<!--              <div class="col-md-12">-->
-<!--                <div class="rate-card">-->
-<!--                  <p class="form-label"><b>Treasury Notes:</b></p>-->
-<!--                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[0].comment:''}}</p>-->
-<!--                </div>-->
-<!--              </div>-->
-
-
             </div>
-            <br />
-
-
+            <div class="col-md-6">
+              <div class="info-box offer-box">
+                <div><p class="info-teller-info">Offer Rate</p><p class="info-value success">{{ row?.treasuryRate }}</p></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-box total-box">
+                <div><p class="info-teller-info">Proposed Rate</p><p class="info-value success">N/A</p></div>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="info-box total-box">
+                <div><p class="info-teller-info">Deal Code</p><p class="info-value success">{{ dealCode }}</p></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
       <div class="modal-footer">
         <button class="btn btn-success px-3" @click="showDealAcceptedModal = false"><b>Close</b></button>
       </div>
     </div>
   </div>
 
-
-  <div v-if="showNegotiationModal"  class="modal-backdrop">
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- Negotiation Modal  ← CHAT BUTTON ADDED HERE                 -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div v-if="showNegotiationModal" class="modal-backdrop">
     <div class="custom-modal modal-md">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Treasury Rate Proposal - {{ row?.orderId }}</h5>
-        <button class="modal-close-btn" @click="showNegotiationModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showNegotiationModal = false"><i class="fas fa-times"></i></button>
       </div>
-
       <div class="modal-body">
-        <div class="row">
-          <div class="rfq-form">
-            <div class="row g-4">
-              <div class="col-md-12">
-                <div class="rate-card">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p>Customer:</p>
-                      <p>
-                        <b>{{ row?.customerName }}</b>
-                      </p>
-                    </div>
-                    <div class="col-md-6">
-                      <p>Branch:</p>
-                      <p>
-                        <b>{{ row?.branchId }}</b>
-                      </p>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p>Amount:</p>
-                      <p><b>{{row?.fromCurrency}} {{row?.counterNominalAmount}}</b></p>
-                    </div>
-                    <div class="col-md-6">
-                      <p>Currency Pair:</p>
-                      <p><b>{{row?.currencyPair}}</b></p>
-                    </div>
-                  </div>
+        <div class="rfq-form">
+          <div class="row g-4">
+            <div class="col-md-12">
+              <div class="rate-card">
+                <div class="row">
+                  <div class="col-md-6"><p>Customer:</p><p><b>{{ row?.customerName }}</b></p></div>
+                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId }}</b></p></div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
+                  <div class="col-md-6"><p>Currency Pair:</p><p><b>{{ row?.currencyPair }}</b></p></div>
                 </div>
               </div>
-
-              <!-- Offer Rate -->
-              <div class="col-md-6">
-                <div class="info-box offer-box">
-                  <!--                  <div class="info-icon success">-->
-                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
-                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
-                  <!--                    </svg>-->
-                  <!--                  </div>-->
-                  <div>
-                    <p class="info-teller-info">Offer Rate</p>
-                    <p class="info-value success">{{ row?.treasuryRate }} </p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Expected Total Box -->
-              <div class="col-md-6">
-                <div class="info-box total-box">
-                  <!--                  <div class="info-icon success">-->
-                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
-                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
-                  <!--                    </svg>-->
-                  <!--                  </div>-->
-                  <div>
-                    <p class="info-teller-info" >Proposed Rate</p>
-                    <p class="info-value success">{{ row?.negotiatedRate }}</p>
-                  </div>
-                </div>
-              </div>
-
-
-
-              <!-- Expected Total Box -->
-              <div class="col-md-12">
-                <div class="info-box total-box">
-                  <!--                  <div class="info-icon success">-->
-                  <!--                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">-->
-                  <!--                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />-->
-                  <!--                    </svg>-->
-                  <!--                  </div>-->
-                  <div>
-                    <p class="info-teller-info" >Expected Total</p>
-
-                    <p class="info-value success">{{ row?.expectedAmount}} {{ row?.toCurrency }} </p>
-                    <!--                    <p class="info-value success">{{ updateExpectedValue }} {{ row?.toCurrency }}</p>-->
-                    <p class="info-teller-info" >{{ row?.counterNominalAmount }} {{ row?.fromCurrency }} * {{ row?.negotiatedRate }}</p>
-                  </div>
-                </div>
-              </div>
-
-
-
-
-
-              <!-- Negotiated Rate -->
-              <!--            <div class="col-md-6">-->
-              <!--              <label class="form-label">Negotiated Rate <span class="text-danger">*</span></label>-->
-              <!--              <input @change="displayNegotiatedRate" class="form-control modern-input" placeholder="0.00" v-model="negotiatedRate"/>-->
-              <!--              <small v-if="errors.negotiatedRate" class="text-danger">{{ errors.negotiatedRate }}</small>-->
-              <!--            </div>-->
-
-              <div class="col-md-12">
-                <div class="rate-card">
-                  <p class="form-label"><b>Treasury Notes:</b></p>
-                  <p>{{row && row.commentsDtoList && row.commentsDtoList.length>0?row.commentsDtoList[0].comment:''}}</p>
-                </div>
-              </div>
-
-              <!-- Comment -->
-              <div class="col-md-12">
-                <label class="form-label">Negotiation Comments <span class="text-danger">*</span></label>
-                <textarea class="form-control modern-input" rows="3" v-model="negotiatiationComment" placeholder="Add any additional comments or notes"></textarea>
-                <small v-if="errors.negotiatiationComment" class="text-danger">{{ errors.negotiatiationComment }}</small>
-              </div>
-
             </div>
-            <br />
-
-
+            <div class="col-md-6">
+              <div class="info-box offer-box">
+                <div><p class="info-teller-info">Offer Rate</p><p class="info-value success">{{ row?.treasuryRate }}</p></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-box total-box">
+                <div><p class="info-teller-info">Proposed Rate</p><p class="info-value success">{{ row?.negotiatedRate }}</p></div>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="info-box total-box">
+                <div>
+                  <p class="info-teller-info">Expected Total</p>
+                  <p class="info-value success">{{ row?.expectedAmount }} {{ row?.toCurrency }}</p>
+                  <p class="info-teller-info">{{ row?.counterNominalAmount }} {{ row?.fromCurrency }} * {{ row?.negotiatedRate }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="rate-card">
+                <p class="form-label"><b>Treasury Notes:</b></p>
+                <p>{{ row && row.commentsDtoList && row.commentsDtoList.length > 0 ? row.commentsDtoList[row.commentsDtoList.length-1].comment : '' }}</p>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Negotiation Comments <span class="text-danger">*</span></label>
+              <textarea class="form-control modern-input" rows="3" v-model="negotiatiationComment"
+                        placeholder="Add any additional comments or notes"></textarea>
+              <small v-if="errors.negotiatiationComment" class="text-danger">{{ errors.negotiatiationComment }}</small>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- ── Footer with Chat button ── -->
       <div class="modal-footer">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showNegotiationModal = false">Cancel</button>
+
+        <!-- ★ NEW: Open Deal Chat button -->
+        <button class="btn btn-chat px-3 me-2" @click="openDealChat(row)">
+          <i class="fas fa-comments me-2"></i><b>Open Chat</b>
+        </button>
+
         <button class="btn btn-warning px-3" @click="negotiateRecord(row)"><b>Submit Negotiation</b></button>
-          </div>
+      </div>
     </div>
   </div>
 
@@ -2229,9 +1352,7 @@ export default {
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Approve Deal Request</h5>
-        <button class="modal-close-btn" @click="showApproveModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showApproveModal = false"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
         <div class="modal-icon success">
@@ -2241,10 +1362,7 @@ export default {
           </svg>
         </div>
         <p class="modal-question">Approve this deal request?</p>
-        <p class="modal-description">
-          You are about to approve order <strong>{{ row?.orderId }}</strong
-          >. This action cannot be undone.
-        </p>
+        <p class="modal-description">You are about to approve order <strong>{{ row?.orderId }}</strong>. This action cannot be undone.</p>
       </div>
       <div class="modal-footer justify-content-center">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showApproveModal = false">Cancel</button>
@@ -2258,9 +1376,7 @@ export default {
     <div class="custom-modal">
       <div class="modal-header modal-header-reject">
         <h5 class="modal-title text-white">Reject Deal Request</h5>
-        <button class="modal-close-btn" @click="showRejectModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showRejectModal = false"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
         <div class="modal-icon danger">
@@ -2270,13 +1386,11 @@ export default {
           </svg>
         </div>
         <p class="modal-question">Reject this deal request?</p>
-        <p class="modal-description">
-          You are about to reject order <strong>{{ row?.orderId }}</strong
-          >. Please provide a reason.
-        </p>
+        <p class="modal-description">You are about to reject order <strong>{{ row?.orderId }}</strong>. Please provide a reason.</p>
         <div class="mt-3">
           <label for="rejectComment" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
-          <textarea id="rejectComment" class="form-control modern-input" v-model="comment" rows="3" placeholder="Explain why you're rejecting this request..."></textarea>
+          <textarea id="rejectComment" class="form-control modern-input" v-model="comment" rows="3"
+                    placeholder="Explain why you're rejecting this request..."></textarea>
         </div>
       </div>
       <div class="modal-footer justify-content-center">
@@ -2291,14 +1405,10 @@ export default {
     <div class="custom-modal modal-xl">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Deal Details</h5>
-        <button class="modal-close-btn" @click="showDealDetailsModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showDealDetailsModal = false"><i class="fas fa-times"></i></button>
       </div>
-
       <div class="modal-body">
         <div class="deal-details-grid">
-          <!-- Deal Information Card -->
           <div class="detail-card">
             <div class="detail-card-header">
               <div class="detail-card-icon">
@@ -2310,53 +1420,25 @@ export default {
               <h6>Deal Information</h6>
             </div>
             <div class="detail-card-body">
-              <div class="detail-row">
-                <span class="detail-label">Order ID</span>
-                <span class="detail-value">{{ row.orderId }}</span>
-              </div>
+              <div class="detail-row"><span class="detail-label">Order ID</span><span class="detail-value">{{ row.orderId }}</span></div>
               <div class="detail-row">
                 <span class="detail-label">Status</span>
-                <span
-                  class="badge"
-                  :class="{
-                    'bg-success': row?.status?.statusId === 1,
-                    'bg-warning': row?.status?.statusId === 6,
-                    'bg-danger': row?.status?.statusId === 0,
-                    'bg-dark': row?.status?.statusId === 7
-                  }"
-                  >{{ row?.status?.statusName }}</span
-                >
+                <span class="badge" :class="{
+                  'bg-success': row?.status?.statusId === 1, 'bg-warning': row?.status?.statusId === 6,
+                  'bg-danger': row?.status?.statusId === 0, 'bg-dark': row?.status?.statusId === 7
+                }">{{ row?.status?.statusName }}</span>
               </div>
-              <div class="detail-row">
-                <span class="detail-label">Currency Pair</span>
-                <span class="detail-value">{{ row?.currencyPair }}</span>
-              </div>
+              <div class="detail-row"><span class="detail-label">Currency Pair</span><span class="detail-value">{{ row?.currencyPair }}</span></div>
               <div class="detail-row">
                 <span class="detail-label">Side</span>
-                <span class="badge" :class="row.buySell === 'BUY' ? 'bg-primary' : 'bg-danger'">
-                  {{ row?.buySell }}
-                </span>
+                <span class="badge" :class="row.buySell === 'BUY' ? 'bg-primary' : 'bg-danger'">{{ row?.buySell }}</span>
               </div>
-              <div class="detail-row">
-                <span class="detail-label">Amount</span>
-                <span class="detail-value">{{ row.fromCurrency }} {{ row?.counterNominalAmount }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Account</span>
-                <span class="detail-value">{{ row?.accountNumber }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Request Date</span>
-                <span class="detail-value">{{ prettyDate(row?.requestDate) }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Value Date</span>
-                <span class="detail-value">{{ row?.valueDate }}</span>
-              </div>
+              <div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value">{{ row.fromCurrency }} {{ row?.counterNominalAmount }}</span></div>
+              <div class="detail-row"><span class="detail-label">Account</span><span class="detail-value">{{ row?.accountNumber }}</span></div>
+              <div class="detail-row"><span class="detail-label">Request Date</span><span class="detail-value">{{ prettyDate(row?.requestDate) }}</span></div>
+              <div class="detail-row"><span class="detail-label">Value Date</span><span class="detail-value">{{ row?.valueDate }}</span></div>
             </div>
           </div>
-
-          <!-- Customer Information Card -->
           <div class="detail-card">
             <div class="detail-card-header">
               <div class="detail-card-icon">
@@ -2368,22 +1450,11 @@ export default {
               <h6>Customer Information</h6>
             </div>
             <div class="detail-card-body">
-              <div class="detail-row">
-                <span class="detail-label">Name</span>
-                <span class="detail-value">{{ accountInfo?.accountName }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Issuer</span>
-                <span class="detail-value">{{ row.createdBy }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Originator</span>
-                <span class="detail-value">{{ row.createdBy }}</span>
-              </div>
+              <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">{{ accountInfo?.accountName }}</span></div>
+              <div class="detail-row"><span class="detail-label">Issuer</span><span class="detail-value">{{ row.createdBy }}</span></div>
+              <div class="detail-row"><span class="detail-label">Originator</span><span class="detail-value">{{ row.createdBy }}</span></div>
             </div>
           </div>
-
-          <!-- Rate Information Card - Full Width -->
           <div class="detail-card full-width">
             <div class="detail-card-header">
               <div class="detail-card-icon">
@@ -2395,39 +1466,26 @@ export default {
             </div>
             <div class="detail-card-body">
               <div class="rate-info-grid">
-                <div class="rate-info-item">
-                  <span class="rate-label">Offer Rate</span>
-                  <span class="rate-value">{{ row.treasuryRate }}</span>
-                </div>
-                <div class="rate-info-item">
-                  <span class="rate-label">Negotiated Rate</span>
-                  <span class="rate-value highlight">{{ row.negotiatedRate }}</span>
-                </div>
-                <div class="rate-info-item primary">
-                  <span class="rate-label">Expected Total</span>
-                  <span class="rate-value primary">{{ row.expectedAmount }} {{ row.toCurrency }}</span>
-                </div>
+                <div class="rate-info-item"><span class="rate-label">Offer Rate</span><span class="rate-value">{{ row.treasuryRate }}</span></div>
+                <div class="rate-info-item"><span class="rate-label">Negotiated Rate</span><span class="rate-value highlight">{{ row.negotiatedRate }}</span></div>
+                <div class="rate-info-item primary"><span class="rate-label">Expected Total</span><span class="rate-value primary">{{ row.expectedAmount }} {{ row.toCurrency }}</span></div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
       <div class="modal-footer justify-content-end">
         <button class="btn btn-outline-secondary px-4" @click="showDealDetailsModal = false"><i class="fas fa-times me-2"></i>Close</button>
       </div>
     </div>
   </div>
 
-
   <!-- Retry Modal -->
   <div v-if="showRetryModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
         <h5 class="modal-title text-white">Retry Deal Request</h5>
-        <button class="modal-close-btn" @click="showRetryModal = false">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close-btn" @click="showRetryModal = false"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
         <div class="modal-icon success">
@@ -2437,10 +1495,7 @@ export default {
           </svg>
         </div>
         <p class="modal-question">Retry this deal request?</p>
-        <p class="modal-description">
-          You are about to retry order <strong>{{ row?.orderId }}</strong
-        >. This action cannot be undone.
-        </p>
+        <p class="modal-description">You are about to retry order <strong>{{ row?.orderId }}</strong>. This action cannot be undone.</p>
       </div>
       <div class="modal-footer justify-content-center">
         <button class="btn btn-outline-secondary px-4 me-2" @click="showRetryModal = false">Cancel</button>
@@ -2448,17 +1503,27 @@ export default {
       </div>
     </div>
   </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- ★ DealChatModal — mounted at root level                      -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <DealChatModal
+    :showDealChatModal="showDealChatModal"
+    :row="row"
+    @close="closeDealChat"
+    @action="handleChatAction"
+  />
 </template>
 
 <style scoped>
-/* Main Content Wrapper - Prevents overlap with subheader */
+/* ── Main wrapper ── */
 .main-content-wrapper {
   min-height: calc(100vh - 280px - 80px);
   padding-top: 20px;
   padding-bottom: 60px;
 }
 
-/* Table Card - Matching Dashboard Style */
+/* ── Table card ── */
 .table-card {
   background: #fff;
   border-radius: 20px;
@@ -2467,12 +1532,10 @@ export default {
   border: 2px solid rgba(16, 185, 129, 0.1);
   transition: all 0.3s ease;
 }
-
 .table-card:hover {
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12);
   border-color: rgba(16, 185, 129, 0.2);
 }
-
 .table-header {
   padding: 28px;
   border-bottom: 2px solid #f0fdf4;
@@ -2483,7 +1546,6 @@ export default {
   flex-wrap: wrap;
   gap: 16px;
 }
-
 .table-title {
   font-size: 22px;
   font-weight: 700;
@@ -2493,18 +1555,9 @@ export default {
   background-clip: text;
   margin-bottom: 6px;
 }
-
-.table-subtitle {
-  font-size: 14px;
-  color: #059669;
-  margin: 0;
-}
-
-.table-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
+.table-subtitle { font-size: 14px; color: #059669; margin: 0; }
+.table-actions  { display: flex; gap: 12px; flex-wrap: wrap; }
+.table-body     { padding: 28px; }
 
 .create-deal-btn {
   display: flex;
@@ -2521,24 +1574,16 @@ export default {
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
-
 .create-deal-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
 }
 
-.table-body {
-  padding: 28px;
-}
-
-/* Modal Styling */
+/* ── Modal backdrop + shell ── */
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
@@ -2547,7 +1592,6 @@ export default {
   padding: 20px;
   overflow-y: auto;
 }
-
 .custom-modal {
   background: #fff;
   border-radius: 16px;
@@ -2558,30 +1602,14 @@ export default {
   max-height: 100vh;
   overflow-y: auto;
 }
-
-.modal-lg {
-  width: 900px;
-}
-
-.modal-xl {
-  width: 1200px;
-}
-
-.modal-MD {
-  width: 700px;
-}
+.modal-lg  { width: 900px; }
+.modal-xl  { width: 1200px; }
+.modal-md  { width: 700px; }
 
 @keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-30px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
 .modal-header {
   padding: 20px 24px;
   border-bottom: 2px solid #f0fdf4;
@@ -2589,69 +1617,15 @@ export default {
   justify-content: space-between;
   align-items: center;
 }
-
-.modal-header-approve {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.modal-header-reject {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-}
-
-.modal-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0;
-}
-
+.modal-header-approve { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+.modal-header-reject  { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+.modal-title  { font-size: 18px; font-weight: 700; margin: 0; }
 .modal-close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  background: none; border: none; color: white; font-size: 20px;
+  cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;
 }
-
-.modal-close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.modal-body {
-  padding: 28px;
-}
-
-.modal-icon {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.modal-icon.success svg {
-  filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.3));
-}
-
-.modal-icon.danger svg {
-  filter: drop-shadow(0 4px 12px rgba(220, 53, 69, 0.3));
-}
-
-.modal-question {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-  text-align: center;
-  margin-bottom: 12px;
-}
-
-.modal-description {
-  font-size: 14px;
-  color: #6b7280;
-  text-align: center;
-  margin-bottom: 0;
-}
-
+.modal-close-btn:hover { background: rgba(255,255,255,0.2); }
+.modal-body   { padding: 28px; }
 .modal-footer {
   padding: 20px 24px;
   border-top: 2px solid #f0fdf4;
@@ -2659,513 +1633,172 @@ export default {
   gap: 12px;
 }
 
-/* Choice Grid */
-.choice-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-top: 24px;
+/* ── Chat button (new) ── */
+.btn-chat {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.btn-chat:hover {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff;
+  transform: translateY(-1px);
 }
 
+/* ── Modal icons ── */
+.modal-icon        { display: flex; justify-content: center; margin-bottom: 20px; }
+.modal-icon.success svg { filter: drop-shadow(0 4px 12px rgba(16,185,129,0.3)); }
+.modal-icon.danger  svg { filter: drop-shadow(0 4px 12px rgba(220,53,69,0.3)); }
+.modal-question    { font-size: 18px; font-weight: 600; color: #1f2937; text-align: center; margin-bottom: 12px; }
+.modal-description { font-size: 14px; color: #6b7280; text-align: center; margin-bottom: 0; }
+
+/* ── Choice grid ── */
+.choice-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; margin-top: 24px; }
 .choice-card {
-  background: #f9fafb;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px;
+  padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s;
 }
-
 .choice-card:hover {
-  border-color: #10b981;
-  background: #f0fdf4;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15);
+  border-color: #10b981; background: #f0fdf4;
+  transform: translateY(-4px); box-shadow: 0 8px 20px rgba(16,185,129,0.15);
 }
-
 .choice-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 16px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+  width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.3s;
 }
+.choice-icon.customer { background: linear-gradient(135deg,rgba(16,185,129,0.1),rgba(5,150,105,0.05)); color: #059669; }
+.choice-icon.teller   { background: linear-gradient(135deg,rgba(52,211,153,0.1),rgba(16,185,129,0.05)); color: #10b981; }
+.choice-card:hover .choice-icon { transform: scale(1.1); }
+.choice-label    { font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+.choice-sublabel { font-size: 13px; color: #6b7280; }
 
-.choice-icon.customer {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
-  color: #059669;
+/* ── Customer / teller cards ── */
+.customer-card, .teller-card {
+  background: linear-gradient(135deg,#f0fdf4,#ecfdf5);
+  border: 2px solid #d1fae5; border-radius: 16px; padding: 24px;
 }
-
-.choice-icon.teller {
-  background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(16, 185, 129, 0.05));
-  color: #10b981;
-}
-
-.choice-card:hover .choice-icon {
-  transform: scale(1.1);
-}
-
-.choice-label {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 4px;
-}
-
-.choice-sublabel {
-  font-size: 13px;
-  color: #6b7280;
-}
-
-/* Customer/Teller Cards */
-.customer-card,
-.teller-card {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  border: 2px solid #d1fae5;
-  border-radius: 16px;
-  padding: 24px;
-}
-
-/* Rate Cards */
 .rate-card {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border: 2px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 24px;
+  background: linear-gradient(135deg,#f8fafc,#f1f5f9);
+  border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px;
 }
-
 .customer-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #d1fae5;
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid #d1fae5;
 }
-
 .customer-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #10b981, #059669);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg,#10b981,#059669);
+  display: flex; align-items: center; justify-content: center; color: white;
 }
-
-.customer-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #064e3b;
-  margin-bottom: 4px;
+.customer-name  { font-size: 18px; font-weight: 700; color: #064e3b; margin-bottom: 4px; }
+.customer-since { font-size: 13px; color: #059669; margin: 0; }
+.customer-details, .teller-details {
+  display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  gap: 20px; margin-bottom: 24px;
 }
-
-.customer-since {
-  font-size: 13px;
-  color: #059669;
-  margin: 0;
-}
-
-.customer-details,
-.teller-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.detail-item label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #059669;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.detail-item p {
-  font-size: 15px;
-  font-weight: 600;
-  color: #064e3b;
-  margin: 0;
-}
-
-.accounts-section {
-  margin-top: 24px;
-}
-
-.section-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #059669;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
-  display: block;
-}
-
-.accounts-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
+.detail-item label { font-size: 12px; font-weight: 600; color: #059669; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: block; }
+.detail-item p     { font-size: 15px; font-weight: 600; color: #064e3b; margin: 0; }
+.accounts-section  { margin-top: 24px; }
+.section-label     { font-size: 13px; font-weight: 600; color: #059669; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; display: block; }
+.accounts-grid     { display: flex; flex-wrap: wrap; gap: 10px; }
 .account-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: white;
-  border: 2px solid #d1fae5;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #064e3b;
-  transition: all 0.2s ease;
+  display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+  background: white; border: 2px solid #d1fae5; border-radius: 8px;
+  font-size: 13px; font-weight: 600; color: #064e3b; transition: all .2s;
 }
+.account-badge:hover { border-color: #10b981; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,.15); }
+.account-badge svg   { color: #10b981; }
 
-.account-badge:hover {
-  border-color: #10b981;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+/* ── Form elements ── */
+.modern-select, .modern-input {
+  border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; font-size: 14px; transition: all .2s;
 }
-
-.account-badge svg {
-  color: #10b981;
+.modern-select:focus, .modern-input:focus {
+  border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.1); outline: none;
 }
+.form-label { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px; }
 
-/* Form Elements */
-.modern-select,
-.modern-input {
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.modern-select:focus,
-.modern-input:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-  outline: none;
-}
-
-.form-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 8px;
-}
-
-/* Info Boxes */
+/* ── Info boxes ── */
 .info-box {
-  background: #f9fafb;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px;
+  padding: 16px; display: flex; align-items: center; gap: 12px;
 }
-
-.info-box.rate-box {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  border-color: #d1fae5;
-}
-
-.info-box.total-box {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-  border-color: #10b981;
-}
-
-.info-box.offer-box {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-color: #3b82f6;
-}
-
+.info-box.rate-box  { background: linear-gradient(135deg,#f0fdf4,#ecfdf5); border-color: #d1fae5; }
+.info-box.total-box { background: linear-gradient(135deg,#ecfdf5,#d1fae5); border-color: #10b981; }
+.info-box.offer-box { background: linear-gradient(135deg,#eff6ff,#dbeafe); border-color: #3b82f6; }
 .info-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
-  color: #059669;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 10px;
+  background: linear-gradient(135deg,rgba(16,185,129,.1),rgba(5,150,105,.05));
+  color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
+.info-icon.success { background: linear-gradient(135deg,#10b981,#059669); color: white; }
+.info-label       { font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px; }
+.info-value       { font-size: 16px; font-weight: 700; color: #1f2937; margin: 0; }
+.info-value.success { font-size: 20px; color: #059669; }
+.info-teller-info { font-size: 12px; font-weight: 400; color: #6b7280; margin-bottom: 4px; }
 
-.info-icon.success {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-}
-
-.info-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  margin-bottom: 4px;
-}
-
-
-.info-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0;
-}
-
-.info-value.success {
-  font-size: 20px;
-  color: #059669;
-}
-
-.info-teller-info {
-  font-size: 12px;
-  font-weight: 400;
-  color: #6b7280;
-  margin-bottom: 4px;
-}
-
-/* Deal Details Grid */
-.deal-details-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.detail-card {
-  background: #f9fafb;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.detail-card.full-width {
-  grid-column: 1 / -1;
-}
-
+/* ── Deal details grid ── */
+.deal-details-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+.detail-card { background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+.detail-card.full-width { grid-column: 1 / -1; }
 .detail-card-header {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  padding: 16px 20px;
-  border-bottom: 2px solid #d1fae5;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  background: linear-gradient(135deg,#f0fdf4,#ecfdf5); padding: 16px 20px;
+  border-bottom: 2px solid #d1fae5; display: flex; align-items: center; gap: 12px;
 }
-
 .detail-card-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px;
+  background: linear-gradient(135deg,#10b981,#059669); color: white;
+  display: flex; align-items: center; justify-content: center;
 }
+.detail-card-header h6 { font-size: 15px; font-weight: 700; color: #064e3b; margin: 0; }
+.detail-card-body { padding: 20px; }
+.detail-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }
+.detail-row:last-child { border-bottom: none; }
+.detail-label { font-size: 13px; font-weight: 600; color: #6b7280; }
+.detail-value { font-size: 14px; font-weight: 600; color: #1f2937; }
+.rate-info-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.rate-info-item { background: white; border: 2px solid #e5e7eb; border-radius: 10px; padding: 16px; text-align: center; }
+.rate-info-item.primary { background: linear-gradient(135deg,#ecfdf5,#d1fae5); border-color: #10b981; }
+.rate-label   { font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 8px; }
+.rate-value   { font-size: 18px; font-weight: 700; color: #1f2937; display: block; }
+.rate-value.highlight { color: #059669; }
+.rate-value.primary   { font-size: 22px; color: #10b981; }
 
-.detail-card-header h6 {
-  font-size: 15px;
-  font-weight: 700;
-  color: #064e3b;
-  margin: 0;
-}
-
-.detail-card-body {
-  padding: 20px;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
-}
-
-.detail-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-/* Rate Info Grid */
-.rate-info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.rate-info-item {
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 16px;
-  text-align: center;
-}
-
-.rate-info-item.primary {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-  border-color: #10b981;
-}
-
-.rate-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  display: block;
-  margin-bottom: 8px;
-}
-
-.rate-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1f2937;
-  display: block;
-}
-
-.rate-value.highlight {
-  color: #059669;
-}
-
-.rate-value.primary {
-  font-size: 22px;
-  color: #10b981;
-}
-
-/* Badge Styles */
+/* ── Badge overrides ── */
 :deep(.badge.bg-success) {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  padding: 6px 12px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  background: linear-gradient(135deg,#10b981,#059669) !important;
+  padding: 6px 12px; font-weight: 600; box-shadow: 0 2px 8px rgba(16,185,129,.2);
 }
+:deep(.dt-approve) { background: linear-gradient(135deg,#10b981,#059669) !important; border: none !important; box-shadow: 0 2px 8px rgba(16,185,129,.2); }
+:deep(.dt-approve):hover { background: linear-gradient(135deg,#059669,#047857) !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,.3); }
 
-:deep(.dt-approve) {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  border: none !important;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
-}
-
-:deep(.dt-approve):hover {
-  background: linear-gradient(135deg, #059669, #047857) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .deal-details-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .rate-info-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .tab-bar       { width: 100%; }
-  .main-content-wrapper {
-    padding-top: 16px;
-    padding-bottom: 40px;
-  }
-
-  .table-header {
-    padding: 20px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .table-body {
-    padding: 16px;
-  }
-
-  .choice-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .customer-details,
-  .teller-details {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-xl,
-  .modal-lg {
-    width: 95%;
-  }
-}
-
-@media (max-width: 576px) {
-  .table-title {
-    font-size: 18px;
-  }
-
-  .create-deal-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .accounts-grid {
-    flex-direction: column;
-  }
-
-  .account-badge {
-    width: 100%;
-  }
-}
-.bg-purple {
-  background-color: #6f42c1 !important; /* Bootstrap-like purple */
-  color: #fff !important;
-}
-
-.btn-purple {
-  background-color: #7c3aed;   /* main purple */
-  border-color: #7c3aed;
-  color: #fff;
-}
-
-.btn-purple:hover {
-  background-color: #6d28d9;   /* darker on hover */
-  border-color: #6d28d9;
-  color: #fff;
-}
-
-.btn-purple:focus,
-.btn-purple:active {
-  background-color: #5b21b6;
-  border-color: #5b21b6;
-  color: #fff;
-}
-
-
-/* ─── Tab bar ──────────────────────────────────── */
+/* ── Tab bar ── */
 .tab-bar {
-  display: flex;
-  gap: 4px;
-  padding: 5px;
-  background: #f0f4f9;
-  border-radius: 12px;
-  width: fit-content;
-  margin-bottom: 24px;
+  display: flex; gap: 4px; padding: 5px;
+  background: #f0f4f9; border-radius: 12px;
+  width: fit-content; margin-bottom: 24px;
 }
 
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+  .deal-details-grid { grid-template-columns: 1fr; }
+  .rate-info-grid    { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .tab-bar { width: 100%; }
+  .main-content-wrapper { padding-top: 16px; padding-bottom: 40px; }
+  .table-header { padding: 20px; flex-direction: column; align-items: flex-start; }
+  .table-body   { padding: 16px; }
+  .choice-grid  { grid-template-columns: 1fr; }
+  .customer-details, .teller-details { grid-template-columns: 1fr; }
+  .modal-xl, .modal-lg { width: 95%; }
+}
+@media (max-width: 576px) {
+  .table-title    { font-size: 18px; }
+  .create-deal-btn { width: 100%; justify-content: center; }
+  .accounts-grid  { flex-direction: column; }
+  .account-badge  { width: 100%; }
+}
 </style>
