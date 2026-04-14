@@ -127,10 +127,14 @@ export default {
           title: 'Deal Status', data: 'status',
           render: function (data) {
             const id = Number(data.statusId)
-            if (id === 1) return `<span class="badge bg-success">Active</span>`
+            if (id === 1) return `<span class="badge bg-success">Accepted</span>`
             if (id === 0) return `<span class="badge bg-danger">Inactive</span>`
+            if (id === 3) return `<span class="badge bg-danger">Failed</span>`
             if (id === 6) return `<span class="badge bg-warning">Pending</span>`
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
+            if (id === 8) return `<span class="badge bg-purple">Awaiting response</span>`
+            if (id === 9) return `<span class="badge bg-warning">Pending</span>`
+            if (id === 10) return `<span class="badge bg-warning">Pending</span>`
             return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         },
@@ -144,15 +148,15 @@ export default {
         title: 'Actions', data: null, orderable: false, searchable: false,
         render: function (data, type, row) {
           if (row.status.statusId === 8) {
-            return `<button class="btn btn-sm btn-warning dt-view" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View Rate</button>`
+            return `<button class="btn btn-sm btn-warning dt-view viewRate" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View Rate</button>`
           } else if (row.status.statusId === 1) {
             return `<button class="btn btn-sm btn-success dt-approve" data-id="${row.id}">View</button>`
           } else if (row.status.statusId === 7) {
-            return `<button class="btn btn-sm btn-dark" data-id="${row.id}">No Action</button>`
+            return `<button class="btn btn-sm btn-dark dt-noAction" data-id="${row.id}">No Action</button>`
           } else if (row.status.statusId === 3) {
             return `<button class="btn btn-sm btn-dark dt-retry" data-id="${row.id}">Retry</button>`
           } else {
-            return `<button class="btn btn-sm btn-secondary" data-id="${row.id}">Awaiting...</button>`
+            return `<button class="btn btn-sm btn-secondary dt-awaiting" data-id="${row.id}">Awaiting...</button>`
           }
         }
       })
@@ -187,11 +191,14 @@ export default {
           title: 'Deal Status', data: 'status',
           render: function (data) {
             const id = Number(data.statusId)
-            if (id === 1) return `<span class="badge bg-success">Active</span>`
+            if (id === 1) return `<span class="badge bg-success">Accepted</span>`
             if (id === 0) return `<span class="badge bg-danger">Inactive</span>`
+            if (id === 3) return `<span class="badge bg-danger">Failed</span>`
             if (id === 6) return `<span class="badge bg-warning">Pending</span>`
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
+            if (id === 8) return `<span class="badge bg-purple">Awaiting response</span>`
             if (id === 9) return `<span class="badge bg-warning">Pending</span>`
+            if (id === 10) return `<span class="badge bg-orange">Negotiating</span>`
             return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         }
@@ -203,14 +210,14 @@ export default {
           render: function (data, type, row) {
             if (row.status.statusId === 9) {
               return `
-                <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}">View Details</button>
-                <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}">Pick Deal</button>`
+                <button class="btn btn-sm btn-dark dt-view viewDetails" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View</button>
+                <button class="btn btn-sm btn-warning me-1 dt-edit pickDeal" data-id="${row.id}">Pick Deal</button>`
             } else if (row.status.statusId === 10) {
               return `
-                <button class="btn btn-sm btn-dark dt-view" data-id="${row.id}">View Details</button>
-                <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}">Ammend Deal</button>`
+                <button class="btn btn-sm btn-dark dt-view viewDetails" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View</button>
+                <button class="btn btn-sm btn-warning me-1 dt-edit ammendDeal" data-id="${row.id}">Ammend Deal</button>`
             } else if (row.status.statusId === 8) {
-              return `<button class="btn btn-sm btn-dark dt-view" data-id="${row.id}">View Details</button>`
+              return `<button class="btn btn-sm btn-dark dt-view viewDetails" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View</button>`
             } else {
               return ''
             }
@@ -788,14 +795,14 @@ export default {
             <div class="tab-bar">
               <button v-for="tab in tabs" :key="tab" type="button"
                       :class="['tab-btn', { 'tab-btn--active': activeTab === tab }]" @click="activeTab = tab">
-                <svg v-if="tab === 'Active'" width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <svg v-if="tab === 'Pending'" width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
-                  <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
+<!--                <svg v-if="tab === 'Active'" width="15" height="15" viewBox="0 0 24 24" fill="none">-->
+<!--                  <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                <svg v-if="tab === 'Pending'" width="15" height="15" viewBox="0 0 24 24" fill="none">-->
+<!--                  <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>-->
+<!--                  <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
                 {{ tab }}
                 <span v-if="tab === 'Active' && pendingNegotiationRequests.length"
                       :class="['tab-count', { 'tab-count--active': activeTab === tab }]">
@@ -806,6 +813,11 @@ export default {
                   {{ pendingTellerRequests.length }}
                 </span>
               </button>
+<!--              &lt;!&ndash; Animated indicator &ndash;&gt;-->
+<!--              <div-->
+<!--                class="tab-indicator"-->
+<!--                :style="{ transform: activeTab === 'Active' ? 'translateX(0%)' : 'translateX(100%)' }"-->
+<!--              ></div>-->
             </div>
             <div v-show="activeTab === 'Active'" class="table-responsive">
               <data-table v-if="tableReady" :data="pendingNegotiationRequests" :columns="dealerColumns"
@@ -1424,9 +1436,14 @@ export default {
               <div class="detail-row">
                 <span class="detail-label">Status</span>
                 <span class="badge" :class="{
-                  'bg-success': row?.status?.statusId === 1, 'bg-warning': row?.status?.statusId === 6,
+                  'bg-success': row?.status?.statusId === 1, 'bg-warning': row?.status?.statusId === 6 || row?.status?.statusId === 9 ,
+                  'bg-purple': row?.status?.statusId === 8, 'bg-orange': row?.status?.statusId === 10,
                   'bg-danger': row?.status?.statusId === 0, 'bg-dark': row?.status?.statusId === 7
-                }">{{ row?.status?.statusName }}</span>
+                }">{{ row?.status?.statusId === 8 ?'Awaiting Response':
+                      row?.status?.statusId === 9 ?'Pending':
+                        row?.status?.statusId === 10 ?'Negotiating':
+                          row?.status?.statusName
+                  }}</span>
               </div>
               <div class="detail-row"><span class="detail-label">Currency Pair</span><span class="detail-value">{{ row?.currencyPair }}</span></div>
               <div class="detail-row">
@@ -1504,9 +1521,7 @@ export default {
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════════════════════════ -->
-  <!-- ★ DealChatModal — mounted at root level                      -->
-  <!-- ════════════════════════════════════════════════════════════ -->
+
   <DealChatModal
     :showDealChatModal="showDealChatModal"
     :row="row"
@@ -1522,6 +1537,111 @@ export default {
   padding-top: 20px;
   padding-bottom: 60px;
 }
+
+
+:deep(.dt-retry) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #fff;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+:deep(.dt-awaiting) {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+  color: #374151;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(107, 114, 128, 0.2);
+}
+
+:deep(.viewRate) {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+}
+
+:deep(.viewDetails) {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+  color: #374151;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(107, 114, 128, 0.2);
+}
+
+
+:deep(.dt-approve) {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+:deep(.dt-noAction) {
+  background: linear-gradient(135deg, #4b5563, #374151) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(75, 85, 99, 0.2);
+}
+
+:deep(.ammendDeal) {
+  background: linear-gradient(135deg, #fb923c, #ea580c) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(251, 146, 60, 0.25);
+}
+
+:deep(.pickDeal) {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+}
+
+:deep(.badge.bg-orange) {
+  background: linear-gradient(135deg, #fb923c, #ea580c) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(251, 146, 60, 0.25);
+}
+
+:deep(.badge.bg-purple) {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+}
+
+/* Custom Badge Styles */
+:deep(.badge.bg-success) {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+:deep(.badge.bg-danger) {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+:deep(.badge.bg-warning) {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+:deep(.badge.bg-dark) {
+  background: linear-gradient(135deg, #4b5563, #374151) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(75, 85, 99, 0.2);
+}
+
 
 /* ── Table card ── */
 .table-card {
@@ -1801,4 +1921,50 @@ export default {
   .accounts-grid  { flex-direction: column; }
   .account-badge  { width: 100%; }
 }
+
+.tab-bar {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.tab-btn--active {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #FFFFFF;
+}
+
+.tab-count {
+  background: #e5e7eb;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+/* Indicator */
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  height: 2px;
+  background: #064e3b;
+  transition: transform 0.3s ease;
+}
+
 </style>
