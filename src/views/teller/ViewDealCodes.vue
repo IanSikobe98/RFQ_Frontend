@@ -1956,6 +1956,13 @@ export default {
   font-size: 12px;
 }
 
+.tab-count--active  {
+  background: #064e3b;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
 /* Indicator */
 .tab-indicator {
   position: absolute;

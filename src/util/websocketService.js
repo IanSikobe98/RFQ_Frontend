@@ -6,6 +6,7 @@ class WebSocketService {
   listeners = [];
 
   connect(user) {
+
     this.socket = new SockJS(env.websocketUrl.baseUrl);
 
     this.socket.onopen = () => {
@@ -32,6 +33,21 @@ class WebSocketService {
 
   subscribe(callback) {
     this.listeners.push(callback);
+  }
+
+  close() {
+    console.log("🔌 Closing WebSocket....");
+
+    if (this.socket) {
+      try {
+        this.socket.close();
+      } catch (e) {
+        console.warn("Error closing socket:", e);
+      }
+
+      this.socket = null;
+    }
+
   }
 }
 

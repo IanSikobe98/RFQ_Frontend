@@ -1,6 +1,7 @@
 import { createStore, createLogger } from 'vuex'
 import setting from './setting'
 import notifications from '@/util/notifications'
+import WebsocketService from '@/util/websocketService'
 const debug = process.env.NODE_ENV !== 'production'
 export default createStore({
   state: {
@@ -40,7 +41,9 @@ export default createStore({
     clearAuthState(state) {
       state.token = '';
       state.user = '';
+      WebsocketService.close();
       localStorage.clear();
+
     },
     openBottomCanvasCommit(state, payload) {
       state[payload.name] = payload.value

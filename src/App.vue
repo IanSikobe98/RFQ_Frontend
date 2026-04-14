@@ -35,6 +35,7 @@ import { onMounted, onUnmounted, computed, ref } from 'vue'
 import WebSocketService from '@/util/websocketService'
 import { useStore } from 'vuex'
 import '@/plugins/styles'
+import store1 from '@/store'
 
 export default {
   name: 'App',
@@ -98,7 +99,10 @@ export default {
     onMounted(() => {
       window.addEventListener('resize', resizePlugin)
       setTimeout(() => resizePlugin(), 200)
-
+      const user = JSON.parse(store1.state.user);
+      if(user){
+        WebSocketService.connect(user)
+      }
       WebSocketService.subscribe((data) => {
         console.log("🔔 Notification received globally:", data)
 
