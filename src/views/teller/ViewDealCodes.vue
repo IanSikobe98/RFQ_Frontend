@@ -106,7 +106,7 @@ export default {
         {
           title: 'Amount', data: null,
           render: function (data, type, row) {
-            return `${row.fromCurrency} ${row.counterNominalAmount}`
+            return `${row.fromCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
           }
         },
         { title: 'Currency Pair', data: 'currencyPair' },
@@ -173,7 +173,7 @@ export default {
         {
           title: 'Amount', data: null,
           render: function (data, type, row) {
-            return `${row.fromCurrency} ${row.counterNominalAmount}`
+            return `${row.fromCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
           }
         },
         {
