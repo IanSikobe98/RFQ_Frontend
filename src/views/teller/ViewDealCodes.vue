@@ -318,6 +318,11 @@ export default {
       this.valueDate = new Date().toISOString().split('T')[0]
       this.purpose = ''
       this.rfqComment = ''
+      this.expectedValue = ''
+      this.rateFrom = ''
+      this.rateValue = ''
+      this.rateTo = ''
+      this.bankDirection = ''
     },
     enableRecord(row)  { this.changeStatus(row, '1') },
     disableRecord(row) { this.changeStatus(row, '0') },
