@@ -148,15 +148,20 @@ export default {
         title: 'Actions', data: null, orderable: false, searchable: false,
         render: function (data, type, row) {
           if (row.status.statusId === 8) {
-            return `<button class="btn btn-sm btn-warning dt-view viewRate" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View Rate</button>`
+            return `<button class="btn btn-sm btn-warning me-1 dt-viewChat " data-id="${row.id}">View chat</button>
+           <button class="btn btn-sm btn-warning dt-view viewRate" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View Rate</button>`
           } else if (row.status.statusId === 1) {
-            return `<button class="btn btn-sm btn-success dt-approve" data-id="${row.id}">View</button>`
+            return `<button class="btn btn-sm btn-warning me-1 dt-viewChat " data-id="${row.id}">View chat</button>
+             <button class="btn btn-sm btn-success dt-approve" data-id="${row.id}">View Deal</button>`
           } else if (row.status.statusId === 7) {
-            return `<button class="btn btn-sm btn-dark dt-noAction" data-id="${row.id}">No Action</button>`
+            return `<button class="btn btn-sm btn-warning me-1 dt-viewChat " data-id="${row.id}">View chat</button>
+                   <button class="btn btn-sm btn-dark dt-noAction" data-id="${row.id}">No Action</button>`
           } else if (row.status.statusId === 3) {
-            return `<button class="btn btn-sm btn-dark dt-retry" data-id="${row.id}">Retry</button>`
+            return `<button class="btn btn-sm btn-warning me-1 dt-viewChat " data-id="${row.id}">View chat</button>
+              <button class="btn btn-sm btn-dark dt-retry" data-id="${row.id}">Retry</button>`
           } else {
-            return `<button class="btn btn-sm btn-secondary dt-awaiting" data-id="${row.id}">Awaiting...</button>`
+            return `<button class="btn btn-sm btn-warning me-1 dt-viewChat disabled" data-id="${row.id}">View chat</button>
+                 <button class="btn btn-sm btn-secondary dt-awaiting" data-id="${row.id}">Awaiting...</button>`
           }
         }
       })
@@ -755,7 +760,7 @@ export default {
           <div class="table-body">
             <div class="table-responsive">
               <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false"
-                          @approve="showDealAcceptedDialog" @view="showTreasuryProposalDialog" @retry="showRetryDialog" />
+                          @approve="showDealAcceptedDialog" @view="showTreasuryProposalDialog" @retry="showRetryDialog" @viewChat="openDealChat" />
             </div>
           </div>
         </div>
@@ -1561,6 +1566,14 @@ export default {
 
 
 :deep(.dt-retry) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #fff;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+:deep(.dt-viewChat) {
   background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
   color: #fff;
   padding: 6px 12px;
