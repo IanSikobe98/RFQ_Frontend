@@ -339,7 +339,12 @@ export default {
       }
       if (!this.valueDate) this.errors.purpose = '*Purpose is required.'
       if (!this.purpose)   this.errors.purpose = 'Purpose is required.'
-      if (!this.rfqComment) this.errors.rfqComment = 'Comments is required.'
+      if (!this.rfqComment) {
+        this.errors.rfqComment = 'Comments is required.'
+      }
+      else if(this.rfqComment.length<10){
+        this.errors.rfqComment = 'Please enter a longer comment (minimum characters required).'
+      }
       return Object.keys(this.errors).length === 0
     },
     validateEnterRateForm() {
@@ -349,12 +354,22 @@ export default {
       } else if (!config.CURRENCY_REGEX.test(this.proposedRate)) {
         this.errors.proposedRate = '*Proposed rate is invalid'
       }
-      if (!this.dealerComment) this.errors.dealerComment = 'Comments is required.'
+      if (!this.dealerComment) {
+        this.errors.dealerComment = 'Comments is required.'
+      }
+      else if(this.dealerComment.length<10){
+        this.errors.dealerComment = 'Please enter a longer comment (minimum characters required).'
+      }
       return Object.keys(this.errors).length === 0
     },
     validateNegotiationForm() {
       this.errors = {}
-      if (!this.negotiatiationComment) this.errors.proposedRate = '*Negotiation Comment is required.'
+      if (!this.negotiatiationComment) {
+        this.errors.negotiatiationComment = '*Negotiation Comment is required.'
+      }
+      else if(this.negotiatiationComment.length<10){
+        this.errors.negotiatiationComment = '*Please enter a longer comment (minimum characters required).'
+      }
       return Object.keys(this.errors).length === 0
     },
 
@@ -1459,6 +1474,7 @@ export default {
               <div class="detail-row"><span class="detail-label">Account</span><span class="detail-value">{{ row?.accountNumber }}</span></div>
               <div class="detail-row"><span class="detail-label">Request Date</span><span class="detail-value">{{ prettyDate(row?.requestDate) }}</span></div>
               <div class="detail-row"><span class="detail-label">Value Date</span><span class="detail-value">{{ row?.valueDate }}</span></div>
+              <div class="detail-row"><span class="detail-label">Purpose</span><span class="detail-value">{{ row?.purpose }}</span></div>
             </div>
           </div>
           <div class="detail-card">
