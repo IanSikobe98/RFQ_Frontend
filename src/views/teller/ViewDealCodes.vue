@@ -80,6 +80,7 @@ export default {
       dealerComment: '',
       negotiatiationComment: '',
       dealCode: '',
+      thresholdAmount: '',
       valueDate: new Date().toISOString().split('T')[0],
       options: [
         { id: 'COR',   name: 'Certificate of Registration' },
@@ -342,6 +343,9 @@ export default {
       } else if (!config.CURRENCY_REGEX.test(this.amount)) {
         this.errors.amount = '*Amount is invalid'
       }
+      else if(this.amount < Number(this.thresholdAmount)){
+        this.errors.amount = '*Amount is less than the threshold'
+      }
       if (!this.valueDate) this.errors.purpose = '*Purpose is required.'
       if (!this.purpose)   this.errors.purpose = 'Purpose is required.'
       if (!this.rfqComment) {
@@ -444,6 +448,26 @@ export default {
         this.showDisableModal = false
         this.showCreateRFQModal = false
         this.showAmmendRateModal = false
+      })
+    },
+
+    fetchThresholdAmount() {
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.validateAmount
+      axios.post(url, { amount: this.amount, currency: this.currency.id })
+        .then((response) => {
+          const { responseCode, responseMessage,entity } = response.data
+          if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
+            Swal.fire({ icon: 'error', title: 'Error!', text: responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+          }
+          this.thresholdAmount = entity
+          console.log("threshold Amount",this.thresholdAmount)
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'An error occurred during the update of rate for the order selected',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+
+        }).finally(() => {
+        this.loading = false
       })
     },
 
@@ -581,6 +605,7 @@ export default {
             : Number(this.amount / this.rateValue).toFixed(2)
           this.useCurrentRate = true
           this.useNegotiatedRate = false
+          this.fetchThresholdAmount();
         }).catch(() => {
           Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Accounts',
             customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
@@ -1473,7 +1498,7 @@ export default {
               <div class="detail-row"><span class="detail-label">Currency Pair</span><span class="detail-value">{{ row?.currencyPair }}</span></div>
               <div class="detail-row">
                 <span class="detail-label">Side</span>
-                <span class="badge" :class="row.buySell === 'BUY' ? 'bg-primary' : 'bg-danger'">{{ row?.buySell }}</span>
+                <span class="badge" :class="row.buySell === 'BUY' ? 'bg-primary' : 'bg-danger'">{{ row?.buySell}} {{ row.fromCurrency }}</span>
               </div>
               <div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value">{{ row.fromCurrency }} {{ row?.counterNominalAmount }}</span></div>
               <div class="detail-row"><span class="detail-label">Account</span><span class="detail-value">{{ row?.accountNumber }}</span></div>

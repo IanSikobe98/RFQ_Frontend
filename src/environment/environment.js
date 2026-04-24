@@ -41,6 +41,7 @@ export default {
         getAllExchangeRates:'/rfq/getAllExchangeRates',
         ammendRate:'/rfq/updateRate',
         retryPostDealCode:'/rfq/retryPostDealCode',
+        validateAmount: '/rfq/validateAmount'
       },
       dashboard:{
        fetchDashStats: '/dashboard/fetchDashStats'
