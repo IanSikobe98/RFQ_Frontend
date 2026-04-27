@@ -81,6 +81,7 @@ export default {
       negotiatiationComment: '',
       dealCode: '',
       thresholdAmount: '',
+      availability: true,
       valueDate: new Date().toISOString().split('T')[0],
       options: [
         { id: 'COR',   name: 'Certificate of Registration' },
@@ -234,7 +235,11 @@ export default {
     },
 
     updateUser() { return updateUser },
-    canCreateDealCodeRequests() { return this.hasPerm('CREATE_DEAL_REQUESTS') },
+    canCreateDealCodeRequests() {return this.hasPerm('CREATE_DEAL_REQUESTS') },
+    isWithinOperatingHours() {
+      console.log("avail",this.availability)
+      return this.availability === true;
+    },
     canApproveDealCodeRequests() { return this.hasPerm('APPROVE_DEAL_REQUESTS') }
   },
 
@@ -244,6 +249,7 @@ export default {
     this.role = this.user?.role
     this.isUserTeller = this.isTeller()
     this.isUserDealer = this.isDealer()
+    this.validateAvailabiltySchedule();
     this.tableReady = true
     if (this.isUserTeller) this.fetchDealRequests()
     if (this.isUserDealer) this.fetchPendingDealRequests()
@@ -467,6 +473,26 @@ export default {
           customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
 
         }).finally(() => {
+        this.loading = false
+      })
+    },
+
+    validateAvailabiltySchedule() {
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.checkAvailability
+      axios.post(url)
+        .then((response) => {
+          const { responseCode, responseMessage,entity } = response.data
+          if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
+            Swal.fire({ icon: 'error', title: 'Error!', text: responseMessage,
+              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+          }
+          this.availability = entity
+          console.log("availability",this.availability)
+        }).catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'An error occurred during the update of rate for the order selected',
+          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+
+      }).finally(() => {
         this.loading = false
       })
     },
@@ -774,7 +800,7 @@ export default {
               <p class="table-subtitle">Manage and track all forex deal requests</p>
             </div>
             <div class="table-actions">
-              <button v-if="canCreateDealCodeRequests" class="create-deal-btn" @click="showCreateDealDialog">
+              <button v-if="canCreateDealCodeRequests"  :disabled="!isWithinOperatingHours" class="create-deal-btn" @click="showCreateDealDialog" >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
@@ -804,7 +830,7 @@ export default {
               <p class="table-subtitle">Manage and track all forex deal requests</p>
             </div>
             <div class="table-actions">
-              <button v-if="canCreateDealCodeRequests" class="create-deal-btn" @click="showCreateDealDialog">
+              <button v-if="canCreateDealCodeRequests && isWithinOperatingHours" class="create-deal-btn" @click="showCreateDealDialog">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
@@ -833,7 +859,7 @@ export default {
               <h4 class="table-title">Deal Requests</h4>
             </div>
             <div class="table-actions">
-              <button v-if="canCreateDealCodeRequests" class="create-deal-btn" @click="showCreateDealDialog">
+              <button v-if="canCreateDealCodeRequests && isWithinOperatingHours" class="create-deal-btn" @click="showCreateDealDialog">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
@@ -2031,6 +2057,18 @@ export default {
   height: 2px;
   background: #064e3b;
   transition: transform 0.3s ease;
+}
+
+
+button:disabled {
+ background: grey;
+  box-shadow: none;
+}
+
+button:disabled:hover {
+  transform: translateY(0px);
+  box-shadow: none;
+  background: grey;
 }
 
 </style>

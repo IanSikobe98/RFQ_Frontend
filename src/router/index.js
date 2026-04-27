@@ -12,6 +12,7 @@ import ViewRoleApprovals from '@/views/roles/ViewRoleApprovals.vue'
 import UpdateRole from '@/views/roles/UpdateRole.vue'
 import ViewDealCodes from '@/views/teller/ViewDealCodes.vue'
 import ConvertCurrency from '@/views/currency/ConvertCurrency.vue'
+import ConfigureAvailabilitySchedule from '@/views/configurations/ConfigureAvailabilitySchedule.vue'
 
 
 const defaultChildRoutes = (prefix) => [
@@ -87,6 +88,13 @@ const defaultChildRoutes = (prefix) => [
     name: prefix + '.updateRole',
     meta: { auth: true, name: 'updateRole', isBanner: true, requiresAuth: true },
     component: UpdateRole
+  },
+
+  {
+    path: '/updateSchedule',
+    name: prefix + '.updateSchedule',
+    meta: { auth: true, name: 'updateSchedule', isBanner: true, requiresAuth: true },
+    component: ConfigureAvailabilitySchedule
   },
 
 

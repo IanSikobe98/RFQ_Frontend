@@ -258,6 +258,38 @@ export default {
         </b-collapse>
       </side-menu>
 
+<!--      v-if="canViewUsers"-->
+      <side-menu
+
+        title="Configurations"
+        icon="user-group"
+        toggle-id="configurations"
+        :caret-icon="true"
+        :route="{ popup: 'false', to: 'configuration' }"
+        @onClick="toggle"
+        :active="currentRoute.includes('configuration')"
+      >
+        <b-collapse
+          tag="ul"
+          class="sub-nav"
+          id="configurations"
+          accordion="sidebar-menu"
+          :visible="currentRoute.includes('configuration')"
+        >
+<!--          v-if="canCreateUsers"-->
+          <side-menu
+            isTag="router-link"
+            title="Update Schedule"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="CU"
+            :route="{ to: 'default.updateSchedule' }"
+          ></side-menu>
+<!--          v-if="canViewUsers"-->
+        </b-collapse>
+      </side-menu>
+
       <li><hr class="hr-horizontal" /></li>
     </ul>
   </default-sidebar>
