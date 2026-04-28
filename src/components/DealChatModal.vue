@@ -214,7 +214,7 @@ export default {
         this.messages.push({
           type: 'system',
           title: 'End of conversation',
-          text: 'Rfq was rejected. Rejection reason: THE INITIATOR TOOK TOO LONG TO ACTION. DEAL EXPIRED, INITIATE A NEW REQUEST.'
+          text: 'Rfq was rejected. Rejection reason:'+ comments[comments.length-1]?.comment?.toUpperCase()
         })
       }
     },
