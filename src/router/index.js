@@ -13,6 +13,7 @@ import UpdateRole from '@/views/roles/UpdateRole.vue'
 import ViewDealCodes from '@/views/teller/ViewDealCodes.vue'
 import ConvertCurrency from '@/views/currency/ConvertCurrency.vue'
 import ConfigureAvailabilitySchedule from '@/views/configurations/ConfigureAvailabilitySchedule.vue'
+import ConfigureAmountLimit from '@/views/configurations/ConfigureAmountLimit.vue'
 
 
 const defaultChildRoutes = (prefix) => [
@@ -95,6 +96,13 @@ const defaultChildRoutes = (prefix) => [
     name: prefix + '.updateSchedule',
     meta: { auth: true, name: 'updateSchedule', isBanner: true, requiresAuth: true },
     component: ConfigureAvailabilitySchedule
+  },
+
+  {
+    path: '/updateLimit',
+    name: prefix + '.updateLimit',
+    meta: { auth: true, name: 'updateLimit', isBanner: true, requiresAuth: true },
+    component: ConfigureAmountLimit
   },
 
 
