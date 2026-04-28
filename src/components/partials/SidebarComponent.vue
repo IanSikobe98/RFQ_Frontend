@@ -59,6 +59,12 @@ export default {
     canConvertCurrency() {
       return this.hasPerm('CONVERT_CURRENCY')
     },
+    canViewConfiguration() {
+      return this.hasPerm('VIEW_CONFIGURATIONS')
+    },
+    canConfigureSchedule() {
+      return this.hasPerm('CONFIGURE_SCHEDULE')
+    },
     notifications() {
       return this.$store.getters['notifications/all']
     }
@@ -258,9 +264,9 @@ export default {
         </b-collapse>
       </side-menu>
 
-<!--      v-if="canViewUsers"-->
-      <side-menu
 
+      <side-menu
+        v-if="canViewConfiguration"
         title="Configurations"
         icon="user-group"
         toggle-id="configurations"
@@ -276,8 +282,9 @@ export default {
           accordion="sidebar-menu"
           :visible="currentRoute.includes('configuration')"
         >
-<!--          v-if="canCreateUsers"-->
+
           <side-menu
+            v-if="canConfigureSchedule"
             isTag="router-link"
             title="Update Schedule"
             icon="circle"
@@ -286,7 +293,7 @@ export default {
             miniTitle="CU"
             :route="{ to: 'default.updateSchedule' }"
           ></side-menu>
-<!--          v-if="canViewUsers"-->
+
         </b-collapse>
       </side-menu>
 

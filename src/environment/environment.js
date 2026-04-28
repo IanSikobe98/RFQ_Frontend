@@ -53,6 +53,6 @@ export default {
     ,websocketUrl:{
       baseUrl: 'http://localhost:9072/rfqService/ws/notifications',
     //SIT
-    // baseUrl: 'http://10.0.1.209:9072/rfqService/api/v1',
+    // baseUrl: 'http://10.0.1.209:9072/rfqService/ws/notifications',
     }
 }

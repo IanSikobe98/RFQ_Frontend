@@ -102,6 +102,7 @@ export default {
   },
   computed: {
     columns() {
+      const vm = this
       const cols = [
         { title: 'Customer Name',  data: 'customerName' },
         { title: 'Account Number', data: 'accountNumber' },
@@ -149,9 +150,10 @@ export default {
       cols.push({
         title: 'Actions', data: null, orderable: false, searchable: false,
         render: function (data, type, row) {
+          const disabled = vm.availability === true? '' :'disabled'
           if (row.status.statusId === 8) {
             return `<button class="btn btn-sm btn-warning me-1 dt-viewChat " data-id="${row.id}">View chat</button>
-           <button class="btn btn-sm btn-warning dt-view viewRate" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View Rate</button>`
+           <button class="btn btn-sm btn-warning dt-view viewRate" data-id="${row.id}" ${disabled}><i class="fas fa-eye me-2"></i>View Rate</button>`
           } else if (row.status.statusId === 1) {
             return `<button class="btn btn-sm btn-warning me-1 dt-viewChat " data-id="${row.id}">View chat</button>
              <button class="btn btn-sm btn-success dt-approve" data-id="${row.id}">View Deal</button>`
@@ -172,6 +174,9 @@ export default {
 
     dealerColumns() {
       const canApprove = this.canApproveDealCodeRequests
+      // const availability = this.isWithinOperatingHours
+      const vm = this
+      console.log("avail col",this.availability)
       const cols = [
         { title: 'Order Number',   data: 'orderId' },
         { title: 'Customer Name',  data: 'customerName' },
@@ -216,13 +221,15 @@ export default {
           title: 'Actions', data: null, orderable: false, searchable: false,
           render: function (data, type, row) {
             if (row.status.statusId === 9) {
+              const disabled = vm.availability === true? '' :'disabled'
               return `
                 <button class="btn btn-sm btn-dark dt-view viewDetails" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View</button>
-                <button class="btn btn-sm btn-warning me-1 dt-edit pickDeal" data-id="${row.id}">Pick Deal</button>`
+                <button class="btn btn-sm btn-warning me-1 dt-edit pickDeal" data-id="${row.id}" ${disabled}>Pick Deal</button>`
             } else if (row.status.statusId === 10) {
+              const disabled = vm.availability === true? '' :'disabled'
               return `
                 <button class="btn btn-sm btn-dark dt-view viewDetails" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View</button>
-                <button class="btn btn-sm btn-warning me-1 dt-edit ammendDeal" data-id="${row.id}">Ammend Deal</button>`
+                <button class="btn btn-sm btn-warning me-1 dt-edit ammendDeal" data-id="${row.id}" ${disabled}>Ammend Deal</button>`
             } else if (row.status.statusId === 8) {
               return `<button class="btn btn-sm btn-dark dt-view viewDetails" data-id="${row.id}"><i class="fas fa-eye me-2"></i>View</button>`
             } else {
@@ -249,8 +256,8 @@ export default {
     this.role = this.user?.role
     this.isUserTeller = this.isTeller()
     this.isUserDealer = this.isDealer()
-    this.validateAvailabiltySchedule();
     this.tableReady = true
+    this.validateAvailabiltySchedule();
     if (this.isUserTeller) this.fetchDealRequests()
     if (this.isUserDealer) this.fetchPendingDealRequests()
   },
