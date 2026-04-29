@@ -44,7 +44,9 @@ export default {
         validateAmount: '/rfq/validateAmount',
         checkAvailability:'/rfq/checkAvailability',
         updateSchedule:'/rfq/updateSchedule',
-        fetchSchedule:'/rfq/fetchSchedule'
+        fetchSchedule:'/rfq/fetchSchedule',
+        fetchAmountThreshold:'/rfq/fetchAmountConfiguration',
+        updateAmountThreshold:'/rfq/updateAmountConfiguration'
       },
       dashboard:{
        fetchDashStats: '/dashboard/fetchDashStats'

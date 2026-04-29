@@ -65,6 +65,9 @@ export default {
     canConfigureSchedule() {
       return this.hasPerm('CONFIGURE_SCHEDULE')
     },
+    canUpdateThresholdAmount () {
+      return this.hasPerm("CONFIGURE_THRESHOLD_AMOUNT");
+    },
     notifications() {
       return this.$store.getters['notifications/all']
     }
@@ -292,6 +295,17 @@ export default {
             icon-type="solid"
             miniTitle="CU"
             :route="{ to: 'default.updateSchedule' }"
+          ></side-menu>
+
+          <side-menu
+            v-if="canUpdateThresholdAmount"
+            isTag="router-link"
+            title="Update Amount Limit"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="CU"
+            :route="{ to: 'default.updateLimit' }"
           ></side-menu>
 
         </b-collapse>

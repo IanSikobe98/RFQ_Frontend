@@ -20,13 +20,13 @@ export default {
       roles: [],
       weekDays:[],
       errors: {},
-      minLimitAmount: 0.01,
+      minLimitAmount: 0.00,
 
     }
   },
   computed:{
-    canCreateUsers () {
-      return this.hasPerm("CREATE_USERS");
+    canUpdateThresholdAmount () {
+      return this.hasPerm("CONFIGURE_THRESHOLD_AMOUNT");
     },
     canViewUsers () {
       return this.hasPerm("VIEW_USERS");
@@ -35,7 +35,7 @@ export default {
   mounted() {
     this.user = JSON.parse(store.state.user);
     this.permissions = this.user?.usersPerm;
-    this.fetchSchedule();
+    this.fetchThresholdAmount();
   },
   methods: {
     hasPerm (permission) {
@@ -45,9 +45,9 @@ export default {
     viewUsers(){
       this.$router.push('/viewUsers');
     },
-    fetchSchedule() {
+    fetchThresholdAmount() {
       this.loading = true
-      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.fetchSchedule
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.fetchAmountThreshold
       axios
         .post(url, )
         .then((response) => {
@@ -64,14 +64,14 @@ export default {
             })
             return
           }
-          this.weekDays = data.data
-          console.log("items",this.items)
+          this.minLimitAmount = data.data
+          console.log("minamount",this.minLimitAmount)
         })
         .catch((error) => {
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'Error occurred fetching schedule',
+            text: 'Error occurred fetching minimum Threshold Amount',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2',
               cancelButton: 'btn btn-secondary px-4'
@@ -83,18 +83,18 @@ export default {
           this.loading = false
         })
     },
-    updateSchedule() {
+    updateThresholdAmount() {
       this.loading = true
       this.message = ''
 
-      var url = env.apiUrl.baseUrl + env.apiUrl.rfq.updateSchedule
+      var url = env.apiUrl.baseUrl + env.apiUrl.rfq.updateAmountThreshold
       console.log('url ', url)
       const token = localStorage.getItem('token')
       console.log('token', token)
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       axios
         .post(url, {
-          items: this.weekDays
+          amount: this.minLimitAmount
         })
         .then((response) => {
           var data = response.data
@@ -125,17 +125,17 @@ export default {
               cancelButton: 'btn btn-secondary px-4'
             }
           })
-          console.log('Schedule updated successfully  ', this.userName)
-          this.$router.push('/updateSchedule')
+          console.log('Threshold amount updated successfully  ', this.userName)
+          this.$router.push('/updateLimit')
         })
         .catch((error) => {
           console.log('Error is ', error)
-          this.errorMessage = 'Schedule Update error'
+          this.errorMessage = 'Threshold amount Update error'
           console.log(this.errorMessage)
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'An error occurred during Schedule Update',
+            text: 'An error occurred during Threshold amount Update',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2',
               cancelButton: 'btn btn-secondary px-4'
@@ -166,34 +166,28 @@ export default {
             <div class="header-content">
               <div class="header-icon">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M16 2V6M8 2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M3 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="12" cy="15" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M12 13.5V15L13.5 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <!-- Outer coin -->
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+                  <!-- Currency symbol (generic) -->
+                  <path d="M9.5 10.5C9.5 9.67 10.17 9 11 9H13C13.83 9 14.5 9.67 14.5 10.5C14.5 11.33 13.83 12 13 12H11C10.17 12 9.5 12.67 9.5 13.5C9.5 14.33 10.17 15 11 15H13C13.83 15 14.5 14.33 14.5 13.5"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+                  <!-- Vertical line (like dollar symbol spine) -->
+                  <path d="M12 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
               </div>
               <div>
-                <h4 class="form-title">Weekly Availability Schedule</h4>
-                <p class="form-subtitle">Configure schedule for Forex Quote Operations</p>
+                <h4 class="form-title">Threshold Amount Configuration</h4>
+                <p class="form-subtitle">Configure threshold amount for Forex Quote Operations</p>
               </div>
             </div>
-            <div class="header-actions">
-              <button v-if="canViewUsers" class="view-users-btn" @click="viewUsers">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>View All Users</span>
-              </button>
-            </div>
+
           </div>
 
           <!-- Card Body -->
           <div class="form-card-body">
-            <form @submit.prevent="updateSchedule">
+            <form @submit.prevent="updateThresholdAmount">
 
 
               <!-- ✅ Weekly Availability Schedule Section -->
@@ -255,15 +249,19 @@ export default {
                   </svg>
                   <span>Cancel</span>
                 </button>
-                <button  type="submit" class="btn btn-primary">
+                <button v-if="canUpdateThresholdAmount" type="submit" class="btn btn-primary">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16 2V6M8 2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M3 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="12" cy="15" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 13.5V15L13.5 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- Outer coin -->
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <!-- Currency symbol (generic) -->
+                    <path d="M9.5 10.5C9.5 9.67 10.17 9 11 9H13C13.83 9 14.5 9.67 14.5 10.5C14.5 11.33 13.83 12 13 12H11C10.17 12 9.5 12.67 9.5 13.5C9.5 14.33 10.17 15 11 15H13C13.83 15 14.5 14.33 14.5 13.5"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <!-- Vertical line (like dollar symbol spine) -->
+                    <path d="M12 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                   </svg>
-                  <span>Update Schedule</span>
+                  <span>Update Amount</span>
                 </button>
               </div>
             </form>
