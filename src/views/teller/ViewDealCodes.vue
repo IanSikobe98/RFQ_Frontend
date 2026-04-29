@@ -360,7 +360,12 @@ export default {
         this.errors.amount = '*Amount is less than the minimum limit set'
       }
       if (!this.valueDate) this.errors.purpose = '*Purpose is required.'
-      if (!this.purpose)   this.errors.purpose = '*Purpose is required.'
+      if (!this.purpose) {
+        this.errors.purpose = '*Purpose is required.'
+      }
+      else if(this.purpose.length<10){
+        this.errors.purpose = '*Please enter a longer purpose entry (minimum characters required).'
+      }
       if (!this.rfqComment) {
         this.errors.rfqComment = '*Comments is required.'
       }
