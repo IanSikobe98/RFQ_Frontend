@@ -179,7 +179,7 @@ export default {
               </div>
               <div>
                 <h4 class="form-title">Threshold Amount Configuration</h4>
-                <p class="form-subtitle">Configure threshold amount for Forex Quote Operations</p>
+                <p class="form-subtitle">Configure minimum allowed amount in USD</p>
               </div>
             </div>
 

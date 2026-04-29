@@ -171,7 +171,7 @@ export default {
               </div>
               <div>
                 <h4 class="form-title">Weekly Availability Schedule</h4>
-                <p class="form-subtitle">Configure schedule for Forex Quote Operations</p>
+                <p class="form-subtitle">Set Opening hours for each day of the week</p>
               </div>
             </div>
           </div>
