@@ -356,16 +356,16 @@ export default {
       } else if (!config.CURRENCY_REGEX.test(this.amount)) {
         this.errors.amount = '*Amount is invalid'
       }
-      else if(this.amount < Number(this.thresholdAmount)){
-        this.errors.amount = '*Amount is less than the threshold'
+      else if(this.selectedAccount && this.selectedAccount.requiresLimit && this.amount < Number(this.thresholdAmount)){
+        this.errors.amount = '*Amount is less than the minimum limit set'
       }
       if (!this.valueDate) this.errors.purpose = '*Purpose is required.'
-      if (!this.purpose)   this.errors.purpose = 'Purpose is required.'
+      if (!this.purpose)   this.errors.purpose = '*Purpose is required.'
       if (!this.rfqComment) {
-        this.errors.rfqComment = 'Comments is required.'
+        this.errors.rfqComment = '*Comments is required.'
       }
       else if(this.rfqComment.length<10){
-        this.errors.rfqComment = 'Please enter a longer comment (minimum characters required).'
+        this.errors.rfqComment = '*Please enter a longer comment (minimum characters required).'
       }
       return Object.keys(this.errors).length === 0
     },
@@ -377,10 +377,10 @@ export default {
         this.errors.proposedRate = '*Proposed rate is invalid'
       }
       if (!this.dealerComment) {
-        this.errors.dealerComment = 'Comments is required.'
+        this.errors.dealerComment = '*Comments is required.'
       }
       else if(this.dealerComment.length<10){
-        this.errors.dealerComment = 'Please enter a longer comment (minimum characters required).'
+        this.errors.dealerComment = '*Please enter a longer comment (minimum characters required).'
       }
       return Object.keys(this.errors).length === 0
     },
