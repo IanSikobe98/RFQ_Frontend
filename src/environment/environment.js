@@ -46,7 +46,8 @@ export default {
         updateSchedule:'/rfq/updateSchedule',
         fetchSchedule:'/rfq/fetchSchedule',
         fetchAmountThreshold:'/rfq/fetchAmountConfiguration',
-        updateAmountThreshold:'/rfq/updateAmountConfiguration'
+        updateAmountThreshold:'/rfq/updateAmountConfiguration',
+        fetchBranches:'/rfq/fetchBranches',
       },
       dashboard:{
        fetchDashStats: '/dashboard/fetchDashStats'

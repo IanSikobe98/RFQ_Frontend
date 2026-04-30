@@ -17,7 +17,9 @@ export default {
       email: '',
       phone: '',
       role: '',
+      branch:'',
       roles: [],
+      branches:[],
       errors: {},
       userToEdit: {},
     }
@@ -55,7 +57,46 @@ export default {
       this.phone = this.userToEdit.phone;
       this.email = this.userToEdit.email;
       this.role = this.userToEdit.role?.roleId;
+      this.branch = this.userToEdit.branchId?.id;
       this.fetchRoles();
+      this.fetchBranches();
+    },
+    fetchBranches() {
+      this.loading = true
+      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.fetchBranches
+      axios
+        .post(url, )
+        .then((response) => {
+          const data = response.data
+          if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: data.responseMessage,
+              customClass: {
+                confirmButton: 'btn btn-success px-4 me-2',
+                cancelButton: 'btn btn-secondary px-4'
+              }
+            })
+            return
+          }
+          this.branches = data.data
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Error occurred fetching branches',
+            customClass: {
+              confirmButton: 'btn btn-success px-4 me-2',
+              cancelButton: 'btn btn-secondary px-4'
+            }
+          })
+          console.error(error)
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
     fetchRoles() {
       this.loading = true
@@ -118,7 +159,8 @@ export default {
           phoneNumber: this.phone,
           email: this.email,
           roleId: this.role,
-          id: this.userToEdit?.userId
+          id: this.userToEdit?.userId,
+          branchId: this.branch
         })
         .then((response) => {
           var data = response.data
@@ -410,8 +452,42 @@ export default {
                       </small>
                     </div>
                   </div>
+                  <!-- Branches -->
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-label">
+                        Branch Name <span class="required">*</span>
+                      </label>
+                      <div class="input-wrapper">
+                        <div class="input-icon">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 15C15.866 15 19 11.866 19 8C19 4.13401 15.866 1 12 1C8.13401 1 5 4.13401 5 8C5 11.866 8.13401 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8.21 13.89L7 23L12 20L17 23L15.79 13.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </div>
+                        <select
+                          v-model="branch"
+                          class="form-control modern-select"
+                          :class="{ 'is-invalid': errors.branch }"
+                        >
+                          <option value="">Select a branch</option>
+                          <option v-for="branch in branches" :key="branch.id" :value="branch.id">
+                            {{ branch.branchName }}
+                          </option>
+                        </select>
+                      </div>
+                      <small v-if="errors.branch" class="error-message">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                          <path d="M12 8V12M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        {{ errors.branch }}
+                      </small>
+                    </div>
+                  </div>
                 </div>
               </div>
+
 
               <!-- Form Actions -->
               <div class="form-actions">

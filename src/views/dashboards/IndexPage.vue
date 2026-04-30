@@ -146,6 +146,7 @@ export default {
     return {
       tableReady: false,
       loading: false,
+      role:'',
       dealRequests: [],
       permissions: [],
       exchangeRates: [],
@@ -202,7 +203,8 @@ export default {
           }
         },
         { title: 'Deal Code', data: 'dealerCode' },
-        { title: 'Order Number', data: 'orderId' }
+        { title: 'Order Number', data: 'orderId' },
+        { title: 'Branch',    data: 'branchId.branchName' }
       ]
 
 
@@ -223,6 +225,7 @@ export default {
   },
   mounted() {
     this.user = JSON.parse(store.state.user)
+    this.role = this.user?.role
     this.permissions = this.user?.usersPerm
     this.tableReady = true
     this.fetchDealRequests()
@@ -232,6 +235,7 @@ export default {
     hasPerm(permission) {
       return this.permissions && this.permissions.includes(permission)
     },
+    isTeller() { return this.role === config.TELLER_ROLE_NAME },
     fetchDealRequests() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getDealRequests
@@ -254,6 +258,9 @@ export default {
             return
           }
           this.dealRequests = data.data
+          if(this.isTeller()){
+            this.dealRequests = this.dealRequests.filter(d => d.branchId?.branchName === this.user?.user?.branchId?.branchName)
+          }
         })
         .catch((error) => {
           Swal.fire({

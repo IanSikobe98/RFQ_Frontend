@@ -144,7 +144,8 @@ export default {
         { title: 'Deal Code',    data: 'dealerCode' },
         { title: 'Dealer',       data: 'dealerId' },
         { title: 'Order Number', data: 'orderId' },
-        { title: 'Initiator',    data: 'tellerId' }
+        { title: 'Initiator',    data: 'tellerId' },
+        { title: 'Branch',    data: 'branchId.branchName' }
       ]
 
       cols.push({
@@ -364,13 +365,13 @@ export default {
         this.errors.purpose = '*Purpose is required.'
       }
       else if(this.purpose.length<10){
-        this.errors.purpose = '*Please enter a longer purpose entry (minimum characters required).'
+        this.errors.purpose = '*Minimum 10 characters required.'
       }
       if (!this.rfqComment) {
         this.errors.rfqComment = '*Comments is required.'
       }
       else if(this.rfqComment.length<10){
-        this.errors.rfqComment = '*Please enter a longer comment (minimum characters required).'
+        this.errors.rfqComment = '*Minimum 10 characters required.'
       }
       return Object.keys(this.errors).length === 0
     },
@@ -385,7 +386,7 @@ export default {
         this.errors.dealerComment = '*Comments is required.'
       }
       else if(this.dealerComment.length<10){
-        this.errors.dealerComment = '*Please enter a longer comment (minimum characters required).'
+        this.errors.dealerComment = '*Minimum 10 characters required.'
       }
       return Object.keys(this.errors).length === 0
     },
@@ -395,7 +396,7 @@ export default {
         this.errors.negotiatiationComment = '*Negotiation Comment is required.'
       }
       else if(this.negotiatiationComment.length<10){
-        this.errors.negotiatiationComment = '*Please enter a longer comment (minimum characters required).'
+        this.errors.negotiatiationComment = '*Minimum 10 characters required.'
       }
       return Object.keys(this.errors).length === 0
     },
@@ -522,6 +523,8 @@ export default {
             return
           }
           this.dealRequests = data.data
+          //filter to view only items of people in my branch
+          this.dealRequests = this.dealRequests.filter(d => d.branchId?.branchName === this.user?.user?.branchId?.branchName)
         }).catch(() => {
         Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Deal Requests',
           customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
@@ -1215,7 +1218,7 @@ export default {
               <div class="rate-card">
                 <div class="row">
                   <div class="col-md-6"><p>Customer:</p><p><b>{{ row?.customerName }}</b></p></div>
-                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId }}</b></p></div>
+                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId?.branchName }}</b></p></div>
                 </div>
                 <div class="row">
                   <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
@@ -1284,7 +1287,7 @@ export default {
               <div class="rate-card">
                 <div class="row">
                   <div class="col-md-6"><p>Customer:</p><p><b>{{ row?.customerName }}</b></p></div>
-                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId }}</b></p></div>
+                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId?.branchName }}</b></p></div>
                 </div>
                 <div class="row">
                   <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
@@ -1342,7 +1345,7 @@ export default {
               <div class="rate-card">
                 <div class="row">
                   <div class="col-md-6"><p>Customer:</p><p><b>{{ row?.customerName }}</b></p></div>
-                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId }}</b></p></div>
+                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId?.branchName }}</b></p></div>
                 </div>
                 <div class="row">
                   <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
@@ -1390,7 +1393,7 @@ export default {
               <div class="rate-card">
                 <div class="row">
                   <div class="col-md-6"><p>Customer:</p><p><b>{{ row?.customerName }}</b></p></div>
-                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId }}</b></p></div>
+                  <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId?.branchName }}</b></p></div>
                 </div>
                 <div class="row">
                   <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
@@ -1561,7 +1564,22 @@ export default {
               <div class="detail-row"><span class="detail-label">Originator</span><span class="detail-value">{{ row.createdBy }}</span></div>
             </div>
           </div>
-          <div class="detail-card full-width">
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="detail-card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <h6>Branch Information</h6>
+            </div>
+            <div class="detail-card-body">
+              <div class="detail-row"><span class="detail-label">Branch</span><span class="detail-value">{{ row?.branchId?.branchName }}</span></div>
+              <div class="detail-row"><span class="detail-label">Branch initiator(Teller)</span><span class="detail-value">{{ row.tellerId }}</span></div>
+            </div>
+          </div>
+          <div class="detail-card ">
             <div class="detail-card-header">
               <div class="detail-card-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -1578,6 +1596,7 @@ export default {
               </div>
             </div>
           </div>
+
         </div>
       </div>
       <div class="modal-footer justify-content-end">

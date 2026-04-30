@@ -113,8 +113,8 @@ export default {
           console.log("dash data",data)
           this.dashStats = data.entity
           this.stats[0].value = this.dashStats.activeDeals;
-          this.stats[1].value = this.dashStats.successRate +"%";
-          this.stats[2].value = "+"+this.dashStats.weekRate+"%";
+          this.stats[1].value = this.dashStats.successRate.toFixed(2) +"%";
+          this.stats[2].value = "+"+this.dashStats.weekRate.toFixed(2)+"%";
 
         })
         .catch((error) => {

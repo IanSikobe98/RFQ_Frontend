@@ -25,6 +25,7 @@ export default {
         { title: 'Phone', data: 'phone' },
         { title: 'Email', data: 'email' },
         { title: 'Role', data: 'role.roleName' },
+        { title: 'Branch', data: 'branchId.branchName' },
         {
           title: 'Status',
           data: 'status',
