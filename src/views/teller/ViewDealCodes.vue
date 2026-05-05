@@ -251,9 +251,9 @@ export default {
     updateUser() { return updateUser },
     canCreateDealCodeRequests() {return this.hasPerm('CREATE_DEAL_REQUESTS') },
     isWithinOperatingHours() {
-      // console.log("avail",this.availability)
-      // return this.availability === true;
-      return  true
+      console.log("avail",this.availability)
+      return this.availability === true;
+      // return  true
     },
     canApproveDealCodeRequests() { return this.hasPerm('APPROVE_DEAL_REQUESTS') }
   },
