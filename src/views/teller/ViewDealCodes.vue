@@ -48,6 +48,10 @@ export default {
       selectedAccount: '',
       purpose: '',
       bankDirection: '',
+      strongerCurrency: '',
+      weakerCurrency:'',
+      directionCurrency: '',
+      amountCurrency:'',
       updateRateBankDirection: '',
       updateExpectedValue: '',
       amount: '',
@@ -60,9 +64,11 @@ export default {
       idTypeValue: '',
       rateFrom: '',
       multiplyDivide: '',
+      multiplyDivideSign: '',
       rateTo: '',
       rateValue: '',
       expectedValue: '',
+      expectedCurrency: '',
       sourceAccCurrency: '',
       useCurrentRate: true,
       isCustomer: false,
@@ -109,13 +115,13 @@ export default {
         {
           title: 'Amount', data: null,
           render: function (data, type, row) {
-            return `${row.fromCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
+            return `${row.amountCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
           }
         },
         { title: 'Currency Pair', data: 'currencyPair' },
         {
           title: 'Bank direction', data: null,
-          render: function (row) { return `${row.buySell}  ${row.fromCurrency}` }
+          render: function (row) { return `${row.buySell}  ${row.strongCurrency}` }
         },
         {
           title: 'Request Date', data: 'requestDate',
@@ -186,12 +192,12 @@ export default {
         {
           title: 'Amount', data: null,
           render: function (data, type, row) {
-            return `${row.fromCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
+            return `${row.amountCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
           }
         },
         {
           title: 'Bank direction', data: null,
-          render: function (row) { return `${row.buySell}  ${row.fromCurrency}` }
+          render: function (row) { return `${row.buySell}  ${row.strongCurrency}` }
         },
         {
           title: 'Request Date', data: 'requestDate',
@@ -245,8 +251,9 @@ export default {
     updateUser() { return updateUser },
     canCreateDealCodeRequests() {return this.hasPerm('CREATE_DEAL_REQUESTS') },
     isWithinOperatingHours() {
-      console.log("avail",this.availability)
-      return this.availability === true;
+      // console.log("avail",this.availability)
+      // return this.availability === true;
+      return  true
     },
     canApproveDealCodeRequests() { return this.hasPerm('APPROVE_DEAL_REQUESTS') }
   },
@@ -343,6 +350,9 @@ export default {
       this.rateValue = ''
       this.rateTo = ''
       this.bankDirection = ''
+      this.directionCurrency = ''
+      this.expectedValue = ''
+      this.expectedCurrency = ''
     },
     enableRecord(row)  { this.changeStatus(row, '1') },
     disableRecord(row) { this.changeStatus(row, '0') },
@@ -412,8 +422,11 @@ export default {
         customerName: this.selectedAccount?.accountName,
         idNumber: this.customerInfo?.idNumber,
         amount: this.amount,
-        fromCurrency: counterCurrency,
-        toCurrency: accountCurrency,
+        fromCurrency: accountCurrency,
+        toCurrency: counterCurrency,
+        strongCurrency: this.strongerCurrency,
+        weakCurrency: this.weakerCurrency,
+        amountCurrency:this.amountCurrency,
         accountNumber: this.selectedAccount?.accountNumber,
         valueDate: this.valueDate,
         tellerAccountName: !this.isCustomer ? this.selectedAccount?.accountName : '',
@@ -447,7 +460,7 @@ export default {
       if (!this.validateEnterRateForm()) return
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.ammendRate
-      axios.post(url, { orderId: this.row?.id, rate: this.proposedRate, comment: this.dealerComment })
+      axios.post(url, { orderId: this.row?.id, rate: this.proposedRate, comment: this.dealerComment, expectedCurrency: this.expectedCurrency })
         .then((response) => {
           const { responseCode, responseMessage } = response.data
           if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
@@ -585,6 +598,15 @@ export default {
       }).finally(() => { this.loading = false })
     },
 
+    changeCounterCurrency(){
+      this.amountCurrency = ''
+      this.rateFrom = ''
+      this.rateTo = '';
+      this.expectedValue = ''
+      this.expectedCurrency = ''
+      this.checkBankDirection();
+    },
+
     checkBankDirection() {
       if (this.currency && this.selectedAccount && this.action) {
         this.loading = true
@@ -604,6 +626,20 @@ export default {
             Swal.fire({ icon: 'success', title: 'Success!', text: data.responseMessage, timer: 3000,
               customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
             this.bankDirection = data?.entity
+
+            // Rule 1: IF TO_CURRENCY IS STRONGER, THE BANK IS SELLING
+            // Rule 2: IF FROM_CURRENCY IS WEAKER, THE BANK IS SELLING
+            // Rule 3: IF TO_CURRENCY IS WEAKER, THE BANK IS BUYING
+            // Rule 4: IF FROM_CURRENCY IS STRONGER, THE BANK IS BUYING
+            if(this.bankDirection === "Buy"){
+              this.strongerCurrency = fromCurrency
+              this.weakerCurrency = toCurrency
+            }
+            else{
+              this.strongerCurrency = toCurrency
+              this.weakerCurrency = fromCurrency
+            }
+            this.directionCurrency = this.bankDirection +" "+ this.strongerCurrency
             this.fetchExchangeRates()
           }).catch(() => {
           Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Accounts',
@@ -613,7 +649,7 @@ export default {
     },
 
     fetchExchangeRates() {
-      if (this.currency && this.selectedAccount && this.action && this.amount) {
+      if (this.currency && this.selectedAccount && this.action && this.amount && this.amountCurrency) {
         this.loading = true
         const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getSinglePairExchangeRate
         const counterCurrency = this.currency.id
@@ -630,17 +666,50 @@ export default {
           }
           Swal.fire({ icon: 'success', title: 'Success!', text: data.responseMessage, timer: 3000,
             customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
-          this.rateFrom = counterCurrency
-          this.rateTo = accountCurrency
+          // if (this.bankDirection === 'Sell') {
+          //   this.rateValue = data.entity?.sellingRate
+          //   if (this.action === 'CREDIT') { this.rateFrom = accountCurrency; this.rateTo = counterCurrency; this.multiplyDivide = 'D' }
+          //   else if (this.action === 'DEBIT') { this.rateFrom = counterCurrency; this.rateTo = accountCurrency; this.multiplyDivide = 'M' }
+          // } else if (this.bankDirection === 'Buy') {
+          //   this.rateValue = data.entity?.buyingRate
+          //   if (this.action === 'CREDIT') { this.rateFrom = counterCurrency; this.rateTo = accountCurrency; this.multiplyDivide = 'M' }
+          //   else if (this.action === 'DEBIT') { this.rateFrom = accountCurrency; this.rateTo = counterCurrency; this.multiplyDivide = 'D' }
+          // }
+
+
           if (this.bankDirection === 'Sell') {
             this.rateValue = data.entity?.sellingRate
-            if (this.action === 'CREDIT') { this.rateFrom = accountCurrency; this.rateTo = counterCurrency; this.multiplyDivide = 'D' }
-            else if (this.action === 'DEBIT') { this.rateFrom = counterCurrency; this.rateTo = accountCurrency; this.multiplyDivide = 'M' }
           } else if (this.bankDirection === 'Buy') {
             this.rateValue = data.entity?.buyingRate
-            if (this.action === 'CREDIT') { this.rateFrom = counterCurrency; this.rateTo = accountCurrency; this.multiplyDivide = 'M' }
-            else if (this.action === 'DEBIT') { this.rateFrom = accountCurrency; this.rateTo = counterCurrency; this.multiplyDivide = 'D' }
           }
+
+          console.log("this.strongerCurrency",this.strongerCurrency)
+          console.log("this.weakerCurrency",this.weakerCurrency)
+          console.log("acc",accountCurrency)
+          console.log("wee",counterCurrency)
+
+          //determine current rate values
+          if(accountCurrency === this.strongerCurrency ){
+            this.rateFrom = accountCurrency
+            this.rateTo = counterCurrency
+          }
+          else if(counterCurrency  === this.strongerCurrency){
+            this.rateFrom = counterCurrency
+            this.rateTo = accountCurrency
+          }
+
+          //Determine if multiply or divide based on whether the currency selected is multi[ply or divide
+          //Set expected value for weaker and stronger currency
+          if(this.amountCurrency === this.strongerCurrency){
+            this.multiplyDivide = 'M'
+            this.expectedCurrency = this.weakerCurrency
+
+          }
+          else{
+            this.multiplyDivide = 'D'
+            this.expectedCurrency = this.strongerCurrency
+          }
+
           this.expectedValue = this.multiplyDivide === 'M'
             ? Number(this.amount * this.rateValue).toFixed(2)
             : Number(this.amount / this.rateValue).toFixed(2)
@@ -655,10 +724,11 @@ export default {
     },
 
     displayNegotiatedRate() {
-      if (this.updateRateBankDirection === 'Sell') {
-        this.updateExpectedValue = this.row?.counterNominalAmount / this.proposedRate
-      } else if (this.updateRateBankDirection === 'Buy') {
+      if(this.row.amountCurrency === this.row.strongCurrency){
         this.updateExpectedValue = this.row?.counterNominalAmount * this.proposedRate
+      }
+      else{
+        this.updateExpectedValue = this.row?.counterNominalAmount / this.proposedRate
       }
       this.updateExpectedValue = Number(this.updateExpectedValue).toFixed(2)
       this.useUpdateCurrentRate = false
@@ -666,28 +736,47 @@ export default {
     },
 
     updateBankDirection() {
-      this.loading = true
-      const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getCurrencyDirection
-      axios.post(url, { fromCurrency: this.row?.fromCurrency, toCurrency: this.row?.toCurrency })
-        .then((response) => {
-          const data = response.data
-          if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
-              customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
-            return
-          }
-          this.updateRateBankDirection = data?.entity
-          if (this.updateRateBankDirection === 'Sell') {
-            this.updateExpectedValue = Number(this.row?.counterNominalAmount / this.row?.treasuryRate).toFixed(2)
-          } else if (this.updateRateBankDirection === 'Buy') {
-            this.updateExpectedValue = Number(this.row?.counterNominalAmount * this.row?.treasuryRate).toFixed(2)
-          }
+      // this.loading = true
+
+      //Determine if multiply or divide based on whether the currency selected is multi[ply or divide
+      //Set expected value for weaker and stronger currency
+      if(this.row.amountCurrency === this.row.strongCurrency){
+        this.multiplyDivide = 'M'
+        this.expectedCurrency = this.row.weakCurrency
+
+      }
+      else{
+        this.multiplyDivide = 'D'
+        this.expectedCurrency = this.row.strongCurrency
+      }
+
+      this.updateExpectedValue = this.multiplyDivide === 'M'
+        ? Number(this.row?.counterNominalAmount * this.row?.treasuryRate).toFixed(2)
+        : Number(this.row?.counterNominalAmount / this.row?.treasuryRate).toFixed(2)
+
           this.useUpdateCurrentRate = true
           this.useUpdateNegotiatedRate = false
-        }).catch(() => {
-        Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Direction',
-          customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
-      }).finally(() => { this.loading = false })
+      // const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getCurrencyDirection
+      // axios.post(url, { fromCurrency: this.row?.fromCurrency, toCurrency: this.row?.toCurrency })
+      //   .then((response) => {
+      //     const data = response.data
+      //     if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
+      //       Swal.fire({ icon: 'error', title: 'Error!', text: data.responseMessage,
+      //         customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      //       return
+      //     }
+      //     this.updateRateBankDirection = data?.entity
+      //     if (this.updateRateBankDirection === 'Sell') {
+      //       this.updateExpectedValue = Number(this.row?.counterNominalAmount / this.row?.treasuryRate).toFixed(2)
+      //     } else if (this.updateRateBankDirection === 'Buy') {
+      //       this.updateExpectedValue = Number(this.row?.counterNominalAmount * this.row?.treasuryRate).toFixed(2)
+      //     }
+      //     this.useUpdateCurrentRate = true
+      //     this.useUpdateNegotiatedRate = false
+      //   }).catch(() => {
+      //   Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Direction',
+      //     customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
+      // }).finally(() => { this.loading = false })
     },
 
     showApproveDialog(row)  { this.comment = ''; this.row = row; this.showApproveModal = true },
@@ -704,7 +793,7 @@ export default {
     showAmmendRateDialog(row) {
       this.comment = ''
       this.dealerComment = ''
-      this.proposedRate = ''
+      this.proposedRate = this.row?.negotiated_rate
       this.row = row
       this.showAmmendRateModal = true
       this.offerRate = this.row?.treasuryRate
@@ -721,7 +810,16 @@ export default {
       this.comment = ''
       this.showDealDetailsModal = true
     },
-    showTreasuryProposalDialog(row) { this.row = row; this.comment = ''; this.showTreasuryProposalModal = true },
+    showTreasuryProposalDialog(row) { this.row = row;
+      this.comment = '';
+      this.showTreasuryProposalModal = true
+      if(this.row.amountCurrency === this.row.strongCurrency){
+        this.multiplyDivideSign = '*'
+      }
+      else{
+        this.multiplyDivideSign = '/'
+      }
+    },
 
     approveRecord(row)   { this.approveOrReject(row, 'APPROVE') },
     rejectRecord(row)    { this.approveOrReject(row, 'REJECT') },
@@ -1136,20 +1234,30 @@ export default {
             </div>
             <div class="col-md-6">
               <label class="form-label">Counter Currency <span class="text-danger">*</span></label>
-              <select class="form-select modern-select" v-model="currency" @change="checkBankDirection">
+              <select class="form-select modern-select" v-model="currency" @change="changeCounterCurrency">
                 <option value="">Select currency</option>
                 <option v-for="option in filteredCurrencyOptions" :key="option" :value="option">{{ option.id }} - {{ option.name }}</option>
               </select>
               <small v-if="errors.currency" class="text-danger">{{ errors.currency }}</small>
             </div>
-            <div class="col-md-6">
-              <label class="form-label">Counter Currency Amount <span class="text-danger">*</span></label>
+            <div class="col-md-6"  >
+              <label class="form-label">Amount <span class="text-danger">*</span></label>
+              <div class="row">
+              <div class="col-md-3">
+                <select class="form-select modern-select" v-model="amountCurrency" @change="fetchExchangeRates">
+                  <option selected v-if="selectedAccount" >{{ selectedAccount.currency }}</option>
+                  <option v-if = "currency">{{ currency.id }}</option>
+                </select>
+              </div>
+              <div class="col-md-9">
               <input @change="fetchExchangeRates" type="number" class="form-control modern-input" v-model="amount" placeholder="0.00" />
+                </div>
+            </div>
               <small v-if="errors.amount" class="text-danger">{{ errors.amount }}</small>
             </div>
             <div class="col-md-6">
               <label class="form-label">Bank's Direction</label>
-              <input class="form-control modern-input" disabled placeholder="Auto-calculated" v-model="bankDirection" />
+              <input class="form-control modern-input" disabled placeholder="Auto-calculated" v-model="directionCurrency" />
             </div>
             <div class="col-md-6">
               <div class="info-box rate-box">
@@ -1180,7 +1288,7 @@ export default {
                 <div>
                   <p class="info-label" v-if="useCurrentRate">Expected Total (Current Rate)</p>
                   <p class="info-label" v-if="useNegotiatedRate">Expected Total (Negotiated Rate)</p>
-                  <p class="info-value success">{{ expectedValue }} {{ selectedAccount.currency }}</p>
+                  <p class="info-value success">{{ expectedValue }} {{ expectedCurrency }}</p>
                 </div>
               </div>
             </div>
@@ -1221,7 +1329,7 @@ export default {
                   <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId?.branchName }}</b></p></div>
                 </div>
                 <div class="row">
-                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
+                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.amountCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
                   <div class="col-md-6"><p>Currency Pair:</p><p><b>{{ row?.currencyPair }}</b></p></div>
                 </div>
               </div>
@@ -1240,7 +1348,7 @@ export default {
                 <div>
                   <p class="info-label" v-if="useUpdateCurrentRate">Expected Total (Current Rate)</p>
                   <p class="info-label" v-if="useUpdateNegotiatedRate">Expected Total (Proposed Rate)</p>
-                  <p class="info-value success">{{ updateExpectedValue }} {{ row?.toCurrency }}</p>
+                  <p class="info-value success">{{ updateExpectedValue }} {{ this.expectedCurrency }}</p>
                 </div>
               </div>
             </div>
@@ -1290,7 +1398,7 @@ export default {
                   <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId?.branchName }}</b></p></div>
                 </div>
                 <div class="row">
-                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
+                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.amountCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
                   <div class="col-md-6"><p>Currency Pair:</p><p><b>{{ row?.currencyPair }}</b></p></div>
                 </div>
               </div>
@@ -1309,8 +1417,8 @@ export default {
               <div class="info-box total-box">
                 <div>
                   <p class="info-teller-info">Expected Total</p>
-                  <p class="info-value success">{{ row?.expectedAmount }} {{ row?.toCurrency }}</p>
-                  <p class="info-teller-info">{{ row?.counterNominalAmount }} {{ row?.fromCurrency }} * {{ row?.negotiatedRate }}</p>
+                  <p class="info-value success">{{ row?.expectedAmount }} {{ row?.expectedCurrency }}</p>
+                  <p class="info-teller-info">{{ row?.counterNominalAmount }} {{ row?.amountCurrency }} {{ this.multiplyDivideSign }} {{ row?.negotiatedRate }}</p>
                 </div>
               </div>
             </div>
@@ -1348,7 +1456,7 @@ export default {
                   <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId?.branchName }}</b></p></div>
                 </div>
                 <div class="row">
-                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
+                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.amountCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
                   <div class="col-md-6"><p>Currency Pair:</p><p><b>{{ row?.currencyPair }}</b></p></div>
                 </div>
               </div>
@@ -1396,7 +1504,7 @@ export default {
                   <div class="col-md-6"><p>Branch:</p><p><b>{{ row?.branchId?.branchName }}</b></p></div>
                 </div>
                 <div class="row">
-                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.fromCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
+                  <div class="col-md-6"><p>Amount:</p><p><b>{{ row?.amountCurrency }} {{ row?.counterNominalAmount }}</b></p></div>
                   <div class="col-md-6"><p>Currency Pair:</p><p><b>{{ row?.currencyPair }}</b></p></div>
                 </div>
               </div>
@@ -1415,8 +1523,8 @@ export default {
               <div class="info-box total-box">
                 <div>
                   <p class="info-teller-info">Expected Total</p>
-                  <p class="info-value success">{{ row?.expectedAmount }} {{ row?.toCurrency }}</p>
-                  <p class="info-teller-info">{{ row?.counterNominalAmount }} {{ row?.fromCurrency }} * {{ row?.negotiatedRate }}</p>
+                  <p class="info-value success">{{ row?.expectedAmount }} {{ row?.expectedCurrency }}</p>
+                  <p class="info-teller-info">{{ row?.counterNominalAmount }} {{ row?.amountCurrency }} {{ this.multiplyDivideSign}} {{ row?.negotiatedRate }}</p>
                 </div>
               </div>
             </div>
@@ -1539,9 +1647,9 @@ export default {
               <div class="detail-row"><span class="detail-label">Currency Pair</span><span class="detail-value">{{ row?.currencyPair }}</span></div>
               <div class="detail-row">
                 <span class="detail-label">Side</span>
-                <span class="badge" :class="row.buySell === 'BUY' ? 'bg-primary' : 'bg-danger'">{{ row?.buySell}} {{ row.fromCurrency }}</span>
+                <span class="badge" :class="row.buySell === 'BUY' ? 'bg-primary' : 'bg-danger'">{{ row?.buySell}} {{ row.strongCurrency }}</span>
               </div>
-              <div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value">{{ row.fromCurrency }} {{ row?.counterNominalAmount }}</span></div>
+              <div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value">{{ row.amountCurrency }} {{ row?.counterNominalAmount }}</span></div>
               <div class="detail-row"><span class="detail-label">Account</span><span class="detail-value">{{ row?.accountNumber }}</span></div>
               <div class="detail-row"><span class="detail-label">Request Date</span><span class="detail-value">{{ prettyDate(row?.requestDate) }}</span></div>
               <div class="detail-row"><span class="detail-label">Value Date</span><span class="detail-value">{{ row?.valueDate }}</span></div>
@@ -1592,7 +1700,7 @@ export default {
               <div class="rate-info-grid">
                 <div class="rate-info-item"><span class="rate-label">Offer Rate</span><span class="rate-value">{{ row.treasuryRate }}</span></div>
                 <div class="rate-info-item"><span class="rate-label">Negotiated Rate</span><span class="rate-value highlight">{{ row.negotiatedRate }}</span></div>
-                <div class="rate-info-item primary"><span class="rate-label">Expected Total</span><span class="rate-value primary">{{ row.expectedAmount }} {{ row.toCurrency }}</span></div>
+                <div class="rate-info-item primary"><span class="rate-label">Expected Total</span><span class="rate-value primary">{{ row.expectedAmount }} {{ row.expectedCurrency }}</span></div>
               </div>
             </div>
           </div>

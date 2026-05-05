@@ -174,9 +174,17 @@ export default {
       const cols = [
         { title: 'Customer Name', data: 'customerName' },
         { title: 'Account Number', data: 'accountNumber' },
-        { title: 'Amount', data: 'counterNominalAmount' },
+        {
+          title: 'Amount', data: null,
+          render: function (data, type, row) {
+            return `${row.amountCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
+          }
+        },
         { title: 'Currency Pair', data: 'currencyPair' },
-        { title: 'Buy/Sell', data: 'buySell' },
+        {
+          title: 'Bank direction', data: null,
+          render: function (row) { return `${row.buySell}  ${row.strongCurrency}` }
+        },
         {
           title: 'Request Date',
           data: 'requestDate',
