@@ -485,7 +485,7 @@ export default {
 
     fetchThresholdAmount() {
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.validateAmount
-      axios.post(url, { amount: this.amount, currency: this.currency.id })
+      axios.post(url, { amount: this.amount, currency: this.amountCurrency })
         .then((response) => {
           const { responseCode, responseMessage,entity } = response.data
           if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
@@ -2018,7 +2018,7 @@ export default {
 .choice-label    { font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
 .choice-sublabel { font-size: 13px; color: #6b7280; }
 
-/* ── Customer / teller cards ── */
+/* ── Customer / dealCodes cards ── */
 .customer-card, .teller-card {
   background: linear-gradient(135deg,#f0fdf4,#ecfdf5);
   border: 2px solid #d1fae5; border-radius: 16px; padding: 24px;
