@@ -207,6 +207,7 @@ export default {
             if (id === 8) return `<span class="badge bg-purple">Awaiting response</span>`
             if (id === 9) return `<span class="badge bg-warning">Pending</span>`
             if (id === 10) return `<span class="badge bg-orange">Negotiating</span>`
+            if (id === 14) return `<span class="badge bg-dark">Expired</span>`
             return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         },

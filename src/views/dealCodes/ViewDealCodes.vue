@@ -127,7 +127,7 @@ export default {
           title: 'Request Date', data: 'requestDate',
           render: function (data) {
             var a = new Date(data)
-            return a.toISOString().split('T')[0]
+            return a.toLocaleString()
           }
         },
         { title: 'Value Date',      data: 'valueDate' },
@@ -144,14 +144,10 @@ export default {
             if (id === 8) return `<span class="badge bg-purple">Awaiting response</span>`
             if (id === 9) return `<span class="badge bg-warning">Pending</span>`
             if (id === 10) return `<span class="badge bg-warning">Pending</span>`
+            if (id === 14) return `<span class="badge bg-dark">Expired</span>`
             return `<span class="badge bg-primary">${data.statusName}</span>`
           }
-        },
-        { title: 'Deal Code',    data: 'dealerCode' },
-        { title: 'Dealer',       data: 'dealerId' },
-        { title: 'Order Number', data: 'orderId' },
-        { title: 'Initiator',    data: 'tellerId' },
-        { title: 'Branch',    data: 'branchId.branchName' }
+        }
       ]
 
       cols.push({
@@ -170,12 +166,25 @@ export default {
           } else if (row.status.statusId === 3) {
             return `<button class="btn btn-sm btn-warning me-1 dt-viewChat " data-id="${row.id}">View chat</button>
               <button class="btn btn-sm btn-dark dt-retry" data-id="${row.id}">Retry</button>`
-          } else {
+          }
+          else if (row.status.statusId === 14) {
+            return `<button class="btn btn-sm btn-warning me-1 dt-viewChat " data-id="${row.id}">View chat</button>
+              <button class="btn btn-sm btn-dark dt-noAction" data-id="${row.id}">No Action</button>`
+          }
+          else {
             return `<button class="btn btn-sm btn-warning me-1 dt-viewChat disabled" data-id="${row.id}">View chat</button>
                  <button class="btn btn-sm btn-secondary dt-awaiting" data-id="${row.id}">Awaiting...</button>`
           }
         }
       })
+
+      cols.push(
+        { title: 'Deal Code',    data: 'dealerCode' },
+        { title: 'Dealer',       data: 'dealerId' },
+        { title: 'Order Number', data: 'orderId' },
+        { title: 'Initiator',    data: 'tellerId' },
+        { title: 'Branch',    data: 'branchId.branchName' }
+      )
       return cols
     },
 
@@ -203,7 +212,7 @@ export default {
           title: 'Request Date', data: 'requestDate',
           render: function (data) {
             var a = new Date(data)
-            return a.toISOString().split('T')[0]
+            return a.toISOString()
           }
         },
         {
@@ -218,6 +227,7 @@ export default {
             if (id === 8) return `<span class="badge bg-purple">Awaiting response</span>`
             if (id === 9) return `<span class="badge bg-warning">Pending</span>`
             if (id === 10) return `<span class="badge bg-orange">Negotiating</span>`
+            if (id === 14) return `<span class="badge bg-dark">Expired</span>`
             return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         }

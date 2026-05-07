@@ -217,6 +217,13 @@ export default {
           text: 'Rfq was rejected. Rejection reason:'+ comments[comments.length-1]?.comment?.toUpperCase()
         })
       }
+      else if (this.currentStatus === 14) {
+        this.messages.push({
+          type: 'system',
+          title: 'End of conversation',
+          text: 'Rfq has Expired. Expiry reason: DEAL WAS NOT COMPLETED BEFORE END OF DAY'
+        })
+      }
     },
 
     // sendMessage() {
