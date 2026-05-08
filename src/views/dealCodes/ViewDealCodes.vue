@@ -212,7 +212,7 @@ export default {
           title: 'Request Date', data: 'requestDate',
           render: function (data) {
             var a = new Date(data)
-            return a.toISOString()
+            return a.toLocaleString()
           }
         },
         {

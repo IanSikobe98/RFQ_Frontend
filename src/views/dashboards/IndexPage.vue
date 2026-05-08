@@ -17,14 +17,13 @@
 
     <!-- Quick Actions Section -->
     <div class="row mb-4" data-aos="fade-up" data-aos-delay="600">
-
-      <div v-if = "canViewDealCodeRequests" class="col-md-6 mb-4">
+      <div v-if="canViewDealCodeRequests" class="col-md-6 mb-4">
         <div class="action-card action-secondary">
           <div class="action-content">
             <div class="action-icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-                <path d="M9 3V21M3 9H21M3 15H21" stroke="currentColor" stroke-width="2"/>
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" />
+                <path d="M9 3V21M3 9H21M3 15H21" stroke="currentColor" stroke-width="2" />
               </svg>
             </div>
             <div>
@@ -35,7 +34,7 @@
           <button class="action-btn" @click="viewDeals">
             <span>View Deals</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
             </svg>
           </button>
         </div>
@@ -46,7 +45,7 @@
           <div class="action-content">
             <div class="action-icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
               </svg>
             </div>
             <div>
@@ -57,7 +56,7 @@
           <button class="action-btn" @click="convertCurrency">
             <span>Request Currency Conversion</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
             </svg>
           </button>
         </div>
@@ -74,43 +73,45 @@
               <p class="table-subtitle">Recent forex deal requests and their status</p>
             </div>
             <div class="table-actions">
-<!--              <button class="filter-btn">-->
-<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
-<!--                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
-<!--                </svg>-->
-<!--                Filter-->
-<!--              </button>-->
-<!--              <button class="export-btn">-->
-<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
-<!--                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
-<!--                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
-<!--                </svg>-->
-<!--                Export-->
-<!--              </button>              <button class="filter-btn">-->
-<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
-<!--                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
-<!--                </svg>-->
-<!--                Filter-->
-<!--              </button>-->
-<!--              <button class="export-btn">-->
-<!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
-<!--                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
-<!--                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
-<!--                </svg>-->
-<!--                Export-->
-<!--              </button>-->
+              <!--              <button class="filter-btn">-->
+              <!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+              <!--                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+              <!--                </svg>-->
+              <!--                Filter-->
+              <!--              </button>-->
+              <!--              <button class="export-btn">-->
+              <!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+              <!--                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+              <!--                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+              <!--                </svg>-->
+              <!--                Export-->
+              <!--              </button>              <button class="filter-btn">-->
+              <!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+              <!--                  <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+              <!--                </svg>-->
+              <!--                Filter-->
+              <!--              </button>-->
+              <!--              <button class="export-btn">-->
+              <!--                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">-->
+              <!--                  <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+              <!--                  <path d="M3 17V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+              <!--                </svg>-->
+              <!--                Export-->
+              <!--              </button>-->
             </div>
           </div>
 
           <div class="table-body">
             <div class="table-responsive">
-              <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" />
+              <data-table v-if="tableReady" :data="dealRequests" :columns="columns" :isFooter="true" :striped="false" @viewChat="openDealChat"  />
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <DealChatModal :showDealChatModal="showDealChatModal" :row="row" @close="closeDealChat" @action="handleChatAction" />
 </template>
 
 <script>
@@ -123,11 +124,13 @@ import config from '@/config/config'
 import Swal from 'sweetalert2'
 import DataTable from '@/components/DataTable.vue'
 import RateCarousel from '@/components/RateCarousel.vue'
+import DealChatModal from '@/components/DealChatModal.vue'
 
 export default {
   components: {
+    DealChatModal,
     RateCarousel,
-    DataTable,
+    DataTable
   },
   setup() {
     onMounted(() => {
@@ -146,17 +149,19 @@ export default {
     return {
       tableReady: false,
       loading: false,
-      role:'',
+      role: '',
       dealRequests: [],
       permissions: [],
       exchangeRates: [],
+      showDealChatModal: false,
+      row: {},
       currencyOptions: [
         { id: 'USD', name: 'United States Dollar' },
         { id: 'KES', name: 'Kenyan Shilling' },
         { id: 'EUR', name: 'Euro' },
         { id: 'GBP', name: 'British Pound Sterling' },
         { id: 'ZAR', name: 'South African Rand' },
-        { id: 'RWF', name: 'Rwandan Franc' },
+        { id: 'RWF', name: 'Rwandan Franc' }
       ],
       rates: [
         { pair: 'DKK/KES', label: 'Danish Krone / Kenyan Shilling', buy: '-', sell: '22.23928' },
@@ -170,26 +175,32 @@ export default {
   },
   computed: {
     columns() {
+      // const vm = this
+      // const canApprove = this.canApproveDealCodeRequests
       // const canApprove = this.canApproveDealCodeRequests
       const cols = [
         { title: 'Customer Name', data: 'customerName' },
         { title: 'Account Number', data: 'accountNumber' },
         {
-          title: 'Amount', data: null,
+          title: 'Amount',
+          data: null,
           render: function (data, type, row) {
             return `${row.amountCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
           }
         },
         { title: 'Currency Pair', data: 'currencyPair' },
         {
-          title: 'Bank direction', data: null,
-          render: function (row) { return `${row.buySell}  ${row.strongCurrency}` }
+          title: 'Bank direction',
+          data: null,
+          render: function (row) {
+            return `${row.buySell}  ${row.strongCurrency}`
+          }
         },
         {
           title: 'Request Date',
           data: 'requestDate',
           render: function (data) {
-            return new Date(data).toISOString().split('T')[0]
+            return new Date(data).toLocaleString()
           }
         },
         { title: 'Value Date', data: 'valueDate' },
@@ -210,13 +221,22 @@ export default {
             if (id === 14) return `<span class="badge bg-dark">Expired</span>`
             return `<span class="badge bg-primary">${data.statusName}</span>`
           }
-        },
-        { title: 'Deal Code', data: 'dealerCode' },
-        { title: 'Order Number', data: 'orderId' },
-        { title: 'Branch',    data: 'branchId.branchName' }
+        }
       ]
 
+      cols.push({
+        title: 'Actions', data: null, orderable: false, searchable: false,
+        render: function (data, type, row) {
+          // const disabled = vm.availability === true? '' :'disabled'
+            return `<button class="btn btn-sm btn-warning me-1 dt-viewChat " data-id="${row.id}">View chat</button>`
+        }
+      })
 
+      cols.push(
+        { title: 'Deal Code', data: 'dealerCode' },
+        { title: 'Order Number', data: 'orderId' },
+        { title: 'Branch', data: 'branchId.branchName' }
+      )
       return cols
     },
     canCreateDealCodeRequests() {
@@ -226,7 +246,7 @@ export default {
       return this.hasPerm('CONVERT_CURRENCY')
     },
     canViewDealCodeRequests() {
-      return this.hasPerm("VIEW_DEAL_REQUESTS");
+      return this.hasPerm('VIEW_DEAL_REQUESTS')
     },
     canApproveDealCodeRequests() {
       return this.hasPerm('APPROVE_DEAL_REQUESTS')
@@ -244,14 +264,32 @@ export default {
     hasPerm(permission) {
       return this.permissions && this.permissions.includes(permission)
     },
-    isTeller() { return this.role === config.TELLER_ROLE_NAME },
+    isTeller() {
+      return this.role === config.TELLER_ROLE_NAME
+    },
+    openDealChat(row) {
+      this.row = row
+      // this.showNegotiationModal = false   // close the negotiation modal first
+      this.showDealChatModal = true
+    },
+    closeDealChat() {
+      this.showDealChatModal = false
+    },
+    handleChatAction({ action }) {
+      this.showDealChatModal = false
+      if (action === 'accept' || action === 'reject') {
+        this.fetchDealRequests()
+        if (this.isUserDealer) this.fetchPendingDealRequests()
+      }
+    },
     fetchDealRequests() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getDealRequests
       const token = localStorage.getItem('token')
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-      axios.post(url, { page: 0, size: 10 })
+      axios
+        .post(url, { page: 0, size: 10 })
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
@@ -267,8 +305,8 @@ export default {
             return
           }
           this.dealRequests = data.data
-          if(this.isTeller()){
-            this.dealRequests = this.dealRequests.filter(d => d.branchId?.branchName === this.user?.user?.branchId?.branchName)
+          if (this.isTeller()) {
+            this.dealRequests = this.dealRequests.filter((d) => d.branchId?.branchName === this.user?.user?.branchId?.branchName)
           }
         })
         .catch((error) => {
@@ -291,7 +329,8 @@ export default {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.getAllExchangeRates
 
-      axios.post(url, { page: 0, size: 10 })
+      axios
+        .post(url, { page: 0, size: 10 })
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
@@ -308,16 +347,10 @@ export default {
           }
           this.exchangeRates = data?.entity
           this.exchangeRates.forEach((exchangeRate) => {
-            var fromCurrencyString = this.currencyOptions.find(
-              item => item.id === exchangeRate.fromCurrency
-            )?.name;
+            var fromCurrencyString = this.currencyOptions.find((item) => item.id === exchangeRate.fromCurrency)?.name
 
-
-
-            var toCurrencyString = this.currencyOptions.find(
-              item => item.id === exchangeRate.toCurrency
-            )?.name;
-            exchangeRate.label = fromCurrencyString +"/"+toCurrencyString;
+            var toCurrencyString = this.currencyOptions.find((item) => item.id === exchangeRate.toCurrency)?.name
+            exchangeRate.label = fromCurrencyString + '/' + toCurrencyString
           })
           console.log('exchange rates', this.exchangeRates)
         })
@@ -337,12 +370,12 @@ export default {
           this.loading = false
         })
     },
-    viewDeals(){
-      this.$router.push('/viewDealCodes');
+    viewDeals() {
+      this.$router.push('/viewDealCodes')
     },
-    convertCurrency(){
-      this.$router.push('/convertCurrency');
-    },
+    convertCurrency() {
+      this.$router.push('/convertCurrency')
+    }
   }
 }
 </script>
@@ -381,7 +414,8 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
@@ -723,7 +757,6 @@ export default {
   }
 }
 
-
 :deep(.badge.bg-orange) {
   background: linear-gradient(135deg, #fb923c, #ea580c) !important;
   padding: 6px 12px;
@@ -765,5 +798,12 @@ export default {
   padding: 6px 12px;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(75, 85, 99, 0.2);
+}
+:deep(.dt-viewChat) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #fff;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 }
 </style>
