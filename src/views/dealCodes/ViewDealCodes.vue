@@ -378,7 +378,7 @@ export default {
         this.errors.amount = '*Amount is invalid'
       }
       else if(this.selectedAccount && this.selectedAccount.requiresLimit && this.amount < Number(this.thresholdAmount)){
-        this.errors.amount = '*Amount is less than the minimum limit set'
+        this.errors.amount = '*Amount should be greater than '+this.thresholdAmount +' '+this.amountCurrency
       }
       if (!this.valueDate) this.errors.purpose = '*Purpose is required.'
       if (!this.purpose) {
