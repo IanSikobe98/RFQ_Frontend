@@ -501,7 +501,7 @@ export default {
 
     fetchThresholdAmount() {
       const url = env.apiUrl.baseUrl + env.apiUrl.rfq.validateAmount
-      axios.post(url, { amount: this.amount, currency: this.amountCurrency })
+      axios.post(url, { amount: this.amount, currency: this.amountCurrency ,bankDirection:this.bankDirection })
         .then((response) => {
           const { responseCode, responseMessage,entity } = response.data
           if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
@@ -658,7 +658,7 @@ export default {
             this.directionCurrency = this.bankDirection +" "+ this.strongerCurrency
             this.fetchExchangeRates()
           }).catch(() => {
-          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Accounts',
+          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred checking bank direction',
             customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
         }).finally(() => { this.loading = false })
       }
@@ -733,7 +733,7 @@ export default {
           this.useNegotiatedRate = false
           this.fetchThresholdAmount();
         }).catch(() => {
-          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Accounts',
+          Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Exchange rates',
             customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
         }).finally(() => { this.loading = false })
       }
@@ -904,7 +904,7 @@ export default {
           }
           this.accountInfo = data?.entity
         }).catch(() => {
-        Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred fetching Accounts',
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'Error occurred posting deal code',
           customClass: { confirmButton: 'btn btn-success px-4 me-2', cancelButton: 'btn btn-secondary px-4' } })
       }).finally(() => { this.loading = false })
     }
