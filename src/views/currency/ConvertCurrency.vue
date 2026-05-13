@@ -31,8 +31,6 @@ export default {
         { id: 'KES', name: 'Kenyan Shilling' },
         { id: 'EUR', name: 'Euro' },
         { id: 'GBP', name: 'British Pound Sterling' },
-        { id: 'ZAR', name: 'South African Rand' },
-        { id: 'RWF', name: 'Rwandan Franc' },
       ],
     }
   },

@@ -100,8 +100,6 @@ export default {
         { id: 'KES', name: 'Kenyan Shilling' },
         { id: 'EUR', name: 'Euro' },
         { id: 'GBP', name: 'British Pound Sterling' },
-        { id: 'ZAR', name: 'South African Rand' },
-        { id: 'RWF', name: 'Rwandan Franc' }
       ],
       row: {}
     }
@@ -115,7 +113,11 @@ export default {
         {
           title: 'Amount', data: null,
           render: function (data, type, row) {
-            return `${row.amountCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
+            return `${row.amountCurrency} ${Number(row.counterNominalAmount)
+              .toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}`
           }
         },
         { title: 'Currency Pair', data: 'currencyPair' },
@@ -141,7 +143,7 @@ export default {
             if (id === 3) return `<span class="badge bg-danger">Failed</span>`
             if (id === 6) return `<span class="badge bg-warning">Pending</span>`
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            if (id === 8) return `<span class="badge bg-purple">Awaiting response</span>`
+            if (id === 8) return `<span class="badge bg-purple">Active</span>`
             if (id === 9) return `<span class="badge bg-warning">Pending</span>`
             if (id === 10) return `<span class="badge bg-warning">Pending</span>`
             if (id === 14) return `<span class="badge bg-dark">Expired</span>`
@@ -201,7 +203,11 @@ export default {
         {
           title: 'Amount', data: null,
           render: function (data, type, row) {
-            return `${row.amountCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
+            return `${row.amountCurrency} ${Number(row.counterNominalAmount)
+              .toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}`
           }
         },
         {
@@ -224,7 +230,7 @@ export default {
             if (id === 3) return `<span class="badge bg-danger">Failed</span>`
             if (id === 6) return `<span class="badge bg-warning">Pending</span>`
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            if (id === 8) return `<span class="badge bg-purple">Awaiting response</span>`
+            if (id === 8) return `<span class="badge bg-purple">Active</span>`
             if (id === 9) return `<span class="badge bg-warning">Pending</span>`
             if (id === 10) return `<span class="badge bg-orange">Negotiating</span>`
             if (id === 14) return `<span class="badge bg-dark">Expired</span>`
@@ -1648,7 +1654,7 @@ export default {
                   'bg-success': row?.status?.statusId === 1, 'bg-warning': row?.status?.statusId === 6 || row?.status?.statusId === 9 ,
                   'bg-purple': row?.status?.statusId === 8, 'bg-orange': row?.status?.statusId === 10,
                   'bg-danger': row?.status?.statusId === 0, 'bg-dark': row?.status?.statusId === 7
-                }">{{ row?.status?.statusId === 8 ?'Awaiting Response':
+                }">{{ row?.status?.statusId === 8 ?'Active':
                       row?.status?.statusId === 9 ?'Pending':
                         row?.status?.statusId === 10 ?'Negotiating':
                           row?.status?.statusName

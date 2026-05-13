@@ -185,7 +185,11 @@ export default {
           title: 'Amount',
           data: null,
           render: function (data, type, row) {
-            return `${row.amountCurrency} ${Number(row.counterNominalAmount).toFixed(2)}`
+            return `${row.amountCurrency} ${Number(row.counterNominalAmount)
+              .toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}`
           }
         },
         { title: 'Currency Pair', data: 'currencyPair' },
@@ -215,7 +219,7 @@ export default {
             if (id === 3) return `<span class="badge bg-danger">Failed</span>`
             if (id === 6) return `<span class="badge bg-warning">Pending</span>`
             if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            if (id === 8) return `<span class="badge bg-purple">Awaiting response</span>`
+            if (id === 8) return `<span class="badge bg-purple">Active</span>`
             if (id === 9) return `<span class="badge bg-warning">Pending</span>`
             if (id === 10) return `<span class="badge bg-orange">Negotiating</span>`
             if (id === 14) return `<span class="badge bg-dark">Expired</span>`
