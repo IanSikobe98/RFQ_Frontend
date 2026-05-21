@@ -1489,7 +1489,7 @@ export default {
             </div>
             <div class="col-md-12">
               <div class="info-box total-box">
-                <div><p class="info-teller-info">Deal Code</p><p class="info-value success">{{ dealCode }}</p></div>
+                <div><p class="info-teller-info">Deal Code</p><p class="info-value success">{{ row?.dealerCode }}</p></div>
               </div>
             </div>
           </div>
