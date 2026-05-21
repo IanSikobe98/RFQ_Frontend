@@ -1,8 +1,8 @@
 export default {
     apiUrl: {
-        baseUrl: 'http://localhost:9072/rfqService/api/v1',
+        // baseUrl: 'http://localhost:9072/rfqService/api/v1',
       //SIT
-      // baseUrl: 'http://10.0.1.209:9072/rfqService/api/v1',
+      baseUrl: 'http://10.0.1.209:9072/rfqService/api/v1',
         auth: {
             login: '/auth/authenticate',
             validateOtp: '/auth/validateOtp',
@@ -54,8 +54,8 @@ export default {
       }
     }
     ,websocketUrl:{
-      baseUrl: 'http://localhost:9072/rfqService/ws/notifications',
+      // baseUrl: 'http://localhost:9072/rfqService/ws/notifications',
     //SIT
-    // baseUrl: 'http://10.0.1.209:9072/rfqService/ws/notifications',
+    baseUrl: 'http://10.0.1.209:9072/rfqService/ws/notifications',
     }
 }

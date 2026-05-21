@@ -90,7 +90,7 @@ export default {
       availability: true,
       valueDate: new Date().toISOString().split('T')[0],
       options: [
-        { id: 'COR',   name: 'Certificate of Registration' },
+        // { id: 'COR',   name: 'Certificate of Registration' },
         { id: 'NATID', name: 'National id' },
         { id: 'ACCNO', name: 'Account Number' }
       ],
