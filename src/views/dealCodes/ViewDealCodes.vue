@@ -405,7 +405,7 @@ export default {
       this.errors = {}
       if (!this.proposedRate) {
         this.errors.proposedRate = '*proposed rate is required.'
-      } else if (!config.CURRENCY_REGEX.test(this.proposedRate)) {
+      } else if (!config.RATE_REGEX.test(this.proposedRate)) {
         this.errors.proposedRate = '*Proposed rate is invalid'
       }
       if (!this.dealerComment) {

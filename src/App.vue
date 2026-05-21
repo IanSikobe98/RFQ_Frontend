@@ -36,6 +36,8 @@ import WebSocketService from '@/util/websocketService'
 import { useStore } from 'vuex'
 import '@/plugins/styles'
 import store1 from '@/store'
+import router from '@/router'
+// import env from '@/environment/environment'
 
 export default {
   name: 'App',
@@ -71,6 +73,44 @@ export default {
       if (index !== -1) toasts.value.splice(index, 1)
     }
 
+    const requestNotificationPermission = async () => {
+      if (!("Notification" in window)) {
+        console.log("Browser does not support notifications")
+        return
+      }
+
+      if (Notification.permission === "default") {
+        await Notification.requestPermission()
+      }
+    }
+
+    const showDesktopNotification = (title, message) => {
+      if (Notification.permission === "granted") {
+        const notification  = new Notification(title, {
+          body: message,
+          icon: "/favicon.ico"
+        })
+
+        // ACTION CLICK
+        notification.onclick = () => {
+          window.focus()
+
+          // Open page
+          router.push('/viewDealCodes')
+
+          notification.close()
+        }
+
+        // AUTO DISMISS AFTER 15s
+        setTimeout(() => {
+          notification.close()
+        }, 15000)
+
+      }
+    }
+
+
+
     // ── Sidebar resize ───────────────────────────────────────────
     const sidebarType = computed(() => store.getters['setting/sidebar_type'])
     const resizePlugin = () => {
@@ -99,6 +139,7 @@ export default {
     onMounted(() => {
       window.addEventListener('resize', resizePlugin)
       setTimeout(() => resizePlugin(), 200)
+      requestNotificationPermission()
       const user = JSON.parse(store1.state.user);
       if(user){
         WebSocketService.connect(user)
@@ -111,6 +152,11 @@ export default {
         const title = data.notificationType || 'New Notification'
         const message = data.message || ''
         showToast(type, title, message)
+
+        // 2. Desktop notification (outside browser)
+        showDesktopNotification(title, message)
+
+
 
         // ✅ Also store it in Vuex
         store.dispatch('notifications/addNotification', data)
