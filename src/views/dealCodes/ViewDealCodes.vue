@@ -19,8 +19,8 @@ export default {
       user: {},
       isUserTeller: false,
       isUserDealer: false,
-      tabs: ['Active', 'Pending'],
-      activeTab: 'Active',
+      tabs: ['Negotiations', 'Active'],
+      activeTab: 'Negotiations',
       accounts: [],
       accountInfo: {},
       customerInfo: {},
@@ -138,15 +138,15 @@ export default {
           title: 'Deal Status', data: 'status',
           render: function (data) {
             const id = Number(data.statusId)
-            if (id === 1) return `<span class="badge bg-success">Accepted</span>`
+            if (id === 1) return `<span class="badge bg-blue">Accepted</span>`
             if (id === 0) return `<span class="badge bg-danger">Inactive</span>`
-            if (id === 3) return `<span class="badge bg-danger">Failed</span>`
-            if (id === 6) return `<span class="badge bg-warning">Pending</span>`
-            if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            if (id === 8) return `<span class="badge bg-purple">Active</span>`
-            if (id === 9) return `<span class="badge bg-warning">Pending</span>`
-            if (id === 10) return `<span class="badge bg-warning">Pending</span>`
-            if (id === 14) return `<span class="badge bg-dark">Expired</span>`
+            if (id === 3) return `<span class="badge bg-darkRed">Failed</span>`
+            if (id === 6) return `<span class="badge bg-orange">Pending</span>`
+            if (id === 7) return `<span class="badge bg-danger">Rejected</span>`
+            if (id === 8) return `<span class="badge bg-success">Active</span>`
+            if (id === 9) return `<span class="badge bg-orange">Pending</span>`
+            if (id === 10) return `<span class="badge bg-orange">Negotiating</span>`
+            if (id === 14) return `<span class="badge dt-noAction">Expired</span>`
             return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         }
@@ -225,15 +225,15 @@ export default {
           title: 'Deal Status', data: 'status',
           render: function (data) {
             const id = Number(data.statusId)
-            if (id === 1) return `<span class="badge bg-success">Accepted</span>`
+            if (id === 1) return `<span class="badge bg-blue">Accepted</span>`
             if (id === 0) return `<span class="badge bg-danger">Inactive</span>`
-            if (id === 3) return `<span class="badge bg-danger">Failed</span>`
-            if (id === 6) return `<span class="badge bg-warning">Pending</span>`
-            if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            if (id === 8) return `<span class="badge bg-purple">Active</span>`
-            if (id === 9) return `<span class="badge bg-warning">Pending</span>`
+            if (id === 3) return `<span class="badge bg-darkRed">Failed</span>`
+            if (id === 6) return `<span class="badge bg-orange">Pending</span>`
+            if (id === 7) return `<span class="badge bg-danger">Rejected</span>`
+            if (id === 8) return `<span class="badge bg-success">Active</span>`
+            if (id === 9) return `<span class="badge bg-orange">Pending</span>`
             if (id === 10) return `<span class="badge bg-orange">Negotiating</span>`
-            if (id === 14) return `<span class="badge bg-dark">Expired</span>`
+            if (id === 14) return `<span class="badge dt-noAction">Expired</span>`
             return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         }
@@ -1009,11 +1009,11 @@ export default {
 <!--                  <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
 <!--                </svg>-->
                 {{ tab }}
-                <span v-if="tab === 'Active' && pendingNegotiationRequests.length"
+                <span v-if="tab === 'Negotiations' && pendingNegotiationRequests.length"
                       :class="['tab-count', { 'tab-count--active': activeTab === tab }]">
                   {{ pendingNegotiationRequests.length }}
                 </span>
-                <span v-if="tab === 'Pending' && pendingTellerRequests.length"
+                <span v-if="tab === 'Active' && pendingTellerRequests.length"
                       :class="['tab-count', { 'tab-count--active': activeTab === tab }]">
                   {{ pendingTellerRequests.length }}
                 </span>
@@ -1024,11 +1024,11 @@ export default {
 <!--                :style="{ transform: activeTab === 'Active' ? 'translateX(0%)' : 'translateX(100%)' }"-->
 <!--              ></div>-->
             </div>
-            <div v-show="activeTab === 'Active'" class="table-responsive">
+            <div v-show="activeTab === 'Negotiations'" class="table-responsive">
               <data-table v-if="tableReady" :data="pendingNegotiationRequests" :columns="dealerColumns"
                           :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
             </div>
-            <div v-show="activeTab === 'Pending'" class="table-responsive">
+            <div v-show="activeTab === 'Active'" class="table-responsive">
               <data-table v-if="tableReady" :data="pendingTellerRequests" :columns="dealerColumns"
                           :isFooter="true" :striped="false" @edit="showAmmendRateDialog" @view="showDetailsDialog" />
             </div>
@@ -1853,6 +1853,13 @@ export default {
   box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
 }
 
+:deep(.badge.bg-blue) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+}
+
 /* Custom Badge Styles */
 :deep(.badge.bg-success) {
   background: linear-gradient(135deg, #10b981, #059669) !important;
@@ -1866,6 +1873,13 @@ export default {
   padding: 6px 12px;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+:deep(.badge.bg-darkRed) {
+  background: linear-gradient(135deg, #991b1b, #7f1d1d) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(127, 29, 29, 0.3);
 }
 
 :deep(.badge.bg-warning) {

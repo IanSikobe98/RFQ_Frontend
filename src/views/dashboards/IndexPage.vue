@@ -214,15 +214,15 @@ export default {
           data: 'status',
           render: function (data) {
             const id = Number(data.statusId)
-            if (id === 1) return `<span class="badge bg-success">Accepted</span>`
+            if (id === 1) return `<span class="badge bg-blue">Accepted</span>`
             if (id === 0) return `<span class="badge bg-danger">Inactive</span>`
-            if (id === 3) return `<span class="badge bg-danger">Failed</span>`
-            if (id === 6) return `<span class="badge bg-warning">Pending</span>`
-            if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            if (id === 8) return `<span class="badge bg-purple">Active</span>`
-            if (id === 9) return `<span class="badge bg-warning">Pending</span>`
+            if (id === 3) return `<span class="badge bg-darkRed">Failed</span>`
+            if (id === 6) return `<span class="badge bg-orange">Pending</span>`
+            if (id === 7) return `<span class="badge bg-danger">Rejected</span>`
+            if (id === 8) return `<span class="badge bg-success">Active</span>`
+            if (id === 9) return `<span class="badge bg-orange">Pending</span>`
             if (id === 10) return `<span class="badge bg-orange">Negotiating</span>`
-            if (id === 14) return `<span class="badge bg-dark">Expired</span>`
+            if (id === 14) return `<span class="badge dt-noAction">Expired</span>`
             return `<span class="badge bg-primary">${data.statusName}</span>`
           }
         }
@@ -699,6 +699,132 @@ export default {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
+
+
+:deep(.dt-retry) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #fff;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+:deep(.dt-viewChat) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #fff;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+:deep(.dt-awaiting) {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+  color: #374151;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(107, 114, 128, 0.2);
+}
+
+:deep(.viewRate) {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+}
+
+:deep(.viewDetails) {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+  color: #374151;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(107, 114, 128, 0.2);
+}
+
+
+:deep(.dt-approve) {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+:deep(.dt-noAction) {
+  background: linear-gradient(135deg, #4b5563, #374151) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(75, 85, 99, 0.2);
+}
+
+:deep(.ammendDeal) {
+  background: linear-gradient(135deg, #fb923c, #ea580c) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(251, 146, 60, 0.25);
+}
+
+:deep(.pickDeal) {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+}
+
+:deep(.badge.bg-orange) {
+  background: linear-gradient(135deg, #fb923c, #ea580c) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(251, 146, 60, 0.25);
+}
+
+:deep(.badge.bg-purple) {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+}
+
+:deep(.badge.bg-blue) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+}
+
+/* Custom Badge Styles */
+:deep(.badge.bg-success) {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+:deep(.badge.bg-danger) {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+:deep(.badge.bg-darkRed) {
+  background: linear-gradient(135deg, #991b1b, #7f1d1d) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(127, 29, 29, 0.3);
+}
+
+:deep(.badge.bg-warning) {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+:deep(.badge.bg-dark) {
+  background: linear-gradient(135deg, #4b5563, #374151) !important;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(75, 85, 99, 0.2);
+}
 @media (max-width: 768px) {
   .main-content-wrapper {
     min-height: auto;
