@@ -238,6 +238,7 @@ export default {
 
       cols.push(
         { title: 'Deal Code', data: 'dealerCode' },
+        { title: 'Dealer',       data: 'dealerId' },
         { title: 'Order Number', data: 'orderId' },
         { title: 'Branch', data: 'branchId.branchName' }
       )
