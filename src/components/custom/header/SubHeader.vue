@@ -1,5 +1,25 @@
 <template>
   <div class="iq-navbar-header modern-header">
+<!--    <div v-if ="showBanner" class="notif-banner" @click.self="$emit('close')">-->
+<!--      <b-row>-->
+<!--      <p>Get real-time updates on approvals and RFQs?</p>-->
+<!--      </b-row>-->
+<!--      <b-row>-->
+<!--        <b-col cols="6">-->
+<!--      <button class=" action-btn"  @click="enableNotifications">-->
+<!--        Enable-->
+<!--      </button>-->
+<!--        </b-col>-->
+<!--        <b-col  cols="6">-->
+<!--      <button class="action-btn" @click="dismiss" >-->
+<!--        Not now-->
+<!--      </button>-->
+<!--        </b-col>-->
+<!--      </b-row>-->
+<!--    </div>-->
+<!--    <div v-if ="showAlert" class="notif-banner " @click.self="$emit('close')">-->
+<!--      <p>{{ alertMessage }}</p>-->
+<!--    </div>-->
     <b-container fluid class="iq-container">
       <b-row>
         <b-col md="12">
@@ -64,6 +84,9 @@ export default {
       username: '',
       dashStats: {},
       role: '',
+      showBanner: false,
+      showAlert:false,
+      alertMessage: '',
       stats: [
         {
           icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -83,13 +106,61 @@ export default {
       ]
     }
   },
-  mounted() {
+  async mounted() {
+    console.log("is secure", window.isSecureContext);
+    const oldPerm = Notification.permission;
+    console.log("OLD permission", oldPerm);
+    if(oldPerm !== "granted") {
+      const permission = await Notification.requestPermission();
+      const permissioN2 = await Notification.requestPermission();
+      console.log("new permission", permission);
+      console.log("new permission", permissioN2);
+    }
+
     this.user = JSON.parse(store.state.user)
     this.username = this.user?.user?.username || 'User'
     this.role = this.user?.role
     this.fetchDashboardStatistics();
+
+    // Only show if not already granted/denied
+    if ("Notification" in window) {
+      console.log("OLD permission", Notification.permission);
+      if (Notification.permission === "default") {
+        this.showBanner = true;
+      }
+    }
   },
   methods:{
+    // async enableNotifications() {
+    //   console.log("Enable")
+    //   const permission = await Notification.requestPermission();
+    //   console.log("permission",permission);
+    //   if (permission === "granted") {
+    //     new Notification("Notifications enabled 🎉", {
+    //       body: "You will now receive updates"
+    //     });
+    //
+    //     this.showBanner = false;
+    //   }
+    //
+    //   if (permission === "denied") {
+    //    this.alertMessage = "You blocked notifications. Enable them in browser settings.";
+    //    this.showAlert = true;
+    //     this.showBanner = false;
+    //   }
+    //
+    //   if (permission === "default") {
+    //     this.alertMessage = "Browser blocked Notifications. Kindly Enable them in browser settings.";
+    //     this.showAlert = true;
+    //     this.showBanner = false;
+    //   }
+    // },
+    // dismiss() {
+    //   console.log("Disable")
+    //   this.showBanner = false;
+    //   // Optional: store in localStorage so it doesn’t keep appearing
+    //   localStorage.setItem("notif_prompt_dismissed", "true");
+    // },
     fetchDashboardStatistics() {
       this.loading = true
       const url = env.apiUrl.baseUrl + env.apiUrl.dashboard.fetchDashStats
@@ -528,4 +599,94 @@ export default {
     height: 22px;
   }
 }
+.notif-banner {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 90%;
+  max-width: 520px;
+
+  background: #ffffff;
+  color: #000000;
+  border-left: 5px solid #2f80ed;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+
+  padding: 16px 18px;
+  align-items: center;
+  justify-content: space-between;
+
+  font-family: Arial, sans-serif;
+
+  animation: slideDown 0.4s ease-out;
+  z-index: 9999;
+}
+
+.action-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+
+.action-secondary .action-btn {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.action-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.action-btn svg {
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.action-btn:hover svg {
+  transform: translateX(6px);
+}
+
+.action-btn span {
+  position: relative;
+  z-index: 1;
+}
+
 </style>

@@ -3,6 +3,8 @@ export default {
         baseUrl: 'http://localhost:9072/rfqService/api/v1',
       //SIT
       // baseUrl: 'http://10.0.1.209:9072/rfqService/api/v1',
+      //PREPROD
+      // baseUrl: 'https://rfq.kingdombankltd.co.ke/rfqService/api/v1',
         auth: {
             login: '/auth/authenticate',
             validateOtp: '/auth/validateOtp',
@@ -57,5 +59,7 @@ export default {
       baseUrl: 'http://localhost:9072/rfqService/ws/notifications',
     //SIT
     // baseUrl: 'http://10.0.1.209:9072/rfqService/ws/notifications',
+    //PREPROD
+    // baseUrl: 'https://rfq.kingdombankltd.co.ke/rfqService/ws/notifications',
     }
 }
