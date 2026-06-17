@@ -36,8 +36,8 @@ import WebSocketService from '@/util/websocketService'
 import { useStore } from 'vuex'
 import '@/plugins/styles'
 import store1 from '@/store'
-import router from '@/router'
-// import env from '@/environment/environment'
+// import router from '@/router'
+// // import env from '@/environment/environment'
 
 export default {
   name: 'App',
@@ -84,28 +84,69 @@ export default {
       }
     }
 
-    const showDesktopNotification = (title, message) => {
-      if (Notification.permission === "granted") {
-        const notification  = new Notification(title, {
+    const showDesktopNotification = async  (title, message) => {
+      // if (Notification.permission === "granted") {
+      //   const notification  = new Notification(title, {
+      //     body: message,
+      //     icon: "/favicon.ico"
+      //   })
+      //
+      //   // ACTION CLICK
+      //   notification.onclick = () => {
+      //     window.focus()
+      //
+      //     // Open page
+      //     router.push('/viewDealCodes')
+      //
+      //     notification.close()
+      //   }
+      //
+      //   // AUTO DISMISS AFTER 15s
+      //   setTimeout(() => {
+      //     notification.close()
+      //   }, 15000)
+      //
+      // }
+
+
+      if (Notification.permission !== 'granted') {
+        return
+      }
+
+      if(title === 'Welcome'){
+        return;
+      }
+
+      try {
+
+        // Use Service Worker notification
+        const registration = await navigator.serviceWorker.ready
+
+        await registration.showNotification(title, {
           body: message,
-          icon: "/favicon.ico"
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+
+          requireInteraction: true,
+
+          data: {
+            url: '/viewDealCodes'
+          },
+
+          actions: [
+            {
+              action: 'view',
+              title: 'Action'
+            },
+            {
+              action: 'dismiss',
+              title: 'Dismiss'
+            }
+          ]
         })
 
-        // ACTION CLICK
-        notification.onclick = () => {
-          window.focus()
-
-          // Open page
-          router.push('/viewDealCodes')
-
-          notification.close()
-        }
-
-        // AUTO DISMISS AFTER 15s
-        setTimeout(() => {
-          notification.close()
-        }, 15000)
-
+      } catch (error) {
+        console.error('Notification error:', error)
       }
     }
 
@@ -136,10 +177,22 @@ export default {
     }
 
     // ── Lifecycle ────────────────────────────────────────────────
-    onMounted(() => {
+    onMounted(async() => {
+
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js')
+          console.log('✅ Service Worker registered', registration)
+        } catch (error) {
+          console.error('❌ Service Worker registration failed', error)
+        }
+      }
+
+
       window.addEventListener('resize', resizePlugin)
       setTimeout(() => resizePlugin(), 200)
-      requestNotificationPermission()
+      await requestNotificationPermission()
       const user = JSON.parse(store1.state.user);
       if(user){
         WebSocketService.connect(user)
@@ -147,8 +200,9 @@ export default {
       WebSocketService.subscribe((data) => {
         console.log("🔔 Notification received globally:", data)
 
+        if (data && data.message) {
         // 🔔 Show toast based on notification type
-        const type =  'info'   // use data.type if your backend sends it
+        const type = 'info'   // use data.type if your backend sends it
         const title = data.notificationType || 'New Notification'
         const message = data.message || ''
         showToast(type, title, message)
@@ -157,9 +211,9 @@ export default {
         showDesktopNotification(title, message)
 
 
-
         // ✅ Also store it in Vuex
         store.dispatch('notifications/addNotification', data)
+      }
       })
     })
 
