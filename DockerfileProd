@@ -1,0 +1,10 @@
+# react-app/Dockerfile
+FROM nginx:alpine
+
+# Copy built react app
+COPY build/ /usr/share/nginx/html/rfqfrontend/
+
+# Copy nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80

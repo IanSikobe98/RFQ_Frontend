@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rfq-frontend
+spec:
+  selector:
+    matchLabels:
+      app: rfq-frontend
+  replicas: 1
+  revisionHistoryLimit: 5
+  template:
+    metadata:
+      labels:
+        app: rfq-frontend
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: rfq-frontend
+          image: kblregistry.kingdombankltd.local:5000/cbs/rfq-frontend:1.0
+          resources:
+            requests:
+              cpu: 100m
+              memory: 300Mi
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          # 👆 No volumeMounts needed — nginx.conf is already in the image
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rfq-frontend-svc
+spec:
+  selector:
+    app: rfq-frontend
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+  externalIPs:
+    - 172.16.X.X  # replace with your assigned IP
