@@ -68,6 +68,15 @@ export default {
     canUpdateThresholdAmount () {
       return this.hasPerm("CONFIGURE_THRESHOLD_AMOUNT");
     },
+    canApproveBranches () {
+      return this.hasPerm("APPROVE_BRANCHES");
+    },
+    canViewBranches () {
+      return this.hasPerm("VIEW_BRANCHES");
+    },
+    canCreateBranches () {
+      return this.hasPerm("CREATE_BRANCHES");
+    },
     notifications() {
       return this.$store.getters['notifications/all']
     }
@@ -308,6 +317,58 @@ export default {
             :route="{ to: 'default.updateLimit' }"
           ></side-menu>
 
+        </b-collapse>
+      </side-menu>
+
+
+      <!-- Branches-->
+      <side-menu
+        v-if="canViewBranches"
+        title="Branches"
+        icon="user-group"
+        toggle-id="branches"
+        :caret-icon="true"
+        :route="{ popup: 'false', to: 'branch' }"
+        @onClick="toggle"
+        :active="currentRoute.includes('branch')"
+      >
+        <b-collapse
+          tag="ul"
+          class="sub-nav"
+          id="branches"
+          accordion="sidebar-menu"
+          :visible="currentRoute.includes('branch')"
+        >
+          <side-menu
+            v-if="canCreateBranches"
+            isTag="router-link"
+            title="Create Branch"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="CU"
+            :route="{ to: 'default.createBranch' }"
+          ></side-menu>
+          <side-menu
+            v-if="canViewBranches"
+            isTag="router-link"
+            title="View Branches"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="VU"
+            :route="{ to: 'default.viewBranches' }"
+          ></side-menu>
+          <side-menu
+            v-if="canApproveBranches"
+            isTag="router-link"
+            title="Branch Approvals"
+            icon="circle"
+            :icon-size="10"
+            icon-type="solid"
+            miniTitle="UA"
+            :route="{ to: 'default.viewBranchApprovals' }"
+          ></side-menu>
         </b-collapse>
       </side-menu>
 

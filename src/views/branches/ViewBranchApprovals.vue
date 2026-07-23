@@ -5,66 +5,9 @@ import axios from 'axios'
 import config from '@/config/config'
 import Swal from 'sweetalert2'
 import AppLoader from '@/components/loader/AppLoader.vue'
-import updateUser from '@/views/user/UpdateUser.vue'
 import store from '@/store'
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
 
 export default {
-  computed: {
-    canCreateUsers () {
-      return this.hasPerm("CREATE_USERS");
-    },
-    updateUser() {
-      return updateUser
-    },
-    columns() {
-      const canUpdateUser = this.canUpdateUsers;
-      const cols = [
-        { title: 'Name', data: 'username' },
-        { title: 'Phone', data: 'phone' },
-        { title: 'Email', data: 'email' },
-        { title: 'Role', data: 'role.roleName' },
-        { title: 'Branch', data: 'branchId.branchName' },
-        {
-          title: 'Status',
-          data: 'status',
-          render: function(data) {
-            const id = Number(data.statusId)
-            if (id === 1) return `<span class="badge bg-success">Active</span>`
-            if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
-            if (id === 6) return `<span class="badge bg-warning">Pending</span>`
-            if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            return data
-          }
-        }
-      ];
-
-      if (canUpdateUser) {
-        cols.push(
-          {
-            title: 'Actions',
-            data: null,
-            orderable: false,
-            searchable: false,
-            render: function(data, type, row) {
-              const activeDisabled = row.status.statusId === 0 ? '' : 'disabled'
-              const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
-              return `
-    <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}">Edit</button>
-    <button class="btn btn-sm btn-success me-1 dt-enable" data-id="${row.id}" ${activeDisabled}>Enable</button>
-    <button class="btn btn-sm btn-danger me-1 dt-disable" data-id="${row.id}" ${inactiveDisabled}>Disable</button>`
-            }
-          }
-        )
-      }
-      return cols;
-    },
-
-    canUpdateUsers () {
-      return this.hasPerm("UPDATE_USERS");
-    },
-  },
   components: { AppLoader, DataTable },
   data() {
     return {
@@ -72,94 +15,98 @@ export default {
       permissions: [],
       user: {},
       users: [],
-      showEnableModal: false,
-      showDisableModal: false,
+      branches: [],
+      showApproveModal: false,
+      showRejectModal: false,
       loading: false,
       comment: '',
       row: {}
     }
   },
+  computed:{
+    columns () {
+      const canApproveBranch = this.canApproveBranches;
+      const cols = [
+        { title: 'Branch Name', data: 'branchName' },
+        { title: 'Branch Code', data: 'branchCode' },
+        { title: 'Bank Code', data: 'bankCode' },
+        // { title: 'New Status', data: 'entityStatusName' },
+        { title: 'Action', data: 'action' },
+        {
+          title: 'Status',
+          data: 'status',
+          render: function (data) {
+            const id = Number(data.statusId)
+            if (id === 1) return `<span class="badge bg-success">Active</span>`
+            if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
+            if (id === 6) return `<span class="badge bg-warning">Pending</span>`
+            if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
+            return data
+          }
+        },
+      ]
+
+      if(canApproveBranch) {
+        cols.push({
+          title: 'Actions',
+          data: null,
+          orderable: false,
+          searchable: false,
+          render: function(data, type, row) {
+            const approveDisabled = row.status.statusId === 6 ? '' : 'disabled'
+            return `<button class="btn btn-sm btn-success me-1 dt-approve" data-id="${row.id}" ${approveDisabled}>Approve</button>
+                   <button class="btn btn-sm btn-danger dt-reject" data-id="${row.id}" ${approveDisabled}>Reject</button>`
+          }
+        })
+      }
+
+      return cols;
+    },
+    canApproveBranches () {
+      return this.hasPerm("APPROVE_BRANCHES");
+    },
+  },
   mounted() {
     this.user = JSON.parse(store.state.user);
     this.permissions = this.user?.usersPerm;
     this.tableReady = true;
-    this.fetchUsers()
+    this.fetchBranches()
   },
   methods: {
-    exportToExcel() {
-
-      const users = this.users; // your response.data
-
-      // Flatten the data
-      const formattedData = users.map(user => ({
-        Name: user.username,
-        Phone: user.phone,
-        Email: user.email,
-        Role: user.role?.roleName,
-        Status: user.status?.statusName,
-        CreatedBy: user.createdBy,
-        DateAdded: new Date(user.dateAdded).toLocaleString()
-      }));
-
-      // Convert JSON to worksheet
-      const worksheet = XLSX.utils.json_to_sheet(formattedData);
-
-      // Create workbook
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
-
-      // Generate Excel file
-      const excelBuffer = XLSX.write(workbook, {
-        bookType: "xlsx",
-        type: "array"
-      });
-
-      const fileData = new Blob([excelBuffer], {
-        type: "application/octet-stream"
-      });
-
-      saveAs(fileData, "users.xlsx");
-    },
     hasPerm (permission) {
       return this.permissions && this.permissions.includes(permission)
     },
-    editUsers(item){
-      console.log("user ",JSON.stringify(item))
-      localStorage.setItem("selectedUser", JSON.stringify(item))
-      this.$router.push('/updateUser');
-    },
-    showEnableDialog(row) {
+    showApproveDialog(row) {
       this.comment = ''
       this.row = row
-      this.showEnableModal = true
+      this.showApproveModal = true
     },
-    showDisableDialog(row) {
+    showRejectionDialog(row) {
       this.comment = ''
       this.row = row
-      this.showDisableModal= true
+      this.showRejectModal = true
     },
 
-    enableRecord(row) {
-      this.changeStatus(row, '1')
+    approveRecord(row) {
+      this.approveOrReject(row, 'APPROVE')
     },
-    disableRecord(row) {
-      this.changeStatus(row, '0')
+    rejectRecord(row) {
+      this.approveOrReject(row, 'REJECT')
     },
-    createUser(){
-      this.$router.push('/createUser');
-    },
-    changeStatus(row,status) {
+
+    approveOrReject(row, action) {
+      console.log(action, row,"x")
       this.loading = true
-      this.message = ''
+      var url = env.apiUrl.baseUrl + env.apiUrl.approvals.approveEntity
+      var ids = []
+      ids.push(this.row?.id)
 
-      var url = env.apiUrl.baseUrl + env.apiUrl.user.editUser
-      console.log('status', url)
-      console.log('row ', url)
-      this.row = row
       axios
         .post(url, {
-          status: status,
-          id: this.row?.userId
+          ids: ids,
+          action: action,
+          description: this.comment,
+          approvalType: 'BRANCH'
         })
         .then((response) => {
           var data = response.data
@@ -190,17 +137,17 @@ export default {
               cancelButton: 'btn btn-secondary px-4'
             }
           })
-          console.log('User Update Request created successfully  ', this.userName)
-          this.fetchUsers()
+          console.log('User approved successfully  ')
+          this.fetchBranches()
         })
         .catch((error) => {
           console.log('Error is ', error)
-          this.errorMessage = 'User Update error'
+          this.errorMessage = 'User Approval error'
           console.log(this.errorMessage)
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'An error occurred during User Update',
+            text: 'An error occurred during User Approval',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2',
               cancelButton: 'btn btn-secondary px-4'
@@ -209,19 +156,19 @@ export default {
         })
         .finally(() => {
           this.loading = false
-          this.showEnableModal = false
-          this.showDisableModal = false
+          if (action === 'APPROVE') {
+            this.showApproveModal = false
+          } else {
+            this.showRejectModal = false
+          }
         })
     },
-
-    fetchUsers() {
+    fetchBranches() {
       this.loading = true
-      const url = env.apiUrl.baseUrl + env.apiUrl.user.getUsers
-      const token = localStorage.getItem('token')
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
+      const url = env.apiUrl.baseUrl + env.apiUrl.branch.getPendingBranches
+      var statuses = [6];// Pending Status
       axios
-        .post(url, { page: 0, size: 10 })
+        .post(url, {statuses:statuses, page: 0, size: 10 })
         .then((response) => {
           const data = response.data
           if (data.responseCode !== config.SUCCESS_RESPONSE_CODE) {
@@ -236,13 +183,13 @@ export default {
             })
             return
           }
-          this.users = data.data
+          this.branches = data.data
         })
         .catch((error) => {
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'Error occurred fetching Users',
+            text: 'Error occurred fetching Branches',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2',
               cancelButton: 'btn btn-secondary px-4'
@@ -274,38 +221,15 @@ export default {
             <div class="header-content">
               <div class="header-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 1.17157 16.1716C0.421427 16.9217 0 17.9391 0 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M17 11L19 13L23 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
               <div>
-                <h4 class="table-title">System Users</h4>
-                <p class="table-subtitle">Manage user accounts and permissions</p>
+                <h4 class="table-title">Branch Approvals</h4>
+                <p class="table-subtitle">Review and approve pending branch requests</p>
               </div>
-            </div>
-            <div class="header-content">
-            <div class="header-actions">
-              <button v-if="canCreateUsers" class="create-users-btn" @click="createUser">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M20 8V14M17 11H23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Create User</span>
-              </button>
-            </div>
-            <div class="header-actions">
-              <button  class="create-users-btn" @click="exportToExcel">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M5 21H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>Download</span>
-              </button>
-            </div>
             </div>
 <!--            <div class="table-actions">-->
 <!--              <button class="filter-btn">-->
@@ -329,13 +253,12 @@ export default {
             <div class="table-responsive">
               <data-table
                 v-if="tableReady"
-                :data="users"
+                :data="branches"
                 :columns="columns"
                 :isFooter="true"
                 :striped="false"
-                @enable="showEnableDialog"
-                @disable="showDisableDialog"
-                @edit="editUsers"
+                @approve="showApproveDialog"
+                @reject="showRejectionDialog"
               />
             </div>
           </div>
@@ -344,12 +267,12 @@ export default {
     </div>
   </div>
 
-  <!-- Enable User Modal -->
-  <div v-if="showEnableModal" class="modal-backdrop">
+  <!-- Approve Modal -->
+  <div v-if="showApproveModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-approve">
-        <h5 class="modal-title text-white">Enable User</h5>
-        <button class="modal-close-btn" @click="showEnableModal = false">
+        <h5 class="modal-title text-white">Approve User</h5>
+        <button class="modal-close-btn" @click="showApproveModal = false">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -360,26 +283,26 @@ export default {
             <path d="M22 4L12 14.01L9 11.01" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <p class="modal-question">Enable this user account?</p>
+        <p class="modal-question">Approve this branch?</p>
         <p class="modal-description">
-          You are about to enable <strong>{{ row?.username }}</strong>. This will grant them access to the system.
+          You are about to approve <strong>{{ row?.branchName }}</strong>. This branch request will be Approved
         </p>
       </div>
       <div class="modal-footer justify-content-center">
-        <button class="btn btn-outline-secondary px-4 me-2" @click="showEnableModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="enableRecord(row)">
-          <i class="fas fa-check me-2"></i>Enable
+        <button class="btn btn-outline-secondary px-4 me-2" @click="showApproveModal = false">Cancel</button>
+        <button class="btn btn-success px-4" @click="approveRecord(row)">
+          <i class="fas fa-check me-2"></i>Approve
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Disable User Modal -->
-  <div v-if="showDisableModal" class="modal-backdrop">
+  <!-- Reject Modal -->
+  <div v-if="showRejectModal" class="modal-backdrop">
     <div class="custom-modal">
       <div class="modal-header modal-header-reject">
-        <h5 class="modal-title text-white">Disable User</h5>
-        <button class="modal-close-btn" @click="showDisableModal = false">
+        <h5 class="modal-title text-white">Reject User</h5>
+        <button class="modal-close-btn" @click="showRejectModal = false">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -390,15 +313,31 @@ export default {
             <path d="M15 9L9 15M9 9L15 15" stroke="#dc3545" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </div>
-        <p class="modal-question">Disable this user account?</p>
+        <p class="modal-question">Reject this branch?</p>
         <p class="modal-description">
-          You are about to disable <strong>{{ row?.username }}</strong>. This will revoke their system access.
+          You are about to reject <strong>{{ row?.branchName }}</strong>. Please provide a reason for rejection.
         </p>
+
+        <div class="comment-section">
+          <label for="rejectComment" class="comment-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Comments (Optional)
+          </label>
+          <textarea
+            id="rejectComment"
+            class="comment-textarea"
+            v-model="comment"
+            rows="3"
+            placeholder="Explain why you're rejecting this user..."
+          ></textarea>
+        </div>
       </div>
       <div class="modal-footer justify-content-center">
-        <button class="btn btn-outline-secondary px-4 me-2" @click="showDisableModal = false">Cancel</button>
-        <button class="btn btn-danger px-4" @click="disableRecord(row)">
-          <i class="fas fa-times me-2"></i>Disable
+        <button class="btn btn-outline-secondary px-4 me-2" @click="showRejectModal = false">Cancel</button>
+        <button class="btn btn-danger px-4" @click="rejectRecord(row)">
+          <i class="fas fa-times me-2"></i>Reject
         </button>
       </div>
     </div>
@@ -540,37 +479,25 @@ export default {
 }
 
 /* Action Buttons */
-:deep(.dt-edit) {
-  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-  border: none !important;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
-}
-
-:deep(.dt-edit):hover {
-  background: linear-gradient(135deg, #d97706, #b45309) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-}
-
-:deep(.dt-enable) {
+:deep(.dt-approve) {
   background: linear-gradient(135deg, #10b981, #059669) !important;
   border: none !important;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
 }
 
-:deep(.dt-enable):hover {
+:deep(.dt-approve):hover {
   background: linear-gradient(135deg, #059669, #047857) !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-:deep(.dt-disable) {
+:deep(.dt-reject) {
   background: linear-gradient(135deg, #ef4444, #dc2626) !important;
   border: none !important;
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
-:deep(.dt-disable):hover {
+:deep(.dt-reject):hover {
   background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
@@ -649,8 +576,7 @@ export default {
 }
 
 .modal-body {
-  padding: 32px 28px;
-  text-align: center;
+  padding: 28px;
 }
 
 .modal-icon {
@@ -671,12 +597,14 @@ export default {
   font-size: 18px;
   font-weight: 600;
   color: #1f2937;
+  text-align: center;
   margin-bottom: 12px;
 }
 
 .modal-description {
   font-size: 14px;
   color: #6b7280;
+  text-align: center;
   margin-bottom: 0;
 }
 
@@ -687,28 +615,48 @@ export default {
   gap: 12px;
 }
 
-.create-users-btn {
+/* Comment Section */
+.comment-section {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.comment-label {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border: none;
-  border-radius: 12px;
-  color: white;
+  font-size: 13px;
   font-weight: 600;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.comment-label svg {
+  stroke: #059669;
+}
+
+.comment-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
   font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  font-weight: 500;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  resize: vertical;
+  min-height: 80px;
 }
 
-.create-users-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+.comment-textarea:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+  outline: none;
 }
 
+.comment-textarea::placeholder {
+  color: #9ca3af;
+}
 
 /* Buttons */
 .btn {
@@ -810,11 +758,6 @@ export default {
   .header-icon {
     width: 44px;
     height: 44px;
-  }
-
-  .header-icon svg {
-    width: 20px;
-    height: 20px;
   }
 
   .modal-question {

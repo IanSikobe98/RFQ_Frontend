@@ -12,35 +12,29 @@ import { saveAs } from "file-saver";
 
 export default {
   computed: {
-    canCreateUsers () {
-      return this.hasPerm("CREATE_USERS");
+    canCreateBranches () {
+      return this.hasPerm("CREATE_BRANCHES");
     },
     updateUser() {
       return updateUser
     },
     columns() {
-      const canUpdateUser = this.canUpdateUsers;
+      const canUpdateBranch = this.canUpdateBranches
       const cols = [
-        { title: 'Name', data: 'username' },
-        { title: 'Phone', data: 'phone' },
-        { title: 'Email', data: 'email' },
-        { title: 'Role', data: 'role.roleName' },
-        { title: 'Branch', data: 'branchId.branchName' },
+        { title: 'Branch Name', data: 'branchName' },
+        { title: 'Branch Code', data: 'branchCode' },
+        { title: 'Bank Code', data: 'bankCode' },
+        { title: 'Created By', data: 'createdBy' },
         {
-          title: 'Status',
-          data: 'status',
-          render: function(data) {
-            const id = Number(data.statusId)
-            if (id === 1) return `<span class="badge bg-success">Active</span>`
-            if (id === 0) return `<span class="badge bg-danger ">Inactive</span>`
-            if (id === 6) return `<span class="badge bg-warning">Pending</span>`
-            if (id === 7) return `<span class="badge bg-dark">Rejected</span>`
-            return data
+          title: 'Request Date', data: 'dateCreated',
+          render: function (data) {
+            var a = new Date(data)
+            return a.toLocaleString()
           }
-        }
+        },
       ];
 
-      if (canUpdateUser) {
+      if (canUpdateBranch) {
         cols.push(
           {
             title: 'Actions',
@@ -48,12 +42,10 @@ export default {
             orderable: false,
             searchable: false,
             render: function(data, type, row) {
-              const activeDisabled = row.status.statusId === 0 ? '' : 'disabled'
-              const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
+              // const activeDisabled = row.status.statusId === 0 ? '' : 'disabled'
+              // const inactiveDisabled = row.status.statusId === 1 ? '' : 'disabled'
               return `
-    <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}">Edit</button>
-    <button class="btn btn-sm btn-success me-1 dt-enable" data-id="${row.id}" ${activeDisabled}>Enable</button>
-    <button class="btn btn-sm btn-danger me-1 dt-disable" data-id="${row.id}" ${inactiveDisabled}>Disable</button>`
+    <button class="btn btn-sm btn-warning me-1 dt-edit" data-id="${row.id}">Edit</button>`
             }
           }
         )
@@ -61,8 +53,8 @@ export default {
       return cols;
     },
 
-    canUpdateUsers () {
-      return this.hasPerm("UPDATE_USERS");
+    canUpdateBranches () {
+      return this.hasPerm("UPDATE_BRANCHES");
     },
   },
   components: { AppLoader, DataTable },
@@ -72,6 +64,7 @@ export default {
       permissions: [],
       user: {},
       users: [],
+      branches:[],
       showEnableModal: false,
       showDisableModal: false,
       loading: false,
@@ -83,22 +76,20 @@ export default {
     this.user = JSON.parse(store.state.user);
     this.permissions = this.user?.usersPerm;
     this.tableReady = true;
-    this.fetchUsers()
+    this.fetchBranches()
   },
   methods: {
     exportToExcel() {
 
-      const users = this.users; // your response.data
+      const branches = this.branches; // your response.data
 
       // Flatten the data
-      const formattedData = users.map(user => ({
-        Name: user.username,
-        Phone: user.phone,
-        Email: user.email,
-        Role: user.role?.roleName,
-        Status: user.status?.statusName,
-        CreatedBy: user.createdBy,
-        DateAdded: new Date(user.dateAdded).toLocaleString()
+      const formattedData = branches.map(branch => ({
+        BranchName: branch.branchName,
+        BranchCode: branch.branchCode,
+        BankCode: branch.bankCode,
+        CreatedBy: branch.createdBy,
+        DateAdded: new Date(branch.dateCreated).toLocaleString()
       }));
 
       // Convert JSON to worksheet
@@ -106,7 +97,7 @@ export default {
 
       // Create workbook
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Branches");
 
       // Generate Excel file
       const excelBuffer = XLSX.write(workbook, {
@@ -118,15 +109,15 @@ export default {
         type: "application/octet-stream"
       });
 
-      saveAs(fileData, "users.xlsx");
+      saveAs(fileData, "branches.xlsx");
     },
     hasPerm (permission) {
       return this.permissions && this.permissions.includes(permission)
     },
-    editUsers(item){
-      console.log("user ",JSON.stringify(item))
-      localStorage.setItem("selectedUser", JSON.stringify(item))
-      this.$router.push('/updateUser');
+    editBranches(item){
+      console.log("branch ",JSON.stringify(item))
+      localStorage.setItem("selectedBranch", JSON.stringify(item))
+      this.$router.push('/updateBranch');
     },
     showEnableDialog(row) {
       this.comment = ''
@@ -145,81 +136,13 @@ export default {
     disableRecord(row) {
       this.changeStatus(row, '0')
     },
-    createUser(){
-      this.$router.push('/createUser');
-    },
-    changeStatus(row,status) {
-      this.loading = true
-      this.message = ''
-
-      var url = env.apiUrl.baseUrl + env.apiUrl.user.editUser
-      console.log('status', url)
-      console.log('row ', url)
-      this.row = row
-      axios
-        .post(url, {
-          status: status,
-          id: this.row?.userId
-        })
-        .then((response) => {
-          var data = response.data
-          var responseCode = data.responseCode
-          var responseMessage = data.responseMessage
-          if (responseCode !== config.SUCCESS_RESPONSE_CODE) {
-            this.responseMessage = responseMessage
-            this.errorMessage = responseMessage
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: this.responseMessage,
-              customClass: {
-                confirmButton: 'btn btn-success px-4 me-2',
-                cancelButton: 'btn btn-secondary px-4'
-              }
-            })
-            console.log(this.responseMessage)
-            return
-          }
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: responseMessage,
-            timer: 3000,
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-          console.log('User Update Request created successfully  ', this.userName)
-          this.fetchUsers()
-        })
-        .catch((error) => {
-          console.log('Error is ', error)
-          this.errorMessage = 'User Update error'
-          console.log(this.errorMessage)
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'An error occurred during User Update',
-            customClass: {
-              confirmButton: 'btn btn-success px-4 me-2',
-              cancelButton: 'btn btn-secondary px-4'
-            }
-          })
-        })
-        .finally(() => {
-          this.loading = false
-          this.showEnableModal = false
-          this.showDisableModal = false
-        })
+    createBranch(){
+      this.$router.push('/createBranch');
     },
 
-    fetchUsers() {
+    fetchBranches() {
       this.loading = true
-      const url = env.apiUrl.baseUrl + env.apiUrl.user.getUsers
-      const token = localStorage.getItem('token')
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
+      const url = env.apiUrl.baseUrl + env.apiUrl.branch.getBranches
       axios
         .post(url, { page: 0, size: 10 })
         .then((response) => {
@@ -236,13 +159,13 @@ export default {
             })
             return
           }
-          this.users = data.data
+          this.branches = data.data
         })
         .catch((error) => {
           Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'Error occurred fetching Users',
+            text: 'Error occurred fetching Branches',
             customClass: {
               confirmButton: 'btn btn-success px-4 me-2',
               cancelButton: 'btn btn-secondary px-4'
@@ -281,19 +204,19 @@ export default {
                 </svg>
               </div>
               <div>
-                <h4 class="table-title">System Users</h4>
-                <p class="table-subtitle">Manage user accounts and permissions</p>
+                <h4 class="table-title">Branches</h4>
+                <p class="table-subtitle">Manage branches</p>
               </div>
             </div>
             <div class="header-content">
             <div class="header-actions">
-              <button v-if="canCreateUsers" class="create-users-btn" @click="createUser">
+              <button v-if="canCreateBranches" class="create-users-btn" @click="createBranch">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <path d="M20 8V14M17 11H23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span>Create User</span>
+                <span>Create Branch</span>
               </button>
             </div>
             <div class="header-actions">
@@ -305,7 +228,6 @@ export default {
                 </svg>
                 <span>Download</span>
               </button>
-            </div>
             </div>
 <!--            <div class="table-actions">-->
 <!--              <button class="filter-btn">-->
@@ -323,19 +245,19 @@ export default {
 <!--              </button>-->
 <!--            </div>-->
           </div>
-
+          </div>
           <!-- Table Body -->
           <div class="table-body">
             <div class="table-responsive">
               <data-table
                 v-if="tableReady"
-                :data="users"
+                :data="branches"
                 :columns="columns"
                 :isFooter="true"
                 :striped="false"
                 @enable="showEnableDialog"
                 @disable="showDisableDialog"
-                @edit="editUsers"
+                @edit="editBranches"
               />
             </div>
           </div>
@@ -344,65 +266,65 @@ export default {
     </div>
   </div>
 
-  <!-- Enable User Modal -->
-  <div v-if="showEnableModal" class="modal-backdrop">
-    <div class="custom-modal">
-      <div class="modal-header modal-header-approve">
-        <h5 class="modal-title text-white">Enable User</h5>
-        <button class="modal-close-btn" @click="showEnableModal = false">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="modal-icon success">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-            <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.7088 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.76489 14.1003 1.98232 16.07 2.86" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M22 4L12 14.01L9 11.01" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <p class="modal-question">Enable this user account?</p>
-        <p class="modal-description">
-          You are about to enable <strong>{{ row?.username }}</strong>. This will grant them access to the system.
-        </p>
-      </div>
-      <div class="modal-footer justify-content-center">
-        <button class="btn btn-outline-secondary px-4 me-2" @click="showEnableModal = false">Cancel</button>
-        <button class="btn btn-success px-4" @click="enableRecord(row)">
-          <i class="fas fa-check me-2"></i>Enable
-        </button>
-      </div>
-    </div>
-  </div>
+<!--  &lt;!&ndash; Enable User Modal &ndash;&gt;-->
+<!--  <div v-if="showEnableModal" class="modal-backdrop">-->
+<!--    <div class="custom-modal">-->
+<!--      <div class="modal-header modal-header-approve">-->
+<!--        <h5 class="modal-title text-white">Enable User</h5>-->
+<!--        <button class="modal-close-btn" @click="showEnableModal = false">-->
+<!--          <i class="fas fa-times"></i>-->
+<!--        </button>-->
+<!--      </div>-->
+<!--      <div class="modal-body">-->
+<!--        <div class="modal-icon success">-->
+<!--          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">-->
+<!--            <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.7088 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.76489 14.1003 1.98232 16.07 2.86" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--            <path d="M22 4L12 14.01L9 11.01" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--          </svg>-->
+<!--        </div>-->
+<!--        <p class="modal-question">Enable this user account?</p>-->
+<!--        <p class="modal-description">-->
+<!--          You are about to enable <strong>{{ row?.username }}</strong>. This will grant them access to the system.-->
+<!--        </p>-->
+<!--      </div>-->
+<!--      <div class="modal-footer justify-content-center">-->
+<!--        <button class="btn btn-outline-secondary px-4 me-2" @click="showEnableModal = false">Cancel</button>-->
+<!--        <button class="btn btn-success px-4" @click="enableRecord(row)">-->
+<!--          <i class="fas fa-check me-2"></i>Enable-->
+<!--        </button>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
 
-  <!-- Disable User Modal -->
-  <div v-if="showDisableModal" class="modal-backdrop">
-    <div class="custom-modal">
-      <div class="modal-header modal-header-reject">
-        <h5 class="modal-title text-white">Disable User</h5>
-        <button class="modal-close-btn" @click="showDisableModal = false">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="modal-icon danger">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="#dc3545" stroke-width="2"/>
-            <path d="M15 9L9 15M9 9L15 15" stroke="#dc3545" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <p class="modal-question">Disable this user account?</p>
-        <p class="modal-description">
-          You are about to disable <strong>{{ row?.username }}</strong>. This will revoke their system access.
-        </p>
-      </div>
-      <div class="modal-footer justify-content-center">
-        <button class="btn btn-outline-secondary px-4 me-2" @click="showDisableModal = false">Cancel</button>
-        <button class="btn btn-danger px-4" @click="disableRecord(row)">
-          <i class="fas fa-times me-2"></i>Disable
-        </button>
-      </div>
-    </div>
-  </div>
+<!--  &lt;!&ndash; Disable User Modal &ndash;&gt;-->
+<!--  <div v-if="showDisableModal" class="modal-backdrop">-->
+<!--    <div class="custom-modal">-->
+<!--      <div class="modal-header modal-header-reject">-->
+<!--        <h5 class="modal-title text-white">Disable User</h5>-->
+<!--        <button class="modal-close-btn" @click="showDisableModal = false">-->
+<!--          <i class="fas fa-times"></i>-->
+<!--        </button>-->
+<!--      </div>-->
+<!--      <div class="modal-body">-->
+<!--        <div class="modal-icon danger">-->
+<!--          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">-->
+<!--            <circle cx="12" cy="12" r="10" stroke="#dc3545" stroke-width="2"/>-->
+<!--            <path d="M15 9L9 15M9 9L15 15" stroke="#dc3545" stroke-width="2" stroke-linecap="round"/>-->
+<!--          </svg>-->
+<!--        </div>-->
+<!--        <p class="modal-question">Disable this user account?</p>-->
+<!--        <p class="modal-description">-->
+<!--          You are about to disable <strong>{{ row?.username }}</strong>. This will revoke their system access.-->
+<!--        </p>-->
+<!--      </div>-->
+<!--      <div class="modal-footer justify-content-center">-->
+<!--        <button class="btn btn-outline-secondary px-4 me-2" @click="showDisableModal = false">Cancel</button>-->
+<!--        <button class="btn btn-danger px-4" @click="disableRecord(row)">-->
+<!--          <i class="fas fa-times me-2"></i>Disable-->
+<!--        </button>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
 </template>
 
 <style scoped>

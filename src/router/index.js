@@ -14,6 +14,10 @@ import ViewDealCodes from '@/views/dealCodes/ViewDealCodes.vue'
 import ConvertCurrency from '@/views/currency/ConvertCurrency.vue'
 import ConfigureAvailabilitySchedule from '@/views/configurations/ConfigureAvailabilitySchedule.vue'
 import ConfigureAmountLimit from '@/views/configurations/ConfigureAmountLimit.vue'
+import CreateBranch from '@/views/branches/CreateBranch.vue'
+import ViewBranches from '@/views/branches/ViewBranches.vue'
+import ViewBranchApprovals from '@/views/branches/ViewBranchApprovals.vue'
+import UpdateBranch from '@/views/branches/UpdateBranch.vue'
 
 
 const defaultChildRoutes = (prefix) => [
@@ -105,6 +109,33 @@ const defaultChildRoutes = (prefix) => [
     component: ConfigureAmountLimit
   },
 
+  {
+    path: '/createBranch',
+    name: prefix + '.createBranch',
+    meta: { auth: true, name: 'CreateBranch', isBanner: true, requiresAuth: true },
+    component: CreateBranch
+  },
+
+  {
+    path: '/viewBranches',
+    name: prefix + '.viewBranches',
+    meta: { auth: true, name: 'ViewBranch', isBanner: true, requiresAuth: true },
+    component: ViewBranches
+  },
+
+  {
+    path: '/updateBranch',
+    name: prefix + '.updateBranch',
+    meta: { auth: true, name: 'UpdateBranch', isBanner: true, requiresAuth: true },
+    component: UpdateBranch
+  },
+
+  {
+    path: '/viewBranchApprovals',
+    name: prefix + '.viewBranchApprovals',
+    meta: { auth: true, name: 'ViewBranchApprovals', isBanner: true, requiresAuth: true },
+    component: ViewBranchApprovals
+  },
 
 ]
 
